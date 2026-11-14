@@ -20,15 +20,18 @@ async function login(page: Page, project: string) {
 
 const ui = {
   openAuctionTab: (page: Page) => page.getByRole("button", { name: "Leilão", exact: true }).click(),
-  card: (page: Page, title: string) =>
-    page.getByRole("heading", { name: title, exact: true }).locator('xpath=ancestor::div[contains(@class,"group")][1]'),
-  openBid: (page: Page, title: string) => ui.card(page, title).getByRole("button", { name: /Dar Lance|Aumentar/ }).click(),
-  confirmBid: (page: Page) => page.getByRole("button", { name: "Confirmar Lance", exact: true }).click(),
-  withdraw: (page: Page, title: string) => ui.card(page, title).getByRole("button", { name: "Retirar meu lance" }).click(),
+  openBid: (page: Page, itemId: string) => page.getByTestId(`auction-bid-${itemId}`).click(),
+  confirmBid: (page: Page) => page.getByTestId("bid-confirm").click(),
+  withdraw: (page: Page, itemId: string) => page.getByTestId(`auction-withdraw-${itemId}`).click(),
 };
 
-/** Mesma regra do servidor (placeAuctionBid): aberto a partir das 19h de Recife (UTC-3). */
-const auctionOpenNow = () => new Date(Date.now() - 3 * 3600 * 1000).getUTCHours() >= 19;
+/**
+ * A regra real fica no servidor (placeAuctionBid: aberto a partir das 19h de Recife, UTC-3).
+ * O teste só precisa saber o que esperar: por padrão usa a hora real; para simular o leilão aberto
+ * em qualquer horário, rode o servidor com o relógio deslocado e defina B3D_E2E_AUCTION_OPEN=1.
+ */
+const auctionOpenNow = () =>
+  process.env.B3D_E2E_AUCTION_OPEN === "1" || new Date(Date.now() - 3 * 3600 * 1000).getUTCHours() >= 19;
 
 test.describe.configure({ mode: "serial" });
 test.afterAll(async () => db.$disconnect());
@@ -72,6 +75,8 @@ test("aluno vê prêmios e saldo, e nenhum nome de colega", async ({ page }, inf
 
   await expect(page.getByRole("heading", { name: x.itemA.title, exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: x.itemB.title, exact: true })).toBeVisible();
+  await expect(page.getByTestId("auction-balance")).toContainText("1.000"); // saldo disponível sempre visível
+  await expect(page.getByTestId(`auction-item-${x.itemB.id}`)).toContainText("Outro aluno"); // líder sem nome
   await expect(page.getByText("1.000").first()).toBeVisible(); // saldo em fichas
 
   // privacidade: nem na tela nem na API aparece o nome de quem lidera
@@ -84,7 +89,7 @@ test("lance, reserva e saldo conferem no banco (e retirar libera as fichas)", as
   const x = fixtures(info.project.name);
   await login(page, info.project.name);
   await ui.openAuctionTab(page);
-  await ui.openBid(page, x.itemA.title);
+  await ui.openBid(page, x.itemA.id);
   await ui.confirmBid(page);
 
   if (!auctionOpenNow()) {
@@ -107,7 +112,7 @@ test("lance, reserva e saldo conferem no banco (e retirar libera as fichas)", as
   expect(api.studentCoins).toMatchObject({ coinBalance: 1000, reservedCoins: 150, availableCoins: 850 });
 
   // Retirar o lance libera a reserva.
-  await ui.withdraw(page, x.itemA.title);
+  await ui.withdraw(page, x.itemA.id);
   await expect
     .poll(async () => (await db.coinReservation.findFirst({ where: { studentId: x.studentId, itemId: x.itemA.id } }))?.status)
     .toBe("RELEASED");
