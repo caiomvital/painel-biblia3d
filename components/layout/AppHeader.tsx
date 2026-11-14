@@ -15,10 +15,9 @@ interface AppHeaderProps {
     role: 'ALUNO' | 'PROFESSOR' | 'SECRETARIA' | 'DIRETOR';
   } | null;
   onLogout: () => void;
-  onSwitchRole?: (role: 'ALUNO' | 'PROFESSOR' | 'SECRETARIA' | 'DIRETOR') => void;
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({ user, onLogout, onSwitchRole }) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ user, onLogout }) => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'DIRETOR':
@@ -75,43 +74,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ user, onLogout, onSwitchRo
           <PWAInstallButton compact />
           {user && <PanelColorPicker />}
           {user && <PanelTools role={user.role} />}
-
-          {/* Quick Switch Role Pills (Visual UI Preview for dev only - does not grant API permissions) */}
-          {process.env.NODE_ENV === 'development' && user && onSwitchRole && (
-            <div className="hidden md:flex items-center gap-1 bg-slate-950/80 border border-slate-800 p-1 rounded-xl text-[10px]" title="Ferramenta de visualização da UI. Não altera permissões reais de sessão.">
-              <span className="text-slate-500 px-1 font-semibold">Preview UI:</span>
-              <button
-                onClick={() => onSwitchRole('DIRETOR')}
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  user.role === 'DIRETOR'
-                    ? 'bg-amber-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                👑 Diretor
-              </button>
-              <button
-                onClick={() => onSwitchRole('PROFESSOR')}
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  user.role === 'PROFESSOR'
-                    ? 'bg-amber-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                👨‍🏫 Professor
-              </button>
-              <button
-                onClick={() => onSwitchRole('ALUNO')}
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  user.role === 'ALUNO'
-                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                🎓 Aluno
-              </button>
-            </div>
-          )}
 
           {user && (
             <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-slate-800">
