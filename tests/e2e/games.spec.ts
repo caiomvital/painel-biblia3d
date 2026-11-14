@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { db, ids, password } from "./data";
 
 /**
@@ -96,7 +98,7 @@ test("cabeçalhos de segurança e permissões da rota de jogar", async ({ page, 
   const ok = await page.request.get(`/api/games/${x.approved.id}/play`);
   expect(ok.status()).toBe(200);
   const csp = ok.headers()["content-security-policy"] ?? "";
-  for (const part of ["sandbox allow-scripts", "default-src 'none'", "connect-src 'none'", "form-action 'none'", "base-uri 'none'"]) expect(csp).toContain(part);
+  for (const part of ["sandbox allow-scripts", "default-src 'none'", "connect-src 'none'", "form-action 'none'", "base-uri 'none'", "frame-ancestors 'self'"]) expect(csp).toContain(part);
   expect(ok.headers()["x-content-type-options"]).toBe("nosniff");
   expect(ok.headers()["cache-control"]).toContain("no-store");
   expect((await page.request.get(`/api/games/${x.mine.id}/play`)).status()).toBe(200); // o próprio pendente
@@ -124,4 +126,71 @@ test("aluno envia um jogo e ele fica pendente", async ({ page }, info) => {
   expect(row.authorStudentId).toBe(x.studentId);
   await expect(page.getByText(title).first()).toBeVisible(); // aparece em "Meus jogos"
   await db.game.delete({ where: { id: row.id } });
+});
+
+test("erros da rota de jogar viram páginas amigáveis (não texto solto)", async ({ page, browser }, info) => {
+  const x = fixtures(info.project.name);
+  await login(page, info.project.name);
+  const missing = await page.request.get(`/api/games/${x.theirs.id}/play`);
+  expect(missing.status()).toBe(404);
+  expect(missing.headers()["content-type"]).toContain("text/html");
+  expect(await missing.text()).toContain("Este jogo não está disponível agora.");
+  const anon = await browser.newContext();
+  const noLogin = await anon.request.get(`${origin}/api/games/${x.approved.id}/play`);
+  expect(noLogin.status()).toBe(401);
+  expect(await noLogin.text()).toContain("Entre no painel para jogar.");
+  await anon.close();
+});
+
+test("alert e eval no jogo mostram um aviso amigável em vez de falhar em silêncio", async ({ page }, info) => {
+  const x = fixtures(info.project.name);
+  const mk = (n: string, script: string) =>
+    db.game.create({
+      data: { id: `${x.f.prefix}_game_${n}`, title: `Aviso ${n} ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED",
+        html: `<!doctype html><html><head><title>t</title></head><body><p id="vivo">vivo</p><script>${script}</script></body></html>` },
+    });
+  await mk("alert", `alert("oi");`);
+  await mk("eval", `try { eval("1+1"); } catch (e) {}`); // o eval parte do código do jogo (o CDP do Playwright ignoraria o CSP)
+  await login(page, info.project.name);
+
+  await page.goto(`/api/games/${x.f.prefix}_game_alert/play`);
+  await expect(page.getByRole("alert")).toContainText("aviso do navegador"); // alert() trocado pelo aviso
+  await expect(page.locator("#vivo")).toBeVisible(); // o jogo continua vivo
+  expect(await page.locator("script[data-b3d-shim]").count()).toBe(1);
+
+  await page.goto(`/api/games/${x.f.prefix}_game_eval/play`);
+  await expect(page.getByRole("alert")).toContainText("Ops!"); // eval bloqueado -> aviso
+  await expect(page.locator("#vivo")).toBeVisible();
+});
+
+test("os 3 jogos de exemplo continuam funcionando com o aviso injetado", async ({ page }, info) => {
+  const x = fixtures(info.project.name);
+  const dir = join(process.cwd(), "_scripts", "games");
+  const ids3 = { memoria: `${x.f.prefix}_game_ex_m`, estrela: `${x.f.prefix}_game_ex_e`, numero: `${x.f.prefix}_game_ex_n` };
+  for (const [name, id] of Object.entries(ids3))
+    await db.game.create({ data: { id, title: `Ex ${name} ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED", html: readFileSync(join(dir, `${name}.html`), "utf8") } });
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await login(page, info.project.name);
+
+  await page.goto(`/api/games/${ids3.memoria}/play`);
+  await expect(page.locator("script[data-b3d-shim]")).toHaveCount(1);
+  const cards = page.locator("#board > *");
+  await expect(cards).toHaveCount(16);
+  await cards.nth(0).click();
+  await cards.nth(1).click();
+  await expect(page.locator("#moves")).toHaveText("1");
+
+  await page.goto(`/api/games/${ids3.estrela}/play`);
+  await page.locator("#go").click();
+  await page.locator("#star").click();
+  await expect(page.locator("#score")).not.toHaveText("0");
+
+  await page.goto(`/api/games/${ids3.numero}/play`);
+  await page.locator("#n").fill("50");
+  await page.getByRole("button", { name: "Chutar" }).click();
+  await expect(page.locator("#tries")).toHaveText("1");
+  await expect(page.locator("#hint")).not.toHaveText("");
+
+  expect(errors).toEqual([]); // nenhum erro de JavaScript nos 3 jogos
 });
