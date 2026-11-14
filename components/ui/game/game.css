@@ -1,0 +1,44 @@
+/*
+ * Tokens do estilo de jogo do painel infantil (Tailwind 4).
+ *
+ * - Tokens próprios (prefixo `game-`): não dependem das cores `slate-*`, que as
+ *   paletas do painel (`data-panel-color`) redefinem.
+ * - Tamanhos em rem: acompanham o seletor de tamanho de texto (`data-text-size`).
+ * - Importar uma vez a partir de app/globals.css (Fase 1b).
+ */
+@theme {
+  /* Fundo e superfícies (índigo profundo, neutro, sem cara de "bebê") */
+  --color-game-bg: #15123a;
+  --color-game-surface: #221d52;
+  --color-game-surface-2: #2e2870;
+  --color-game-line: #4a428f;
+
+  /* Texto */
+  --color-game-ink: #f6f4ff;
+  --color-game-ink-dim: #bdb8e6;
+  --color-game-ink-on-light: #1b1640;
+
+  /* Ações */
+  --color-game-primary: #ffb21f;
+  --color-game-primary-deep: #c27d00;
+  --color-game-secondary: #5b8cff;
+  --color-game-secondary-deep: #2f5bd1;
+  --color-game-success: #2fd0a0;
+  --color-game-success-deep: #138a69;
+  --color-game-danger: #ff5d73;
+  --color-game-danger-deep: #b8243b;
+
+  /* Recompensas */
+  --color-game-coin: #ffd23f;
+  --color-game-coin-deep: #b8860b;
+  --color-game-xp: #7cf0c9;
+  --color-game-xp-track: #1b1745;
+
+  /* Fontes (as variáveis vêm de fonts.ts, via next/font) */
+  --font-game-title: var(--font-game-title-src), 'Trebuchet MS', system-ui, sans-serif;
+  --font-game-body: var(--font-game-body-src), 'Trebuchet MS', system-ui, sans-serif;
+
+  /* Formas */
+  --radius-game: 1.25rem;
+  --radius-game-lg: 1.75rem;
+}
