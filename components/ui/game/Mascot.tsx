@@ -3,6 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
+/** Nome do mascote (escolhido pelo Caio em 2026-11-14). */
+export const MASCOT_NAME = 'Lofi';
+
 export type MascotPose = 'idle' | 'blink' | 'cheer';
 
 /*

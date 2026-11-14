@@ -4,7 +4,7 @@ export { Card, type CardProps } from './Card';
 export { gameBodyFont, gameFontVariables, gameTitleFont } from './fonts';
 export { HUD, type HUDProps } from './HUD';
 export * from './icons';
-export { LiveMascot, Mascot, type MascotPose, type MascotProps } from './Mascot';
+export { LiveMascot, MASCOT_NAME, Mascot, type MascotPose, type MascotProps } from './Mascot';
 export { RewardPop, type RewardPopProps } from './RewardPop';
 export { TabBar, type TabBarProps, type TabItem } from './TabBar';
 export { SoundToggle, useGameSound } from './useGameSound';

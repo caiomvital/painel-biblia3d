@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button, Card, LiveMascot, MedalIcon, TargetIcon, TrophyIcon, BellIcon } from '@/components/ui/game';
+import { Button, Card, LiveMascot, MASCOT_NAME, MedalIcon, TargetIcon, TrophyIcon, BellIcon } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import { ProfileForm } from '../quests/ProfileForm';
 import { SideShortcut } from './SideShortcut';
@@ -25,9 +25,10 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
           <SideShortcut label="Conquistas" icon={<MedalIcon />} onClick={() => onGo('badges')} />
         </div>
         <div className="flex flex-col items-center text-center">
-          <LiveMascot size={9.5} cheering={celebrate} />
+          <LiveMascot size={9.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
           <h1 className="mt-1 font-[family-name:var(--font-game-title)] text-3xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
           <p className="text-game-ink-dim">{home.className ? `${home.className} · ` : ''}Nível {home.level}</p>
+          <p className="text-sm text-game-ink-dim">{MASCOT_NAME} está com você!</p>
         </div>
         <div className="flex flex-col gap-3">
           <SideShortcut label="Avisos" icon={<BellIcon />} onClick={onOpenNotices} badge={unread} />
