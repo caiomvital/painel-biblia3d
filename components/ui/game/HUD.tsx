@@ -23,7 +23,7 @@ export function HUD({ coins, points, actions, className = '' }: HUDProps) {
     <header
       className={`sticky top-0 z-30 border-b-2 border-game-line bg-game-bg/95 px-3 py-2 backdrop-blur ${className}`}
     >
-      <div className="mx-auto flex max-w-3xl items-center gap-3">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 sm:flex-nowrap">
         <div
           className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-b-4 border-game-primary-deep bg-game-primary text-game-ink-on-light"
           aria-label={`Nível ${level}`}
@@ -32,7 +32,7 @@ export function HUD({ coins, points, actions, className = '' }: HUDProps) {
           <span className="font-[family-name:var(--font-game-title)] text-lg leading-none">{level}</span>
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="order-last min-w-0 basis-full sm:order-none sm:basis-0 sm:flex-1">
           <XPBar value={xpIntoLevel} max={xpForLevel} />
         </div>
 
