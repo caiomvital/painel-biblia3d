@@ -49,33 +49,6 @@ export default function HomePage() {
     setUser(authenticatedUser);
   };
 
-  const handleSwitchRole = (newRole: 'ALUNO' | 'PROFESSOR' | 'SECRETARIA' | 'DIRETOR') => {
-    if (newRole === 'DIRETOR') {
-      setUser({
-        id: 'user_director_1',
-        name: 'Carlos Mendes',
-        email: 'diretor@biblia3d.com.br',
-        role: 'DIRETOR',
-      });
-    } else if (newRole === 'PROFESSOR') {
-      setUser({
-        id: 'user_teacher_1',
-        name: 'Prof. Henrique Silveira',
-        email: 'henrique.silveira@biblia3d.com.br',
-        role: 'PROFESSOR',
-      });
-    } else if (newRole === 'SECRETARIA') {
-      setUser({ id: 'user_secretary_1', name: 'Secretaria', email: 'secretaria@biblia3d.com.br', role: 'SECRETARIA' });
-    } else {
-      setUser({
-        id: 'user_student_1',
-        name: 'João Pedro da Silva',
-        email: 'aluno@biblia3d.com.br',
-        role: 'ALUNO',
-      });
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#070a12]">
@@ -90,7 +63,7 @@ export default function HomePage() {
   const content = (
     <div className="min-h-screen bg-[#070a12] flex flex-col text-slate-100 selection:bg-amber-500/20 selection:text-amber-300">
       {/* Brand Header with PWA installation & profile info */}
-      {user?.role !== 'ALUNO' && <AppHeader user={user} onLogout={handleLogout} onSwitchRole={handleSwitchRole} />}
+      {user?.role !== 'ALUNO' && <AppHeader user={user} onLogout={handleLogout} />}
 
       {/* Main Dynamic Content based on User Role */}
       <main className={user?.role === 'ALUNO' ? 'flex-1' : 'flex-1 pb-16'}>
