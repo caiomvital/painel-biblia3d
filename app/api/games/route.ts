@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { maskGameAuthorForStudent } from '@/lib/privacy-mask';
 
 const MAX_GAME_HTML = 200_000;
 
@@ -9,7 +10,7 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   const games = await prisma.game.findMany({
     where: { status: 'APPROVED' }, orderBy: { createdAt: 'asc' },
-    select: { id: true, title: true, description: true, authorName: true, plays: true },
+    select: { id: true, title: true, description: true, authorName: true, authorStudentId: true, plays: true },
   });
   let mine: { id: string; title: string; status: string }[] = [];
   if (session.role === 'ALUNO' && session.studentId) {
@@ -18,7 +19,11 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }, select: { id: true, title: true, status: true },
     });
   }
-  return NextResponse.json({ games, mine });
+  // Para alunos: autor só pelo primeiro nome. Equipe vê o nome completo.
+  const visible = session.role === 'ALUNO'
+    ? games.map(maskGameAuthorForStudent)
+    : games.map(({ authorStudentId: _omit, ...rest }) => rest);
+  return NextResponse.json({ games: visible, mine });
 }
 
 /** A criança envia um jogo (HTML em um arquivo só). Fica pendente até o diretor aprovar. */

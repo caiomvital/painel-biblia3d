@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { getAuctionOverview, placeAuctionBid, withdrawAuctionBid } from '@/lib/auction-service';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { maskAuctionOverviewForStudent } from '@/lib/privacy-mask';
 
 export async function GET() {
   try {
@@ -22,7 +23,8 @@ export async function GET() {
     }
 
     const overview = await getAuctionOverview(studentId, false);
-    return NextResponse.json(overview);
+    // Crianças não veem o nome de quem lidera (nem de nenhum colega); equipe vê tudo.
+    return NextResponse.json(session.role === 'ALUNO' ? maskAuctionOverviewForStudent(overview) : overview);
   } catch (err: any) {
 
     return NextResponse.json(
