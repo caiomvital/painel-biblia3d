@@ -35,7 +35,7 @@ export function GamesSection() {
       setGames(d.games); setMine(d.mine); setError('');
     } catch (e: any) { setError(e.message); }
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { const t = setTimeout(load, 0); return () => clearTimeout(t); }, [load]);
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

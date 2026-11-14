@@ -224,7 +224,7 @@ export function KidsHome({ onPointsChanged }: { onPointsChanged?: () => void }) 
       setError('');
     } catch (e: any) { setError(e.message); }
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { const t = setTimeout(load, 0); return () => clearTimeout(t); }, [load]);
   const refresh = () => { load(); onPointsChanged?.(); };
 
   const saveProfile = async (e: React.FormEvent) => {
