@@ -56,7 +56,7 @@ const taught = [
 async function login(page: Page, role: string, project: string) {
   const f = ids(project);
   await page.goto("/");
-  await page.getByLabel("E-mail Institucional").fill(f.email(role));
+  await page.getByLabel("Usuário ou e-mail").fill(f.email(role));
   await page.getByLabel("Senha de Acesso").fill(password);
   const authenticated = page.waitForResponse(
     (response) =>

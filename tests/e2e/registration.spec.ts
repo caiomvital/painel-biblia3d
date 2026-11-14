@@ -24,7 +24,7 @@ async function login(
 ) {
   await page.request.post("/api/auth/logout", { headers: { Origin: baseURL } });
   await page.goto("/");
-  await page.getByLabel("E-mail Institucional").fill(email);
+  await page.getByLabel("Usuário ou e-mail").fill(email);
   await page.getByLabel("Senha de Acesso").fill(secret);
   const result = page.waitForResponse(
     (r) =>
