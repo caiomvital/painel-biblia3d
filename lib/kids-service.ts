@@ -135,7 +135,7 @@ export async function getKidsHome(studentId: string) {
     prisma.teacherRating.findUnique({ where: { studentId_week: { studentId, week: brazilWeekKey() } } }),
     prisma.appSetting.findUnique({ where: { key: 'googleReviewUrl' } }),
   ]);
-  const [prize, daily, weekly, lesson, academy, turma] = await Promise.all([
+  const [prize, daily, weekly, lesson, academy, turma, reserved] = await Promise.all([
     prisma.prize.findFirst({ where: { active: true }, orderBy: { createdAt: 'desc' } }),
     quizSummary(studentId, 'daily', classId),
     quizSummary(studentId, 'weekly', classId),
@@ -144,12 +144,20 @@ export async function getKidsHome(studentId: string) {
     classInfo
       ? rankOf(student.currentXp, { enrollments: { some: { classId: classInfo.id, status: 'ACTIVE' } } })
       : Promise.resolve(null),
+    prisma.coinReservation.aggregate({ where: { studentId, status: 'ACTIVE' }, _sum: { amount: true } }),
   ]);
+  const reservedCoins = reserved._sum.amount ?? 0;
   return {
     name: student.user.name,
     firstName: student.user.name.split(' ')[0],
     points: student.currentXp,
     level: student.level,
+    // saldo de fichas (campo novo, aditivo): total, reservado em lances ativos e disponível para gastar
+    coins: {
+      balance: student.coinBalance,
+      reserved: reservedCoins,
+      available: Math.max(0, student.coinBalance - reservedCoins),
+    },
     profileCompleted: student.profileCompleted,
     guardianName: student.guardianName,
     birthDate: student.birthDate ? student.birthDate.toISOString().slice(0, 10) : null,

@@ -56,7 +56,7 @@ const taught = [
 async function login(page: Page, role: string, project: string) {
   const f = ids(project);
   await page.goto("/");
-  await page.getByLabel("E-mail Institucional").fill(f.email(role));
+  await page.getByLabel("Usuário ou e-mail").fill(f.email(role));
   await page.getByLabel("Senha de Acesso").fill(password);
   const authenticated = page.waitForResponse(
     (response) =>
@@ -71,7 +71,7 @@ async function login(page: Page, role: string, project: string) {
         ? /^Turmas$/
         : ["teacher", "otherTeacher"].includes(role)
           ? "Minhas Turmas"
-          : "Aulas & Cronograma",
+          : "Início",
   });
   await expect(dashboard).toBeVisible();
   // Validate the real session cookie, including after a reload.
@@ -234,6 +234,9 @@ test.describe("Marco 7 com autenticação e PostgreSQL reais", () => {
     page,
   }, info) => {
     await login(page, "student", info.project.name);
+    // Telas herdadas ficam em Perfil > Mais (shell infantil).
+    await page.getByRole("button", { name: "Perfil" }).click();
+    await page.getByRole("button", { name: "Mais", exact: true }).click();
     await page.getByRole("button", { name: "Aulas & Cronograma" }).click();
     const card = page.getByTestId(`lesson-${ids(info.project.name).lesson}`);
     await card
@@ -346,6 +349,9 @@ test.describe("Marco 7 com autenticação e PostgreSQL reais", () => {
     ).toBe(403);
     await page.context().clearCookies();
     await login(page, "outsider", info.project.name);
+    // Telas herdadas ficam em Perfil > Mais (shell infantil).
+    await page.getByRole("button", { name: "Perfil" }).click();
+    await page.getByRole("button", { name: "Mais", exact: true }).click();
     await page.getByRole("button", { name: "Aulas & Cronograma" }).click();
     await expect(page.getByTestId(`lesson-${f.lesson}`)).toHaveCount(0);
     expect((await page.request.get(`/api/lessons/${f.lesson}`)).status()).toBe(

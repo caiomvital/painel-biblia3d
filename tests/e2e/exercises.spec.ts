@@ -6,7 +6,7 @@ const origin = `http://127.0.0.1:${process.env.TEST_APP_PORT ?? 3100}`;
 async function login(page: Page, project: string, role: "teacher" | "student" | "otherTeacher") {
   await page.request.post("/api/auth/logout", { headers: { Origin: origin } });
   await page.goto("/");
-  await page.getByLabel("E-mail Institucional").fill(ids(project).email(role));
+  await page.getByLabel("Usuário ou e-mail").fill(ids(project).email(role));
   await page.getByLabel("Senha de Acesso").fill(password);
   const response = page.waitForResponse(r => r.url().endsWith("/api/auth/login") && r.request().method() === "POST");
   await page.getByRole("button", { name: "Entrar no Sistema" }).click();
@@ -72,6 +72,9 @@ test("atividades por aula, rascunhos, pendências, feedback e bloqueio de ediç�
   const published = await (await page.request.get("/api/student/exercises")).json();
   expect(published.exercises).toHaveLength(2);
   expect(published.exercises.every((item: any) => item.correctOption === null && item.explanation === null)).toBe(true);
+  // Telas herdadas ficam em Perfil > Mais (shell infantil).
+  await page.getByRole("button", { name: "Perfil" }).click();
+  await page.getByRole("button", { name: "Mais", exact: true }).click();
   await page.getByRole("button", { name: "Exercícios", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Turma E2E Java · Herança em Java · 2 questão(ões)" })).toBeVisible();
 

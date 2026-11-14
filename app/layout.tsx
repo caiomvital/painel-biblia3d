@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { gameFontVariables } from '@/components/ui/game/fonts';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 
 export const viewport: Viewport = {
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR" className={`dark ${gameFontVariables}`}>
       <body className="min-h-screen bg-[#0b0f19] text-slate-100 antialiased selection:bg-amber-500/20 selection:text-amber-300" suppressHydrationWarning>
         <ServiceWorkerRegister />
         {children}

@@ -24,7 +24,7 @@ const test = base.extend<{ health: void }>({
 });
 async function login(page: Page, project: string, role = "teacher") {
   await page.goto("/");
-  await page.getByLabel("E-mail Institucional").fill(ids(project).email(role));
+  await page.getByLabel("Usuário ou e-mail").fill(ids(project).email(role));
   await page.getByLabel("Senha de Acesso").fill(password);
   const response = page.waitForResponse(
     (r) =>
@@ -255,7 +255,7 @@ test("Marco 8: API docente recusa aluno e professor de outra turma", async ({
     ).toBe(403);
   await page.request.post("/api/auth/logout");
   await page.goto("/");
-  await page.getByLabel("E-mail Institucional").fill(f.email("student"));
+  await page.getByLabel("Usuário ou e-mail").fill(f.email("student"));
   await page.getByLabel("Senha de Acesso").fill(password);
   const auth = page.waitForResponse((r) => r.url().endsWith("/api/auth/login"));
   await page.getByRole("button", { name: "Entrar no Sistema" }).click();

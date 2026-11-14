@@ -3,6 +3,7 @@ import { initialPasswordHash } from "./account-password";
 import {lessonTiming} from "./teacher-metrics";
 // lib/academic-service.ts
 import { prisma } from '@/lib/prisma';
+import { positionInClass } from './class-ranking';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 
@@ -173,7 +174,6 @@ export async function getStudentDashboard(userId: string) {
       lastLesson: null,
       nextLesson: null,
       missedLessons: [],
-      ranking: [],
       badges: [],
       recentTransactions: [],
       lessons: [],
@@ -230,40 +230,21 @@ export async function getStudentDashboard(userId: string) {
   });
   const streak = streakRecord ? streakRecord.currentStreak : 0;
 
-  // Ranking na Turma
+  // Posição na turma (só posição e total: nunca devolvemos nomes ou XP de colegas)
   let rankingPosition = 1;
   let totalInClass = 1;
-  let classRanking: Array<{ id: string; name: string; xp: number; position: number; isCurrentUser: boolean }> = [];
 
   if (studentClass) {
     const classEnrollments = await prisma.enrollment.findMany({
       where: { classId: studentClass.id, status: 'ACTIVE' },
-      include: {
-        student: {
-          include: { user: true },
-        },
-      },
+      select: { student: { select: { id: true, currentXp: true } } },
     });
-
-    totalInClass = classEnrollments.length;
-
-    const sortedStudents = classEnrollments
+    const classmates = classEnrollments
       .map((e) => e.student)
-      .filter((s): s is NonNullable<typeof s> => s !== null)
-      .sort((a, b) => b.currentXp - a.currentXp);
-
-    classRanking = sortedStudents.map((s, index) => ({
-      id: s.id,
-      name: s.user ? s.user.name : 'Aluno',
-      xp: s.currentXp,
-      position: index + 1,
-      isCurrentUser: s.id === student.id,
-    }));
-
-    const userEntry = classRanking.find((r) => r.isCurrentUser);
-    if (userEntry) {
-      rankingPosition = userEntry.position;
-    }
+      .filter((s): s is NonNullable<typeof s> => s !== null);
+    const rank = positionInClass(classmates, student.id);
+    rankingPosition = rank.position;
+    totalInClass = classEnrollments.length;
   }
 
   // Progresso do curso e frequência
@@ -401,7 +382,6 @@ export async function getStudentDashboard(userId: string) {
       plannedContent: ml.plannedContent,
       materials: ml.materials,
     })),
-    ranking: classRanking.slice(0, 10),
     badges: formattedBadges,
     recentTransactions: recentTransactions.map((tx) => ({
       id: tx.id,

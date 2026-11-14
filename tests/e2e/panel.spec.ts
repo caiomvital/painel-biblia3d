@@ -112,7 +112,7 @@ test('diretor consulta relatório, exporta CSV e encontra operação no históri
   await expect(dialog.getByRole('table')).toContainText(`Teste student ${info.project.name}`);
   const download = page.waitForEvent('download');
   await dialog.getByRole('button', { name: 'Exportar CSV completo' }).click();
-  expect((await download).suggestedFilename()).toBe('fuctura-relatorio.csv');
+  expect((await download).suggestedFilename()).toBe('biblia3d-relatorio.csv');
   const csv = await page.request.get(`/api/director/reports?type=attendance&classId=${f.class}&format=csv`);
   expect(csv.headers()['content-type']).toContain('text/csv');
   expect(await csv.text()).toContain(`Teste student ${info.project.name}`);

@@ -24,7 +24,7 @@ const test = base.extend<{ health: void }>({
 });
 async function login(page: Page, project: string, role = "director") {
   await page.goto("/");
-  await page.getByLabel("E-mail Institucional").fill(ids(project).email(role));
+  await page.getByLabel("Usuário ou e-mail").fill(ids(project).email(role));
   await page.getByLabel("Senha de Acesso").fill(password);
   const response = page.waitForResponse(
     (r) =>
