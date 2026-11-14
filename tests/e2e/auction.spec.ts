@@ -91,6 +91,7 @@ test("lance, reserva e saldo conferem no banco (e retirar libera as fichas)", as
   await ui.openAuctionTab(page);
   // O aviso da janela vem do servidor e tem de concordar com o que o servidor vai fazer com o lance.
   await expect(page.getByTestId("auction-window")).toHaveAttribute("data-open", auctionOpenNow() ? "true" : "false");
+  await expect(page.getByTestId("auction-window")).toContainText("meia-noite"); // informa também o fechamento
   await ui.openBid(page, x.itemA.id);
   await ui.confirmBid(page);
 
@@ -120,4 +121,14 @@ test("lance, reserva e saldo conferem no banco (e retirar libera as fichas)", as
     .toBe("RELEASED");
   const after = await (await page.request.get("/api/auction")).json();
   expect(after.studentCoins).toMatchObject({ coinBalance: 1000, reservedCoins: 0, availableCoins: 1000 });
+
+  // Depois da retirada o mínimo é o que o servidor realmente aceita: API, cartão e servidor concordam.
+  const dbItem = await db.auctionItem.findUniqueOrThrow({ where: { id: x.itemA.id } });
+  const apiItem = after.items.find((i: { id: string }) => i.id === x.itemA.id);
+  expect(apiItem.minNextBid).toBe(dbItem.minNextBid);
+  await expect(page.getByTestId(`auction-bid-${x.itemA.id}`)).toContainText(`(${dbItem.minNextBid})`);
+  const post = (amount: number) =>
+    page.request.post("/api/auction", { headers: { Origin: origin }, data: { itemId: x.itemA.id, amount } });
+  expect((await post(dbItem.minNextBid - 1)).status()).toBe(400); // abaixo do mostrado: recusa
+  expect((await post(dbItem.minNextBid)).status()).toBe(200); // exatamente o mostrado: aceita
 });

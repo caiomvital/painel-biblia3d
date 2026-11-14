@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/game';
 import type { AuctionItem } from '@/components/auction/AuctionSection';
-import { itemEmoji } from './copy';
+import { friendlyBidError, itemEmoji } from './copy';
 
 /** Janela de lance. Só visual: o valor vive no AuctionSection e a regra continua lá. */
 export function BidDialog({ item, amount, balance, error, success, onAmount, onConfirm, onClose }: {
@@ -33,7 +33,10 @@ export function BidDialog({ item, amount, balance, error, success, onAmount, onC
         <div><dt className="text-game-ink-dim">Você tem</dt><dd className="font-semibold">{balance} fichas</dd></div>
       </dl>
       {success && <p role="status" className="mb-3 rounded-game border-2 border-game-success p-3 font-semibold">{success}</p>}
-      {error && <p role="alert" className="mb-3 rounded-game border-2 border-game-danger p-3 font-semibold">{error}</p>}
+      {error && <p role="alert" className="mb-3 rounded-game border-2 border-game-danger p-3 font-semibold">{friendlyBidError(error)}</p>}
+      {amount < item.minNextBid && !error && (
+        <p role="status" data-testid="bid-min-hint" className="mb-3 rounded-game border-2 border-game-primary p-3 font-semibold">O mínimo agora é {item.minNextBid} fichas.</p>
+      )}
       <label className="block font-semibold">Seu lance (fichas)
         <input type="number" inputMode="numeric" value={amount} min={item.minNextBid} onChange={(e) => onAmount(Number(e.target.value))}
           className="mt-1 min-h-14 w-full rounded-game border-2 border-game-line bg-game-bg px-4 text-2xl font-semibold text-game-ink" />

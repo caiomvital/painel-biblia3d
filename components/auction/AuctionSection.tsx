@@ -10,7 +10,7 @@ import { MyBidsList } from '@/components/student/auction/MyBidsList';
 import { Statement } from '@/components/student/auction/Statement';
 import { WinCelebration } from '@/components/student/auction/WinCelebration';
 import { WindowNotice, type BidWindow } from '@/components/student/auction/WindowNotice';
-import { AUCTION_TEXT as T } from '@/components/student/auction/copy';
+import { AUCTION_TEXT as T, howLines } from '@/components/student/auction/copy';
 
 export interface AuctionItem {
   id: string;
@@ -159,6 +159,15 @@ export const AuctionSection: React.FC<AuctionSectionProps> = ({
     return () => clearTimeout(timer);
   }, [externalOpenItem]);
 
+  // Só exibição: atualiza prêmios, saldos e a janela a cada 15 s (aba visível), para o cartão
+  // nunca ficar com um mínimo diferente do que o servidor vai aceitar.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!document.hidden) loadAuctionData();
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [loadAuctionData]);
+
   // Live countdown tick
   useEffect(() => {
     const timer = setInterval(() => {
@@ -294,7 +303,7 @@ export const AuctionSection: React.FC<AuctionSectionProps> = ({
         <Button variant="ghost" aria-expanded={showHow} aria-controls="auction-how" onClick={() => setShowHow((v) => !v)}>{T.howTitle}</Button>
         {showHow && (
           <ul id="auction-how" className="mt-2 list-disc space-y-1 rounded-game-lg bg-game-surface p-4 pl-8 text-game-ink-dim">
-            {T.how.map((line) => <li key={line}>{line}</li>)}
+            {howLines(bidWindow).map((line) => <li key={line}>{line}</li>)}
           </ul>
         )}
       </div>
@@ -331,7 +340,7 @@ export const AuctionSection: React.FC<AuctionSectionProps> = ({
       {viewMode === 'statement' && <Statement transactions={coinTransactions} />}
 
       {selectedItem && (
-        <BidDialog item={selectedItem} amount={bidAmount} balance={currentBalance} error={bidError} success={biddingSuccess}
+        <BidDialog item={items.find((i) => i.id === selectedItem.id) ?? selectedItem} amount={bidAmount} balance={currentBalance} error={bidError} success={biddingSuccess}
           onAmount={setBidAmount} onConfirm={handleConfirmBid} onClose={() => setSelectedItem(null)} />
       )}
 
