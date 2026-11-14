@@ -52,6 +52,8 @@ export default defineConfig({
       `node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port ${testPort}`,
     url: baseURL,
     reuseExistingServer: false,
+    // O servidor de teste sabe que é e2e local (trava dos jogos de sonda em lib/probe-guard exige isto).
+    env: { ...(process.env as Record<string, string>), TEST_APP_PORT: String(testPort) },
     timeout: 120_000,
   },
 });

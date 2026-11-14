@@ -54,3 +54,23 @@ describe('jogos de sonda não viram dado de produção', () => {
     for (const f of hits) expect(f === 'lib/probe-guard.ts' || f.startsWith('tests/')).toBe(true);
   });
 });
+
+describe('a trava está ligada nas 3 rotas que criam ou servem jogos', () => {
+  const root = join(import.meta.dir, '..', '..');
+  const src = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  test('rota de jogar recusa (404) jogo de sonda antes de devolver o HTML', () => {
+    const s = src('app/api/games/[id]/play/route.ts');
+    expect(s).toContain("from '@/lib/probe-guard'");
+    const guard = s.indexOf('gameHtmlAllowedHere(game.html)');
+    expect(guard).toBeGreaterThan(-1);
+    expect(guard).toBeLessThan(s.indexOf('injectGameShim(game.html)')); // a checagem vem antes de servir
+  });
+  test('criação por aluno e por diretor recusa o marcador', () => {
+    for (const rel of ['app/api/games/route.ts', 'app/api/director/kids/games/route.ts']) {
+      const s = src(rel);
+      expect(s).toContain("from '@/lib/probe-guard'");
+      expect(s).toContain('gameHtmlAllowedHere(html)');
+      expect(s.indexOf('gameHtmlAllowedHere(html)')).toBeLessThan(s.indexOf('prisma.game.create'));
+    }
+  });
+});
