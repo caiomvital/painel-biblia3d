@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { gameHtmlAllowedHere } from '@/lib/probe-guard';
 
 const MAX_HTML = 200_000;
 
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
     if (title.length < 3 || title.length > 60) throw new Error('Dê um nome ao jogo (de 3 a 60 letras).');
     if (authorName.length < 2 || authorName.length > 80) throw new Error('Informe quem criou o jogo.');
     if (html.length < 20 || html.length > MAX_HTML) throw new Error('Cole o código do jogo (até 200 mil caracteres).');
+    if (!gameHtmlAllowedHere(html)) throw new Error('Esse conteúdo não é permitido.');
     const description = typeof b.description === 'string' ? b.description.trim().slice(0, 200) || null : null;
     const game = await prisma.game.create({ data: { title, authorName, description, html, status: 'APPROVED' } });
     return NextResponse.json({ id: game.id });

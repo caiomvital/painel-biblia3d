@@ -6,7 +6,7 @@ import {
   Card, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, RewardPop, SoundToggle, TabBar, TargetIcon, UserIcon, useGameSound,
 } from '@/components/ui/game';
 import type { PanelTarget } from '@/lib/panel-navigation';
-import { GamesSection } from './GamesSection';
+import { GamesScreen } from './games/GamesScreen';
 import { useKidsHome, type PointsGain } from './useKidsHome';
 import type { StudentTab } from './student-types';
 import { AuctionScreen } from './shell/AuctionScreen';
@@ -84,7 +84,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   } else if (view === 'auction') {
     screen = <AuctionScreen home={home} onRefresh={reload} />;
   } else if (view === 'games') {
-    screen = <GamesSection />;
+    screen = <GamesScreen />;
   } else if (view === 'ranking') {
     screen = <RankingScreen home={home} />;
   } else if (view === 'profile') {

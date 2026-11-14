@@ -113,13 +113,16 @@ export function DirectorKids() {
       <section className={panel}>
         <h3 className="text-lg font-bold text-white">Jogos ({games.length})</h3>
         <p className="text-xs text-slate-400">Os jogos rodam isolados (sem acesso à conta nem à internet). Jogos enviados pelas crianças ficam pendentes até você aprovar. Use “Testar” para jogar antes de aprovar.</p>
+        <p id="games-test-warning" role="note" className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-200">
+          ⚠ “Testar” abre o jogo em outra aba. Ele roda isolado, mas pode travar essa aba (por exemplo, com um laço infinito) ou mostrar conteúdo impróprio. Jogue o jogo inteiro antes de aprovar.
+        </p>
         <ul className="space-y-2">
           {games.map((g) => (
             <li key={g.id} className="rounded-xl border border-slate-800 p-3 text-sm text-slate-200">
               <p className="font-semibold text-white">{g.title} <span className="text-[11px] font-normal text-slate-400">· por {g.authorName} · {statusText[g.status]} · {g.plays} partida(s)</span></p>
               {g.description && <p className="text-xs text-slate-400">{g.description}</p>}
               <div className="mt-2 flex flex-wrap gap-2">
-                <a className={buttonClass} href={`/api/games/${g.id}/play`} target="_blank" rel="noopener noreferrer">Testar</a>
+                <a className={buttonClass} href={`/api/games/${g.id}/play`} target="_blank" rel="noopener noreferrer" aria-describedby="games-test-warning" title="Abre em outra aba. Pode travar a aba se o jogo tiver laço infinito. Jogue antes de aprovar.">Testar (nova aba)</a>
                 {g.status !== "APPROVED" && <button className={buttonClass} onClick={() => run(() => api("/api/director/kids/games", "PATCH", { id: g.id, status: "APPROVED" }), "Jogo aprovado.")}>Aprovar</button>}
                 {g.status !== "REJECTED" && <button className={buttonClass} onClick={() => run(() => api("/api/director/kids/games", "PATCH", { id: g.id, status: "REJECTED" }), "Jogo rejeitado.")}>Rejeitar</button>}
                 <button className={buttonClass} onClick={() => run(() => api(`/api/director/kids/games?id=${g.id}`, "DELETE"), "Jogo apagado.")}>Apagar</button>
