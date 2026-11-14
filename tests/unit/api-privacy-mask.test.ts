@@ -7,7 +7,11 @@ const OVERVIEW = {
     { id: 'i2', title: 'Combo', highestBidder: 'Eu Mesma Silva (Você)', isMyHighestBid: true },
     { id: 'i3', title: 'Livro', highestBidder: 'Sem lances', isMyHighestBid: false },
   ],
-  settings: {}, studentCoins: {}, myBids: [], coinTransactions: [],
+  settings: {}, studentCoins: {}, coinTransactions: [],
+  myBids: [
+    { itemId: 'i1', highestBidderId: 'st_rodrigo', highestBidderName: 'Rodrigo Oliveira', isCurrentUserLeading: false },
+    { itemId: 'i2', highestBidderId: 'st_me', highestBidderName: 'Eu Mesma Silva', isCurrentUserLeading: true },
+  ],
 };
 const GAMES = [
   { id: 'g1', title: 'Jogo da Ana', description: null, authorName: 'Ana Beatriz Souza', authorStudentId: 'st_ana', plays: 3 },
@@ -36,6 +40,9 @@ describe('Leilão: nomes de outros alunos', () => {
     expect(json).not.toContain('Oliveira');
     expect(json).not.toContain('Eu Mesma');
     expect(body.items.map((i: { highestBidder: string }) => i.highestBidder)).toEqual(['Outro aluno', 'Você', 'Sem lances']);
+    // também em "meus lances": nome e id de quem me superou não saem
+    expect(body.myBids.map((b: { highestBidderName: string }) => b.highestBidderName)).toEqual(['Outro aluno', 'Você']);
+    expect(json).not.toContain('st_rodrigo');
   });
   test('diretor e professor continuam vendo o nome completo', async () => {
     const { GET } = await import('../../app/api/auction/route');
@@ -43,6 +50,7 @@ describe('Leilão: nomes de outros alunos', () => {
       role = r;
       const body = await (await GET()).json();
       expect(body.items[0].highestBidder).toBe('Rodrigo Oliveira');
+      expect(body.myBids[0].highestBidderName).toBe('Rodrigo Oliveira');
     }
   });
 });

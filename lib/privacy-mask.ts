@@ -7,15 +7,26 @@ export function firstName(full: string): string {
 }
 
 type AuctionItemLike = { highestBidder: string; isMyHighestBid: boolean };
+type MyBidLike = { highestBidderId: string | null; highestBidderName: string; isCurrentUserLeading: boolean };
+
+/** Meus lances: o líder de cada prêmio vira "Você" / "Outro aluno" e o id do colega some. */
+export function maskMyBidsForStudent<T extends MyBidLike>(bids: T[]): T[] {
+  return bids.map((b) => ({
+    ...b,
+    highestBidderId: null,
+    highestBidderName: b.isCurrentUserLeading ? 'Você' : b.highestBidderName === 'Sem lances' ? 'Sem lances' : 'Outro aluno',
+  }));
+}
 
 /** Leilão: o líder vira "Você" (a própria criança) ou "Outro aluno". "Sem lances" é mantido. */
-export function maskAuctionOverviewForStudent<T extends { items: AuctionItemLike[] }>(overview: T): T {
+export function maskAuctionOverviewForStudent<T extends { items: AuctionItemLike[]; myBids?: MyBidLike[] }>(overview: T): T {
   return {
     ...overview,
     items: overview.items.map((item) => ({
       ...item,
       highestBidder: item.isMyHighestBid ? 'Você' : item.highestBidder === 'Sem lances' ? 'Sem lances' : 'Outro aluno',
     })),
+    ...(overview.myBids ? { myBids: maskMyBidsForStudent(overview.myBids) } : {}),
   };
 }
 

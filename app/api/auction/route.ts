@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { getAuctionOverview, placeAuctionBid, withdrawAuctionBid } from '@/lib/auction-service';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { maskAuctionOverviewForStudent } from '@/lib/privacy-mask';
+import { maskAuctionOverviewForStudent, maskMyBidsForStudent } from '@/lib/privacy-mask';
 
 export async function GET() {
   try {
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       success: true,
       item: result.item,
       studentCoins: result.studentCoins,
-      myBids: result.myBids,
+      myBids: result.myBids ? maskMyBidsForStudent(result.myBids) : result.myBids,
     });
   } catch (err: any) {
 
