@@ -22,7 +22,10 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
       <div className="flex flex-col items-center text-center">
         <Mascot size={7.5} />
         <h1 className="font-[family-name:var(--font-game-title)] text-3xl tracking-wide">{home.firstName}</h1>
-        <p className="text-game-ink-dim">{home.className ? `${home.className} · ` : ''}Nível {home.level}</p>
+        <p className="flex max-w-full items-baseline justify-center gap-1 text-game-ink-dim">
+            {home.className && <span className="min-w-0 truncate" title={home.className}>{home.className}</span>}
+            <span className="shrink-0">{home.className ? '· ' : ''}Nível {home.level}</span>
+          </p>
       </div>
 
       <Card title="Ajustes">
