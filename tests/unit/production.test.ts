@@ -265,7 +265,7 @@ describe("Marco 10: service worker e privacidade", () => {
       },
       caches: {
         match: async () => ({ public: true }),
-        keys: async () => ["fuctura-v1", "other-app"],
+        keys: async () => ["biblia3d-public-v1", "biblia3d-public-v2", "other-app"],
         delete: async (name: string) => {
           deleted.push(name);
         },
@@ -311,6 +311,6 @@ describe("Marco 10: service worker e privacidade", () => {
       },
     });
     await cleanup;
-    expect(deleted).toEqual(["fuctura-v1"]);
+    expect(deleted).toEqual(["biblia3d-public-v1"]);
   });
 });
