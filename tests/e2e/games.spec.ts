@@ -22,11 +22,10 @@ async function login(page: Page, project: string) {
 
 const ui = {
   openGamesTab: (page: Page) => page.getByRole("button", { name: "Jogos", exact: true }).click(),
-  card: (page: Page, title: string) =>
-    page.getByRole("heading", { name: title, exact: true }).locator('xpath=ancestor::div[contains(@class,"rounded-3xl")][1]'),
-  play: (page: Page, title: string) => ui.card(page, title).getByRole("button", { name: /Jogar/ }).click(),
+  card: (page: Page, gameId: string) => page.getByTestId(`game-card-${gameId}`),
+  play: (page: Page, gameId: string) => page.getByTestId(`game-play-${gameId}`).click(),
   back: (page: Page) => page.getByRole("button", { name: "Voltar", exact: true }).click(),
-  openSubmit: (page: Page) => page.getByRole("button", { name: /Enviar um jogo/ }).click(),
+  openSubmit: (page: Page) => page.getByTestId("game-submit-open").click(),
 };
 
 const GAME_HTML = (word: string) => `<!doctype html><html><head><title>${word}</title></head><body><h1 id="ok">${word}</h1></body></html>`;
@@ -72,7 +71,7 @@ test("lista só jogos aprovados, autor só pelo primeiro nome", async ({ page },
   await expect(page.getByRole("heading", { name: x.byClassmate.title, exact: true })).toBeVisible();
   await expect(page.getByText(x.theirs.title)).toHaveCount(0); // pendente de outro aluno não aparece
   await expect(page.locator("body")).not.toContainText("Reservada Silva"); // sobrenome da colega nunca na tela
-  await expect(ui.card(page, x.byClassmate.title)).toContainText("Colega");
+  await expect(ui.card(page, x.byClassmate.id)).toContainText("Colega");
   const api = await (await page.request.get("/api/games")).json();
   expect(JSON.stringify(api)).not.toContain("Reservada Silva");
   expect(JSON.stringify(api)).not.toContain(x.outsiderId);
@@ -84,7 +83,7 @@ test("jogar abre o jogo isolado e dá para voltar", async ({ page }, info) => {
   const x = fixtures(info.project.name);
   await login(page, info.project.name);
   await ui.openGamesTab(page);
-  await ui.play(page, x.approved.title);
+  await ui.play(page, x.approved.id);
   const iframe = page.locator("iframe");
   await expect(iframe).toHaveAttribute("sandbox", "allow-scripts"); // sem same-origin: sem cookies nem sessão
   await expect(page.frameLocator("iframe").locator("#ok")).toHaveText(x.approved.word);
