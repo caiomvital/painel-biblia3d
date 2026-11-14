@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { gameHtmlAllowedHere } from '@/lib/probe-guard';
 
 // Serve o jogo isolado: sem acesso à sessão do site e sem acesso à rede.
 const GAME_CSP =
@@ -15,6 +16,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   const canSee = game && (game.status === 'APPROVED' || session.role === 'DIRETOR' ||
     (session.role === 'ALUNO' && session.studentId && game.authorStudentId === session.studentId));
   if (!game || !canSee) return new NextResponse('Jogo não encontrado.', { status: 404 });
+  // Jogos de sonda (testes de segurança) nunca são servidos fora do ambiente de teste local.
+  if (!gameHtmlAllowedHere(game.html)) return new NextResponse('Jogo não encontrado.', { status: 404 });
   if (game.status === 'APPROVED' && session.role === 'ALUNO') {
     prisma.game.update({ where: { id }, data: { plays: { increment: 1 } } }).catch(() => undefined);
   }

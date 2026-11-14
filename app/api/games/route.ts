@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { maskGameAuthorForStudent } from '@/lib/privacy-mask';
+import { gameHtmlAllowedHere } from '@/lib/probe-guard';
 
 const MAX_GAME_HTML = 200_000;
 
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
     if (title.length < 3 || title.length > 60) throw new Error('Dê um nome ao jogo (de 3 a 60 letras).');
     if (html.length < 20) throw new Error('Cole o código do jogo (HTML).');
     if (html.length > MAX_GAME_HTML) throw new Error('O jogo é grande demais (máximo de 200 mil caracteres).');
+    if (!gameHtmlAllowedHere(html)) throw new Error('Esse conteúdo não é permitido.');
     const pending = await prisma.game.count({ where: { authorStudentId: session.studentId, status: 'PENDING' } });
     if (pending >= 3) throw new Error('Você já tem 3 jogos esperando revisão. Aguarde a aprovação!');
     const game = await prisma.game.create({
