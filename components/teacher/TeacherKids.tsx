@@ -36,7 +36,7 @@ export function TeacherKids() {
     try { setData(await call("/api/teacher/kids")); setError(""); }
     catch (e: any) { setError(e.message); }
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { const t = setTimeout(load, 0); return () => clearTimeout(t); }, [load]);
 
   const submit = async (payload: Record<string, unknown>, ok: (r: any) => string) => {
     setBusy(true); setError(""); setNotice("");

@@ -45,7 +45,7 @@ export function DirectorKids() {
       setStudents(s.students); setQuestions(q.questions); setPrize(p.prize); setRatings(r); setGames(g.games); setError("");
     } catch (e: any) { setError(e.message); }
   }, []);
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => { const t = setTimeout(reload, 0); return () => clearTimeout(t); }, [reload]);
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
     try { await fn(); setNotice(ok); setError(""); await reload(); }
