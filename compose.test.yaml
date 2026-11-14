@@ -1,0 +1,18 @@
+# PostgreSQL exclusivamente local para testes. Os dados vivem em tmpfs e somem
+# quando o container é removido; a porta fica limitada ao loopback.
+services:
+  postgres-test:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: fuctura_test
+      POSTGRES_PASSWORD: local-tests-only
+      POSTGRES_DB: fuctura_local_test
+    ports:
+      - "127.0.0.1:54329:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fuctura_test -d fuctura_local_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 12

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fcd34d" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bgGrad)" />
+
+  <!-- Geometric frame -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#1e293b" stroke-width="4" stroke-dasharray="16 12" />
+
+  <text x="256" y="300" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="150" fill="url(#primaryGrad)">B3D</text>
+
+  <!-- Growth base -->
+  <rect x="236" y="336" width="118" height="20" rx="10" fill="#fcd34d" opacity="0.9" />
+</svg>

@@ -1,0 +1,181 @@
+import { hash } from "bcryptjs";
+import { db, ids, password } from "./data";
+export default async function setup() {
+  try {
+    // Compile the protected dashboard routes before UI assertions start their clocks.
+    // These unauthenticated GETs must return early, without domain writes.
+    const origin = `http://127.0.0.1:${process.env.TEST_APP_PORT ?? 3100}`;
+    for (const path of ['/api/student/dashboard', '/api/teacher/dashboard', '/api/director/dashboard', '/api/account', '/api/notifications', '/api/tasks', '/api/director/registrations', '/api/lessons/__e2e_warmup__', '/api/director/reports', '/api/director/reports/options', '/api/director/history', '/api/director/search?q=xx']) {
+      const response = await fetch(`${origin}${path}`);
+      if (response.status !== 401) throw new Error(`Preparo do servidor E2E recusado: ${path} deve exigir autenticação.`);
+    }
+    const passwordHash = await hash(password, 10);
+    for (const project of ["desktop", "mobile"]) {
+      const f = ids(project);
+      for (const role of [
+        "teacher",
+        "otherTeacher",
+        "student",
+        "outsider",
+        "director",
+      ] as const) {
+        await db.user.create({
+          data: {
+            id: f[role],
+            email: f.email(role),
+            name: `Teste ${role} ${project}`,
+            passwordHash,
+            role:
+              role === "director"
+                ? "DIRETOR"
+                : ["teacher", "otherTeacher"].includes(role)
+                  ? "PROFESSOR"
+                  : "ALUNO",
+            ...(["teacher", "otherTeacher"].includes(role)
+              ? { teacher: { create: { id: `${f[role]}_profile` } } }
+              : role === "director"
+                ? { director: { create: {} } }
+                : {
+                    student: {
+                      create: {
+                        id: `${f[role]}_profile`,
+                        registrationNumber: f[role],
+                      },
+                    },
+                  }),
+          },
+        });
+      }
+      await db.course.create({
+        data: { id: f.course, name: "Curso E2E Java", code: f.course },
+      });
+      for (const [id, name, teacherId] of [
+        [f.class, "Turma E2E Java", `${f.teacher}_profile`],
+        [f.otherClass, "Turma E2E Privada", `${f.otherTeacher}_profile`],
+      ]) {
+        await db.class.create({
+          data: {
+            id,
+            name,
+            code: `${project}_${id === f.class ? "JAVA" : "PRIVATE"}`,
+            courseId: f.course,
+            teacherId,
+            startDate: new Date("2026-01-01T12:00:00Z"),
+            daysOfWeek: "SAB",
+            scheduleTime: "08:30 - 12:30",
+          },
+        });
+      }
+      await db.enrollment.createMany({
+        data: [
+          { classId: f.class, studentId: `${f.student}_profile` },
+          { classId: f.otherClass, studentId: `${f.outsider}_profile` },
+        ],
+      });
+      for (const [id, lessonNumber, title] of [
+        [f.lesson, 1, "Herança em Java"],
+        [f.emptyLesson, 2, "Aula sem materiais"],
+      ] as const) {
+        await db.lesson.create({
+          data: {
+            id,
+            lessonNumber,
+            title,
+            classId: f.class,
+            teacherId: `${f.teacher}_profile`,
+            date: new Date("2026-01-03T12:00:00Z"),
+            scheduleTime: "08:30 - 12:30",
+            plannedContent: "",
+            status: "COMPLETED",
+          },
+        });
+      }
+      for (const [id, lessonNumber, title, date] of [
+        [f.m8Lesson, 3, "Gestão pedagógica Marco 8", "2026-01-10T12:00:00Z"],
+        [f.futureLesson, 4, "Próxima aula Marco 8", "2099-01-01T12:00:00Z"],
+      ] as const)
+        await db.lesson.create({
+          data: {
+            id,
+            classId: f.class,
+            teacherId: `${f.teacher}_profile`,
+            lessonNumber,
+            title,
+            plannedContent: "",
+            date: new Date(date),
+            scheduleTime: "08:30 - 12:30",
+            status: "SCHEDULED",
+          },
+        });
+      await db.attendance.createMany({
+        data: [
+          {
+            id: f.attendance,
+            lessonId: f.m8Lesson,
+            studentId: `${f.student}_profile`,
+            status: "PENDING",
+          },
+          {
+            id: f.rejection,
+            lessonId: f.emptyLesson,
+            studentId: `${f.student}_profile`,
+            status: "PENDING",
+            justificationReason: "Pedido de teste",
+          },
+        ],
+      });
+      for (const [id, lessonNumber, title] of [
+        [f.m9Lesson, 1, "Gestão da direção Marco 9"],
+        [f.m9RejectLesson, 2, "Rejeição da direção Marco 9"],
+      ] as const) {
+        await db.lesson.create({
+          data: {
+            id,
+            classId: f.otherClass,
+            teacherId: `${f.otherTeacher}_profile`,
+            lessonNumber,
+            title,
+            plannedContent: "",
+            date: new Date("2026-01-03T12:00:00Z"),
+            scheduleTime: "08:30 - 12:30",
+            status: "SCHEDULED",
+          },
+        });
+      }
+      await db.attendance.createMany({
+        data: [
+          {
+            id: f.m9Attendance,
+            lessonId: f.m9Lesson,
+            studentId: `${f.outsider}_profile`,
+            status: "PENDING",
+          },
+          {
+            id: f.m9Rejection,
+            lessonId: f.m9RejectLesson,
+            studentId: `${f.outsider}_profile`,
+            status: "PENDING",
+          },
+        ],
+      });
+      // A real, empty auction item avoids unrelated automatic demo seeding on dashboards.
+      await db.auctionSeason.create({
+        data: {
+          id: `${f.prefix}_season`,
+          title: "Temporada E2E",
+          endsAt: new Date("2099-01-01T12:00:00Z"),
+          items: {
+            create: {
+              title: "Item E2E",
+              category: "Teste",
+              description: "Dado de teste",
+              endsAt: new Date("2099-01-01T12:00:00Z"),
+            },
+          },
+        },
+      });
+    }
+  } finally {
+    await db.$disconnect();
+  }
+}
