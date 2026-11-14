@@ -89,6 +89,8 @@ test("lance, reserva e saldo conferem no banco (e retirar libera as fichas)", as
   const x = fixtures(info.project.name);
   await login(page, info.project.name);
   await ui.openAuctionTab(page);
+  // O aviso da janela vem do servidor e tem de concordar com o que o servidor vai fazer com o lance.
+  await expect(page.getByTestId("auction-window")).toHaveAttribute("data-open", auctionOpenNow() ? "true" : "false");
   await ui.openBid(page, x.itemA.id);
   await ui.confirmBid(page);
 

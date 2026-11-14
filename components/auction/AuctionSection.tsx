@@ -9,6 +9,7 @@ import { ItemCard } from '@/components/student/auction/ItemCard';
 import { MyBidsList } from '@/components/student/auction/MyBidsList';
 import { Statement } from '@/components/student/auction/Statement';
 import { WinCelebration } from '@/components/student/auction/WinCelebration';
+import { WindowNotice, type BidWindow } from '@/components/student/auction/WindowNotice';
 import { AUCTION_TEXT as T } from '@/components/student/auction/copy';
 
 export interface AuctionItem {
@@ -100,6 +101,7 @@ export const AuctionSection: React.FC<AuctionSectionProps> = ({
   const [bidError, setBidError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<AuctionView>('lots');
   const [showHow, setShowHow] = useState(false);
+  const [bidWindow, setBidWindow] = useState<BidWindow | null>(null);
   const [myBids, setMyBids] = useState<StudentAuctionItemBidSummary[]>([]);
   const [coinTransactions, setCoinTransactions] = useState<StudentCoinTransactionItem[]>([]);
 
@@ -132,6 +134,7 @@ export const AuctionSection: React.FC<AuctionSectionProps> = ({
         if (data.myBids && Array.isArray(data.myBids)) {
           setMyBids(data.myBids);
         }
+        if (data.bidWindow) setBidWindow(data.bidWindow); // campo aditivo de GET /api/auction
         if (data.coinTransactions && Array.isArray(data.coinTransactions)) {
           setCoinTransactions(data.coinTransactions);
         }
@@ -282,6 +285,8 @@ export const AuctionSection: React.FC<AuctionSectionProps> = ({
         <h1 className="font-[family-name:var(--font-game-title)] text-3xl tracking-wide">{T.title}</h1>
         <p className="text-game-ink-dim">{T.intro}</p>
       </div>
+
+      <WindowNotice window={bidWindow} />
 
       <BalanceBar available={studentCoins.availableCoins} reserved={studentCoins.reservedCoins} total={studentCoins.coinBalance} />
 
