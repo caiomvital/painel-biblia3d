@@ -82,6 +82,8 @@ if (process.env.NODE_ENV !== 'production') {
 // USER & AUTHENTICATION REPOSITORY
 // ==========================================
 
+import { positionInClass } from '../class-ranking';
+
 export async function findUserByEmail(email: string): Promise<UserEntity | null> {
   const normalized = email.trim().toLowerCase();
   return store.users.find((u) => u.email.toLowerCase() === normalized) || null;
@@ -197,35 +199,16 @@ export async function getStudentDashboard(userId: string) {
   const streakRecord = store.streaks.find((s) => s.studentId === student.id);
   const streak = streakRecord ? streakRecord.currentStreak : 0;
 
-  // Ranking na turma
+  // Posição na turma (só posição e total: nunca devolvemos nomes ou XP de colegas)
   let rankingPosition = 1;
   let totalInClass = 1;
-  let classRanking: Array<{ id: string; name: string; xp: number; position: number; isCurrentUser: boolean }> = [];
 
   if (studentClass) {
     const classEnrollments = store.enrollments.filter((e) => e.classId === studentClass.id && e.status === 'ACTIVE');
     const classStudentIds = classEnrollments.map((e) => e.studentId);
     totalInClass = classStudentIds.length;
-
-    const classStudents = store.students
-      .filter((s) => classStudentIds.includes(s.id))
-      .sort((a, b) => b.currentXp - a.currentXp);
-
-    classRanking = classStudents.map((s, index) => {
-      const u = store.users.find((usr) => usr.id === s.userId);
-      return {
-        id: s.id,
-        name: u ? u.name : 'Aluno',
-        xp: s.currentXp,
-        position: index + 1,
-        isCurrentUser: s.id === student.id,
-      };
-    });
-
-    const userEntry = classRanking.find((r) => r.isCurrentUser);
-    if (userEntry) {
-      rankingPosition = userEntry.position;
-    }
+    const rank = positionInClass(store.students.filter((s) => classStudentIds.includes(s.id)), student.id);
+    rankingPosition = rank.position;
   }
 
   // Progresso do curso (baseado em aulas concluídas sobre o total)
@@ -336,7 +319,6 @@ export async function getStudentDashboard(userId: string) {
       plannedContent: ml.plannedContent,
       materials: ml.materials,
     })),
-    ranking: classRanking.slice(0, 10),
     badges: allBadges,
     recentTransactions,
   };

@@ -6,7 +6,7 @@ import type { StudentTab } from './student-types';
 import { formatDate } from './student-types';
 
 export function StudentOverview({ data, studentBalance, requestingAttendance, onMarkAttendance, onGo, onExpandLesson }: { data: any; studentBalance: number; requestingAttendance: boolean; onMarkAttendance: (lessonId: string) => void; onGo: (tab: StudentTab) => void; onExpandLesson: (id: string) => void }) {
-  const { student = {}, classInfo, lastLesson, nextLesson, lessons = [], badges = [], ranking = [] } = data;
+  const { student = {}, classInfo, lastLesson, nextLesson, lessons = [], badges = [] } = data;
   const coinBalance = student.coinBalance ?? studentBalance ?? 0;
   const reservedCoins = student.reservedCoins ?? 0;
   const availableCoins = student.availableCoins ?? Math.max(0, coinBalance - reservedCoins);
