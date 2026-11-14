@@ -18,7 +18,11 @@ const GAMES = [
   { id: 'g2', title: 'Exemplo', description: null, authorName: 'Exemplo da Bíblia 3D', authorStudentId: null, plays: 9 },
 ];
 mock.module('@/lib/auth', () => ({ getSession: async () => ({ id: 'u1', role, studentId: 'st_me', name: 'Eu Mesma Silva' }) }));
+// bun compartilha mock.module entre arquivos de teste: mantemos os exports reais (isAuctionOpen etc.)
+// e trocamos só o que acessa o banco, para não quebrar testes de outros arquivos.
+const realAuctionService = await import('../../lib/auction-service');
 mock.module('@/lib/auction-service', () => ({
+  ...realAuctionService,
   getAuctionOverview: async () => OVERVIEW, placeAuctionBid: async () => ({}), withdrawAuctionBid: async () => ({}),
 }));
 mock.module('@/lib/prisma', () => ({

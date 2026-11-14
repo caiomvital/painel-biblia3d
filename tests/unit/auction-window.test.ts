@@ -1,6 +1,6 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 
-mock.module('@/lib/prisma', () => ({ prisma: {} }));
+// Sem mock.module aqui: bun compartilha mocks entre arquivos e este teste só usa uma função pura.
 const { isAuctionOpen, AUCTION_OPEN_HOUR_RECIFE } = await import('../../lib/auction-service');
 
 /** Regra ORIGINAL (inline em placeAuctionBid antes da extração): recusava se a hora de Recife fosse < 19. */
