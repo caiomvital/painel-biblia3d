@@ -72,6 +72,9 @@ test("atividades por aula, rascunhos, pendências, feedback e bloqueio de ediç�
   const published = await (await page.request.get("/api/student/exercises")).json();
   expect(published.exercises).toHaveLength(2);
   expect(published.exercises.every((item: any) => item.correctOption === null && item.explanation === null)).toBe(true);
+  // Telas herdadas ficam em Perfil > Mais (shell infantil).
+  await page.getByRole("button", { name: "Perfil" }).click();
+  await page.getByRole("button", { name: "Mais", exact: true }).click();
   await page.getByRole("button", { name: "Exercícios", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Turma E2E Java · Herança em Java · 2 questão(ões)" })).toBeVisible();
 

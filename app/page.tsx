@@ -90,16 +90,16 @@ export default function HomePage() {
   const content = (
     <div className="min-h-screen bg-[#070a12] flex flex-col text-slate-100 selection:bg-amber-500/20 selection:text-amber-300">
       {/* Brand Header with PWA installation & profile info */}
-      <AppHeader user={user} onLogout={handleLogout} onSwitchRole={handleSwitchRole} />
+      {user?.role !== 'ALUNO' && <AppHeader user={user} onLogout={handleLogout} onSwitchRole={handleSwitchRole} />}
 
       {/* Main Dynamic Content based on User Role */}
-      <main className="flex-1 pb-16">
+      <main className={user?.role === 'ALUNO' ? 'flex-1' : 'flex-1 pb-16'}>
         {!user ? (
           <div className="flex min-h-[calc(100vh-8rem)] flex-col justify-center px-4 py-8">
             <LoginForm onSuccess={handleLoginSuccess} />
           </div>
         ) : user.role === 'ALUNO' ? (
-          <StudentView />
+          <StudentView onLogout={handleLogout} />
         ) : user.role === 'PROFESSOR' ? (
           <TeacherView />
         ) : user.role === 'DIRETOR' ? (
@@ -114,7 +114,7 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900/80 bg-[#05070d] py-5 text-center text-[11px] text-slate-500">
+      {user?.role !== 'ALUNO' && <footer className="border-t border-slate-900/80 bg-[#05070d] py-5 text-center text-[11px] text-slate-500">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-400">Bíblia 3D</span>
@@ -129,7 +129,7 @@ export default function HomePage() {
             <span>PostgreSQL</span>
           </div>
         </div>
-      </footer>
+      </footer>}
     </div>
   );
   return user ? <UserPreferences key={user.id}>{content}</UserPreferences> : content;
