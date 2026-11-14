@@ -2,8 +2,10 @@ import { publicError } from '@/lib/operational-log';
 // app/api/auction/route.ts
 import { NextResponse } from 'next/server';
 import { getAuctionOverview, placeAuctionBid, withdrawAuctionBid } from '@/lib/auction-service';
+import { bidWindowInfo } from '@/lib/auction-window';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { maskAuctionOverviewForStudent, maskMyBidsForStudent } from '@/lib/privacy-mask';
 
 export async function GET() {
   try {
@@ -22,7 +24,10 @@ export async function GET() {
     }
 
     const overview = await getAuctionOverview(studentId, false);
-    return NextResponse.json(overview);
+    // Crianças não veem o nome de quem lidera (nem de nenhum colega); equipe vê tudo.
+    const payload = session.role === 'ALUNO' ? maskAuctionOverviewForStudent(overview) : overview;
+    // Campo aditivo: janela de lances (open vem da mesma função que valida o lance no servidor).
+    return NextResponse.json({ ...payload, bidWindow: bidWindowInfo() });
   } catch (err: any) {
 
     return NextResponse.json(
@@ -93,7 +98,7 @@ export async function POST(req: Request) {
       success: true,
       item: result.item,
       studentCoins: result.studentCoins,
-      myBids: result.myBids,
+      myBids: result.myBids ? maskMyBidsForStudent(result.myBids) : result.myBids,
     });
   } catch (err: any) {
 

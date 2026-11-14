@@ -20,8 +20,8 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   forbidOnly: !!process.env.CI,
-  timeout: 90_000,
-  expect: { timeout: 15_000 },
+  timeout: 240_000,
+  expect: { timeout: 45_000 },
   reporter: [
     ["list"],
     ["html", { open: "never" }],

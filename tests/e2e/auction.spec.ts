@@ -1,0 +1,134 @@
+import { expect, test, type Page } from "@playwright/test";
+import { db, ids, password } from "./data";
+
+/**
+ * Leilão do aluno (rede de segurança para o redesenho da Fase 2a).
+ * Confere o que o aluno vê e, principalmente, o que fica no banco (lance, reserva, saldo).
+ * As funções em `ui` concentram os seletores: se a tela mudar, só elas mudam.
+ */
+const origin = `http://127.0.0.1:${process.env.TEST_APP_PORT ?? 3100}`;
+
+async function login(page: Page, project: string) {
+  await page.request.post("/api/auth/logout", { headers: { Origin: origin } });
+  await page.goto("/");
+  await page.getByLabel("Usuário ou e-mail").fill(ids(project).email("student"));
+  await page.getByLabel("Senha de Acesso").fill(password);
+  const response = page.waitForResponse((r) => r.url().endsWith("/api/auth/login") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  expect((await response).status()).toBe(200);
+}
+
+const ui = {
+  openAuctionTab: (page: Page) => page.getByRole("button", { name: "Leilão", exact: true }).click(),
+  openBid: (page: Page, itemId: string) => page.getByTestId(`auction-bid-${itemId}`).click(),
+  confirmBid: (page: Page) => page.getByTestId("bid-confirm").click(),
+  withdraw: (page: Page, itemId: string) => page.getByTestId(`auction-withdraw-${itemId}`).click(),
+};
+
+/**
+ * A regra real fica no servidor (placeAuctionBid: aberto a partir das 19h de Recife, UTC-3).
+ * O teste só precisa saber o que esperar: por padrão usa a hora real; para simular o leilão aberto
+ * em qualquer horário, rode o servidor com o relógio deslocado e defina B3D_E2E_AUCTION_OPEN=1.
+ */
+const auctionOpenNow = () =>
+  process.env.B3D_E2E_AUCTION_OPEN === "1" || new Date(Date.now() - 3 * 3600 * 1000).getUTCHours() >= 19;
+
+test.describe.configure({ mode: "serial" });
+test.afterAll(async () => db.$disconnect());
+
+function fixtures(project: string) {
+  const f = ids(project);
+  return {
+    f,
+    seasonId: `${f.prefix}_season`,
+    itemA: { id: `${f.prefix}_auction_a`, title: `Picolé ${project}` },
+    itemB: { id: `${f.prefix}_auction_b`, title: `Guaraná ${project}` },
+    studentId: `${f.student}_profile`,
+    outsiderId: `${f.outsider}_profile`,
+  };
+}
+
+test.beforeAll(async ({}, info) => {
+  const x = fixtures(info.project.name);
+  const endsAt = new Date(Date.now() + 3 * 24 * 3600 * 1000);
+  await db.auctionSeason.deleteMany({ where: { id: x.seasonId } });
+  await db.auctionSeason.create({
+    data: { id: x.seasonId, title: "Leilão E2E", status: "ACTIVE", minBidIncrement: 50, endsAt },
+  });
+  const base = { seasonId: x.seasonId, category: "Guloseimas", iconType: "book", marketValue: "R$ 5,00", status: "ACTIVE" as const, endsAt };
+  await db.auctionItem.create({
+    data: { ...base, id: x.itemA.id, title: x.itemA.title, description: "Um picolé gelado.", startingBid: 100, currentBid: 100, minNextBid: 150 },
+  });
+  await db.auctionItem.create({
+    data: {
+      ...base, id: x.itemB.id, title: x.itemB.title, description: "Um guaraná.", startingBid: 200, currentBid: 200, minNextBid: 250,
+      highestBidderId: x.outsiderId, highestBidderName: "Colega Reservado Silva", totalBids: 1,
+    },
+  });
+  await db.student.update({ where: { id: x.studentId }, data: { coinBalance: 1000 } });
+});
+
+test("aluno vê prêmios e saldo, e nenhum nome de colega", async ({ page }, info) => {
+  const x = fixtures(info.project.name);
+  await login(page, info.project.name);
+  await ui.openAuctionTab(page);
+
+  await expect(page.getByRole("heading", { name: x.itemA.title, exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: x.itemB.title, exact: true })).toBeVisible();
+  await expect(page.getByTestId("auction-balance")).toContainText("1.000"); // saldo disponível sempre visível
+  await expect(page.getByTestId(`auction-item-${x.itemB.id}`)).toContainText("Outro aluno"); // líder sem nome
+  await expect(page.getByText("1.000").first()).toBeVisible(); // saldo em fichas
+
+  // privacidade: nem na tela nem na API aparece o nome de quem lidera
+  await expect(page.locator("body")).not.toContainText("Colega Reservado");
+  const api = await (await page.request.get("/api/auction")).json();
+  expect(JSON.stringify(api)).not.toContain("Colega Reservado");
+});
+
+test("lance, reserva e saldo conferem no banco (e retirar libera as fichas)", async ({ page }, info) => {
+  const x = fixtures(info.project.name);
+  await login(page, info.project.name);
+  await ui.openAuctionTab(page);
+  // O aviso da janela vem do servidor e tem de concordar com o que o servidor vai fazer com o lance.
+  await expect(page.getByTestId("auction-window")).toHaveAttribute("data-open", auctionOpenNow() ? "true" : "false");
+  await expect(page.getByTestId("auction-window")).toContainText("meia-noite"); // informa também o fechamento
+  await ui.openBid(page, x.itemA.id);
+  await ui.confirmBid(page);
+
+  if (!auctionOpenNow()) {
+    // Fora da janela das 19h o servidor recusa: nada pode ser reservado.
+    await expect(page.getByText(/abre todo dia às 19h/)).toBeVisible();
+    expect(await db.coinReservation.count({ where: { studentId: x.studentId, itemId: x.itemA.id } })).toBe(0);
+    expect((await db.student.findUniqueOrThrow({ where: { id: x.studentId } })).coinBalance).toBe(1000);
+    return;
+  }
+
+  // Dentro da janela: lance de 150 vira reserva ativa, o saldo total não muda (só o disponível).
+  await expect
+    .poll(async () => (await db.coinReservation.findFirst({ where: { studentId: x.studentId, itemId: x.itemA.id, status: "ACTIVE" } }))?.amount)
+    .toBe(150);
+  const item = await db.auctionItem.findUniqueOrThrow({ where: { id: x.itemA.id } });
+  expect(item.currentBid).toBe(150);
+  expect(item.highestBidderId).toBe(x.studentId);
+  expect((await db.student.findUniqueOrThrow({ where: { id: x.studentId } })).coinBalance).toBe(1000);
+  const api = await (await page.request.get("/api/auction")).json();
+  expect(api.studentCoins).toMatchObject({ coinBalance: 1000, reservedCoins: 150, availableCoins: 850 });
+
+  // Retirar o lance libera a reserva.
+  await ui.withdraw(page, x.itemA.id);
+  await expect
+    .poll(async () => (await db.coinReservation.findFirst({ where: { studentId: x.studentId, itemId: x.itemA.id } }))?.status)
+    .toBe("RELEASED");
+  const after = await (await page.request.get("/api/auction")).json();
+  expect(after.studentCoins).toMatchObject({ coinBalance: 1000, reservedCoins: 0, availableCoins: 1000 });
+
+  // Depois da retirada o mínimo é o que o servidor realmente aceita: API, cartão e servidor concordam.
+  const dbItem = await db.auctionItem.findUniqueOrThrow({ where: { id: x.itemA.id } });
+  const apiItem = after.items.find((i: { id: string }) => i.id === x.itemA.id);
+  expect(apiItem.minNextBid).toBe(dbItem.minNextBid);
+  await expect(page.getByTestId(`auction-bid-${x.itemA.id}`)).toContainText(`(${dbItem.minNextBid})`);
+  const post = (amount: number) =>
+    page.request.post("/api/auction", { headers: { Origin: origin }, data: { itemId: x.itemA.id, amount } });
+  expect((await post(dbItem.minNextBid - 1)).status()).toBe(400); // abaixo do mostrado: recusa
+  expect((await post(dbItem.minNextBid)).status()).toBe(200); // exatamente o mostrado: aceita
+});
