@@ -9,6 +9,23 @@ const originalRefuses = (nowMs: number) => new Date(nowMs - 3 * 3600 * 1000).get
 // Recife = UTC-3 (sem horário de verão): 19:00 em Recife = 22:00 UTC.
 const recife = (iso: string) => Date.parse(`${iso}-03:00`);
 
+const { bidWindowInfo } = await import('../../lib/auction-window');
+
+describe('rótulos da janela (bidWindow) concordam com a função', () => {
+  test('open vem de isAuctionOpen e os rótulos são 19:00 e meia-noite', () => {
+    expect(bidWindowInfo(recife('2026-11-14T20:00:00'))).toEqual({ open: true, opensAt: '19:00', closesAt: '00:00', timeZone: 'America/Recife' });
+    expect(bidWindowInfo(recife('2026-11-14T10:00:00')).open).toBe(false);
+  });
+  test('em cada minuto do dia: aberto exatamente entre opensAt e closesAt (meia-noite)', () => {
+    const [oh] = bidWindowInfo().opensAt.split(':').map(Number);
+    for (let m = 0; m < 24 * 60; m++) {
+      const hh = String(Math.floor(m / 60)).padStart(2, '0'), mm = String(m % 60).padStart(2, '0');
+      const expected = Math.floor(m / 60) >= oh; // de opensAt até 23:59; closesAt 00:00 = fim do dia
+      expect(bidWindowInfo(recife(`2026-11-14T${hh}:${mm}:00`)).open).toBe(expected);
+    }
+  });
+});
+
 describe('janela de lances do leilão (fuso de Recife, UTC-3)', () => {
   test('abre às 19h em ponto, um segundo antes ainda está fechado', () => {
     expect(isAuctionOpen(recife('2026-11-14T18:59:59'))).toBe(false);

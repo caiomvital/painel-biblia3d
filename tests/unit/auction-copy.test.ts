@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { bidStatusView, countdownText, itemEmoji, leaderLabel } from '../../components/student/auction/copy';
+import { bidStatusView, countdownText, describeWindow, friendlyBidError, howLines, itemEmoji, leaderLabel, windowNoticeText } from '../../components/student/auction/copy';
 
 describe('Leilão para crianças: textos e estados', () => {
   test('cada estado tem símbolo e texto (nunca só cor)', () => {
@@ -28,5 +28,17 @@ describe('Leilão para crianças: textos e estados', () => {
   test('ícone de prêmio com padrão', () => {
     expect(itemEmoji('headphone')).toBe('🎧');
     expect(itemEmoji('qualquer')).toBe('🎁');
+  });
+  test('texto da janela informa abertura e fechamento', () => {
+    const w = { open: false, opensAt: '19:00', closesAt: '00:00' };
+    expect(describeWindow(w)).toBe('Lances das 19h até meia-noite');
+    expect(windowNoticeText(w)).toBe('Fechado agora. Lances das 19h até meia-noite.');
+    expect(windowNoticeText({ ...w, open: true })).toBe('Aberto agora! Lances até meia-noite.');
+    expect(howLines(w)[0]).toBe('Lances das 19h até meia-noite.');
+    expect(howLines(null)).toHaveLength(3);
+  });
+  test('mensagens do servidor trocam "Coins" por "fichas" (só na tela)', () => {
+    expect(friendlyBidError('O lance mínimo deve ser de pelo menos 150 Coins.')).toBe('O lance mínimo deve ser de pelo menos 150 fichas.');
+    expect(friendlyBidError('Saldo insuficiente.')).toBe('Saldo insuficiente.');
   });
 });

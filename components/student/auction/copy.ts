@@ -4,7 +4,7 @@ export const AUCTION_TEXT = {
   intro: 'Dê lances nos prêmios com suas fichas. Quem der mais, leva!',
   howTitle: 'Como funciona?',
   how: [
-    'O leilão abre todo dia às 19h.',
+    'Lances todos os dias à noite.', // substituída por describeWindow() quando o servidor informa a janela
     'Seu lance guarda fichas até alguém passar você.',
     'Mudou de ideia? Retire o lance e as fichas voltam.',
   ],
@@ -51,3 +51,27 @@ export const ITEM_EMOJI: Record<string, string> = {
   keyboard: '⌨️', mentorship: '🚀', cert: '📜', swag: '👕', headphone: '🎧', book: '📚',
 };
 export const itemEmoji = (iconType: string) => ITEM_EMOJI[iconType] ?? '🎁';
+
+export type BidWindowLike = { open: boolean; opensAt: string; closesAt: string };
+
+const hourLabel = (hhmm: string) => (hhmm === '00:00' ? 'meia-noite' : `${parseInt(hhmm.slice(0, 2), 10)}h`);
+
+/** "Lances das 19h até meia-noite" (a partir do campo bidWindow do servidor). */
+export function describeWindow(w: BidWindowLike): string {
+  return `Lances das ${hourLabel(w.opensAt)} até ${hourLabel(w.closesAt)}`;
+}
+
+/** Aviso curto: aberto agora ou fechado agora, sempre dizendo quando abre e fecha. */
+export function windowNoticeText(w: BidWindowLike): string {
+  return w.open ? `Aberto agora! Lances até ${hourLabel(w.closesAt)}.` : `Fechado agora. ${describeWindow(w)}.`;
+}
+
+/** As 3 linhas do "Como funciona?": a primeira usa a janela real do servidor. */
+export function howLines(w: BidWindowLike | null): readonly string[] {
+  return w ? [`${describeWindow(w)}.`, ...AUCTION_TEXT.how.slice(1)] : AUCTION_TEXT.how;
+}
+
+/** Mensagens do servidor falam em "Coins"; para a criança é sempre "fichas". Só troca a palavra, na tela. */
+export function friendlyBidError(message: string): string {
+  return message.replace(/\bCoins\b/g, 'fichas');
+}
