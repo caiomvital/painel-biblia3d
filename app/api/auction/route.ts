@@ -1,7 +1,7 @@
 import { publicError } from '@/lib/operational-log';
 // app/api/auction/route.ts
 import { NextResponse } from 'next/server';
-import { getAuctionOverview, placeAuctionBid, withdrawAuctionBid } from '@/lib/auction-service';
+import { AUCTION_OPEN_HOUR_RECIFE, getAuctionOverview, isAuctionOpen, placeAuctionBid, withdrawAuctionBid } from '@/lib/auction-service';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { maskAuctionOverviewForStudent, maskMyBidsForStudent } from '@/lib/privacy-mask';
@@ -24,7 +24,12 @@ export async function GET() {
 
     const overview = await getAuctionOverview(studentId, false);
     // Crianças não veem o nome de quem lidera (nem de nenhum colega); equipe vê tudo.
-    return NextResponse.json(session.role === 'ALUNO' ? maskAuctionOverviewForStudent(overview) : overview);
+    const payload = session.role === 'ALUNO' ? maskAuctionOverviewForStudent(overview) : overview;
+    // Campo aditivo: janela de lances, calculada pela mesma função que valida o lance no servidor.
+    return NextResponse.json({
+      ...payload,
+      bidWindow: { open: isAuctionOpen(), opensAt: `${String(AUCTION_OPEN_HOUR_RECIFE).padStart(2, '0')}:00`, timeZone: 'America/Recife' },
+    });
   } catch (err: any) {
 
     return NextResponse.json(

@@ -604,6 +604,20 @@ export async function getStudentCoinTransactions(studentId: string): Promise<Stu
 // 5. LANCE ATÔMICO COM BLOQUEIO POSTGRESQL (FASE 5, 6, 7)
 // ==========================================
 
+/** Hora (0-23, horário de Recife) em que a janela de lances abre todos os dias. */
+export const AUCTION_OPEN_HOUR_RECIFE = 19;
+
+/**
+ * Janela de lances do leilão. Mesma regra que existia inline em placeAuctionBid, agora reutilizável.
+ *
+ * Fuso: `nowMs - 3h` desloca o relógio para o horário de Recife/Brasília (UTC-3, sem horário de verão
+ * desde 2019); `getUTCHours()` lê, nesse relógio já deslocado, a HORA LOCAL de Recife (não o UTC puro).
+ * Aberto das 19:00:00 às 23:59:59 de Recife; fecha à meia-noite (00:00) e reabre às 19h do dia seguinte.
+ */
+export function isAuctionOpen(nowMs: number = Date.now()): boolean {
+  return new Date(nowMs - 3 * 3600 * 1000).getUTCHours() >= AUCTION_OPEN_HOUR_RECIFE;
+}
+
 export async function placeAuctionBid(
   itemId: string,
   studentId: string,
@@ -618,7 +632,7 @@ export async function placeAuctionBid(
 }> {
   if (!Number.isSafeInteger(amount) || amount <= 0) return {success:false,error:'Valor do lance inválido.'};
   // Leilão aberto todos os dias a partir das 19h (horário de Recife, UTC-3).
-  if (new Date(Date.now() - 3 * 3600 * 1000).getUTCHours() < 19) {
+  if (!isAuctionOpen()) {
     return { success: false, error: 'O leilão abre todo dia às 19h. Volte às 19h para dar o seu lance!' };
   }
   try {
