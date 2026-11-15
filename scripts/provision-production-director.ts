@@ -8,7 +8,8 @@ import { databaseUrl } from "../lib/database-config";
 import { appOrigin, productionConfiguration } from "../lib/production-config";
 import { inspectDatabaseSchema } from "./supabase-schema";
 
-const APPROVED_HML_ORIGIN = "https://fuctura-hml.69.169.102.111.sslip.io";
+// Origem de homologação aprovada vem do ambiente (APPROVED_ORIGIN); o valor padrão é só um placeholder que nunca coincide.
+const APPROVED_HML_ORIGIN = process.env.APPROVED_ORIGIN || "https://<HOST_DE_HOMOLOGACAO>";
 type Endpoint = { host: string; port: string; user: string; database: string; project?: string };
 
 function endpoint(raw: string): Endpoint {

@@ -7,7 +7,7 @@ import { productionConfiguration } from "../lib/production-config";
 import { databaseUrl } from "../lib/database-config";
 import { targetFingerprint } from "../lib/staging-target";
 import { inspectDatabaseSchema } from "./supabase-schema";
-const origin = "https://fuctura-hml.69.169.102.111.sslip.io";
+const origin = process.env.APP_URL ?? "https://<HOST_DE_HOMOLOGACAO>"; // origem vem do ambiente
 const target = "689c60925ff3bf1915ddbeae49d85a82ce41d0143b2d1f0c109f7b358ba60d12";
 const path = "/opt/painel-fuctura/.env.registration-hml";
 async function run() {
