@@ -124,6 +124,7 @@ test("lance, reserva e saldo conferem no banco (e retirar libera as fichas)", as
 
   // Depois da retirada o mínimo é o que o servidor realmente aceita: API, cartão e servidor concordam.
   const dbItem = await db.auctionItem.findUniqueOrThrow({ where: { id: x.itemA.id } });
+  expect(dbItem.minNextBid).toBe(150); // inicial (100) + incremento (50): igual a um lote recém-criado
   const apiItem = after.items.find((i: { id: string }) => i.id === x.itemA.id);
   expect(apiItem.minNextBid).toBe(dbItem.minNextBid);
   await expect(page.getByTestId(`auction-bid-${x.itemA.id}`)).toContainText(`(${dbItem.minNextBid})`);

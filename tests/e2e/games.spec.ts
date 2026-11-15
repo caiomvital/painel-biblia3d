@@ -193,3 +193,20 @@ test("os 3 jogos de exemplo continuam funcionando com o aviso injetado", async (
 
   expect(errors).toEqual([]); // nenhum erro de JavaScript nos 3 jogos
 });
+
+test("jogo que navega o próprio quadro para outra página é parado com um aviso", async ({ page }, info) => {
+  const x = fixtures(info.project.name);
+  const id = `${x.f.prefix}_game_selfnav`;
+  await db.game.create({
+    data: { id, title: `Navega ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED",
+      html: `<!doctype html><html><head><title>t</title></head><body><p>oi</p><script>setTimeout(function(){location.href='/api/games/${x.approved.id}/play';},300);</script></body></html>` },
+  });
+  await login(page, info.project.name);
+  await ui.openGamesTab(page);
+  await ui.play(page, id);
+  await expect(page.getByTestId("game-navigated")).toContainText("tentou abrir outra página");
+  await ui.back(page);
+  await ui.play(page, x.approved.id); // um jogo normal continua sem o aviso
+  await expect(page.frameLocator("iframe").locator("#ok")).toHaveText(x.approved.word);
+  await expect(page.getByTestId("game-navigated")).toHaveCount(0);
+});

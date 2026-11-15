@@ -17,7 +17,7 @@ type Ratings = {
   teachers: { name: string; count: number; average: number | null }[];
   recent: { id: string; student: string; teacher: string; score: number; enjoying: string; comment: string | null; createdAt: string }[];
 };
-type AdminGame = { id: string; title: string; description: string | null; authorName: string; status: "PENDING" | "APPROVED" | "REJECTED"; plays: number };
+type AdminGame = { id: string; title: string; description: string | null; authorName: string; status: "PENDING" | "APPROVED" | "REJECTED"; plays: number; navRisk?: boolean };
 const enjoyText: Record<string, string> = { YES: "gostando", SO_SO: "mais ou menos", NO: "não muito" };
 
 const panel = "rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3";
@@ -120,6 +120,7 @@ export function DirectorKids() {
           {games.map((g) => (
             <li key={g.id} className="rounded-xl border border-slate-800 p-3 text-sm text-slate-200">
               <p className="font-semibold text-white">{g.title} <span className="text-[11px] font-normal text-slate-400">· por {g.authorName} · {statusText[g.status]} · {g.plays} partida(s)</span></p>
+              {g.navRisk && <p role="note" data-testid="game-nav-risk" className="text-xs text-amber-300">⚠ Este código tem endereço externo ou troca de página (location, meta refresh ou link http). Confira antes de aprovar.</p>}
               {g.description && <p className="text-xs text-slate-400">{g.description}</p>}
               <div className="mt-2 flex flex-wrap gap-2">
                 <a className={buttonClass} href={`/api/games/${g.id}/play`} target="_blank" rel="noopener noreferrer" aria-describedby="games-test-warning" title="Abre em outra aba. Pode travar a aba se o jogo tiver laço infinito. Jogue antes de aprovar.">Testar (nova aba)</a>

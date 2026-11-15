@@ -63,7 +63,7 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
 
       {onLogout && <Button variant="danger" onClick={onLogout}>Sair</Button>}
 
-      {account && <PanelDialog title="Minha conta" onClose={() => setAccount(false)}><AccountSettings /></PanelDialog>}
+      {account && <PanelDialog title="Minha conta" onClose={() => setAccount(false)}><AccountSettings hideColor /></PanelDialog>}
     </div>
   );
 }
