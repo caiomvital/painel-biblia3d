@@ -1,3 +1,5 @@
+> **Documento herdado do painel da Fuctura (histórico).** Não descreve a operação do Bíblia 3D; veja `DEPLOYMENT.md`. Valores como domínios e IPs aqui são placeholders.
+
 # Cadastro na homologação publicada
 
 ## Mobile concluído em 09/10/2026
@@ -92,7 +94,7 @@ disponível para Playwright ou indicado por PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH.
 Validar schema/preflight somente leitura antes da execução. Não há necessidade
 de deploy, mudança de regras ou migration para este executor local.
 
-Origem fixa: https://fuctura-hml.69.169.102.111.sslip.io.
+Origem fixa: https://<HOST_DE_HOMOLOGACAO>.
 O comando abaixo é um modelo para nova execução, que depende de autorização
 específica para esse alvo e as escritas descritas. As execuções concluídas estão
 registradas no início deste documento:

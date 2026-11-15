@@ -1,3 +1,5 @@
+> **Documento herdado do painel da Fuctura (histórico).** Não descreve a operação do Bíblia 3D; veja `DEPLOYMENT.md`. Valores como domínios e IPs aqui são placeholders.
+
 # Marco 10 / Etapa 2A — preparação da homologação
 
 **Esta etapa prepara o ambiente; não executa deploy, migrations remotas, criação de contas, testes publicados ou Etapa 2B.** O procedimento operacional base permanece em [DEPLOYMENT.md](DEPLOYMENT.md). Este documento acrescenta isolamento, dados fictícios, roteiro e evidências de homologação; não substitui os controles da Etapa 1.

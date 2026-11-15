@@ -1,3 +1,5 @@
+> **Documento herdado do painel da Fuctura (histórico).** Não descreve a operação do Bíblia 3D; veja `DEPLOYMENT.md`. Valores como domínios e IPs aqui são placeholders.
+
 # Marco 9 — experiência do diretor
 
 O painel começa na Visão Geral e reúne seis áreas: Visão Geral, Turmas,
