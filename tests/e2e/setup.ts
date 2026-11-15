@@ -25,6 +25,8 @@ export default async function setup() {
             email: f.email(role),
             name: `Teste ${role} ${project}`,
             passwordHash,
+            // Contas de teste de aluno já "criaram a senha"; o fluxo de primeiro acesso tem teste próprio (first-login.spec.ts).
+            mustChangePassword: false,
             role:
               role === "director"
                 ? "DIRETOR"

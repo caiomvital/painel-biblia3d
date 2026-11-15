@@ -2,6 +2,7 @@ import { operationalLog } from '@/lib/operational-log';
 import { pendingRegistrationMessage } from '@/lib/registration-input';
 import { publicError } from '@/lib/operational-log';
 import { takeLoginAttempt, clearLoginAttempts } from '@/lib/login-limiter';
+import { loginLimiterKey } from '@/lib/phone';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { awardDailyLoginXp } from '@/lib/academic-service';
@@ -20,7 +21,9 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    if (!takeLoginAttempt(normalizedEmail)) { operationalLog('auth.login.rate_limited'); return NextResponse.json({error:'Muitas tentativas. Tente novamente mais tarde.'},{status:429,headers:{'Retry-After':'600'}}); }
+    // Telefone em qualquer formato (com ou sem parênteses, espaços, traços) conta no MESMO limite.
+    const limiterKey = loginLimiterKey(normalizedEmail);
+    if (!takeLoginAttempt(limiterKey)) { operationalLog('auth.login.rate_limited'); return NextResponse.json({error:'Muitas tentativas. Tente novamente mais tarde.'},{status:429,headers:{'Retry-After':'600'}}); }
 
     // 1. Buscar User pelo email via Prisma
     const userInclude = {
@@ -77,7 +80,7 @@ export async function POST(req: NextRequest) {
     if (user.registration && user.registration.status !== 'APPROVED') {
       return NextResponse.json({ error: pendingRegistrationMessage }, { status: 403 });
     }
-    clearLoginAttempts(normalizedEmail);
+    clearLoginAttempts(limiterKey);
     // 3. Utilizar exclusivamente o role armazenado no User
     const studentId = user.student ? user.student.id : undefined;
     const teacherId = user.teacher ? user.teacher.id : undefined;
@@ -118,6 +121,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         name: user.name,
         role: user.role,
+        mustChangePassword: user.role === 'ALUNO' && user.mustChangePassword === true,
       },
       loginXpAwarded,
     });

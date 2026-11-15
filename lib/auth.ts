@@ -16,7 +16,12 @@ export async function hashPassword(password: string) {
 export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
-export async function getSession(): Promise<SessionUser | null> {
+/**
+ * Sessão válida do usuário logado. Aluno com a senha padrão (mustChangePassword) NÃO recebe sessão:
+ * todas as rotas protegidas respondem 401 até ele criar a senha nova. Só /api/auth/me e a troca de
+ * senha pedem `allowPasswordPending` para poder atendê-lo.
+ */
+export async function getSession(options: { allowPasswordPending?: boolean } = {}): Promise<SessionUser | null> {
   const token = (await cookies()).get(COOKIE_NAME)?.value;
   if (!token) return null;
   const session = await verifySessionToken(token);
@@ -30,6 +35,7 @@ export async function getSession(): Promise<SessionUser | null> {
         email: true,
         role: true,
         sessionVersion: true,
+        mustChangePassword: true,
         student: { select: { id: true } },
         teacher: { select: { id: true } },
         director: { select: { id: true } },
@@ -38,12 +44,15 @@ export async function getSession(): Promise<SessionUser | null> {
     });
     if (!user || user.role !== session.role || user.sessionVersion !== (session.sessionVersion ?? 0)) return null;
     if (user.registration && user.registration.status !== "APPROVED") return null;
+    const pending = user.role === "ALUNO" && user.mustChangePassword;
+    if (pending && !options.allowPasswordPending) return null;
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
       sessionVersion: user.sessionVersion,
+      ...(options.allowPasswordPending ? { mustChangePassword: pending } : {}),
       studentId: user.student?.id,
       teacherId: user.teacher?.id,
       directorId: user.director?.id,

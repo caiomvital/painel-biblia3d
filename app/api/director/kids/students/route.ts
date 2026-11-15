@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession, hashPassword } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { parseBirthDate } from '@/lib/kids-service';
+import { DEFAULT_KID_PASSWORD, directorResetData } from '@/lib/password-rules';
 
 async function director() {
   const s = await getSession();
@@ -52,7 +53,7 @@ export async function PATCH(req: NextRequest) {
     if (b.resetPassword === true) {
       await prisma.user.update({
         where: { id: student.userId },
-        data: { passwordHash: await hashPassword('123'), sessionVersion: { increment: 1 } },
+        data: directorResetData(await hashPassword(DEFAULT_KID_PASSWORD)),
       });
     }
     return NextResponse.json({ ok: true });

@@ -10,6 +10,8 @@ export interface SessionUser {
   teacherId?: string;
   directorId?: string;
   sessionVersion?: number;
+  /** Só preenchido por getSession({ allowPasswordPending: true }). */
+  mustChangePassword?: boolean;
 }
 const issuer = "biblia3d",
   audience = "biblia3d-panel";
