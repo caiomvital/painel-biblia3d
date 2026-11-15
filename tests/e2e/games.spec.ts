@@ -194,7 +194,7 @@ test("os 3 jogos de exemplo continuam funcionando com o aviso injetado", async (
   expect(errors).toEqual([]); // nenhum erro de JavaScript nos 3 jogos
 });
 
-test("jogo que navega o próprio quadro para outra página é parado com um aviso", async ({ page }, info) => {
+test("jogo que navega o próprio quadro para outra página é parado com um aviso neutro", async ({ page }, info) => {
   const x = fixtures(info.project.name);
   const id = `${x.f.prefix}_game_selfnav`;
   await db.game.create({
@@ -204,9 +204,29 @@ test("jogo que navega o próprio quadro para outra página é parado com um avis
   await login(page, info.project.name);
   await ui.openGamesTab(page);
   await ui.play(page, id);
-  await expect(page.getByTestId("game-navigated")).toContainText("tentou abrir outra página");
+  await expect(page.getByTestId("game-navigated")).toContainText("O jogo recarregou");
   await ui.back(page);
   await ui.play(page, x.approved.id); // um jogo normal continua sem o aviso
   await expect(page.frameLocator("iframe").locator("#ok")).toHaveText(x.approved.word);
   await expect(page.getByTestId("game-navigated")).toHaveCount(0);
+});
+
+test('jogo legítimo que reinicia com location.reload(): aviso neutro e Tentar de novo volta ao jogo', async ({ page }, info) => {
+  const x = fixtures(info.project.name);
+  const id = `${x.f.prefix}_game_reload`;
+  await db.game.create({
+    data: { id, title: `Reinicia ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED",
+      html: `<!doctype html><html><head><title>t</title></head><body><button id="again" onclick="location.reload()">Jogar de novo</button></body></html>` },
+  });
+  await login(page, info.project.name);
+  await ui.openGamesTab(page);
+  await ui.play(page, id);
+  await page.frameLocator("iframe").locator("#again").click();
+  await page.waitForTimeout(1500);
+  // Reiniciar e fugir são indistinguíveis para o painel: por isso o aviso é neutro (não acusa) e oferece "Tentar de novo".
+  await expect(page.getByTestId("game-navigated")).toContainText("O jogo recarregou. Tentar de novo?");
+  await expect(page.getByTestId("game-navigated")).not.toContainText("tentou abrir");
+  await page.getByRole("button", { name: "Tentar de novo" }).click();
+  await expect(page.getByTestId("game-navigated")).toHaveCount(0);
+  await expect(page.frameLocator("iframe").locator("#again")).toBeVisible(); // o jogo volta
 });
