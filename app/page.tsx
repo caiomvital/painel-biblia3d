@@ -7,7 +7,6 @@ import { StudentView } from '@/components/student/StudentView';
 import { FirstPasswordScreen } from '@/components/auth/FirstPasswordScreen';
 import { TeacherView } from '@/components/teacher/TeacherView';
 import { DirectorView } from '@/components/director/DirectorView';
-import { SecretaryView } from '@/components/secretary/SecretaryView';
 import { UserPreferences } from '@/components/layout/UserPreferences';
 
 export default function HomePage() {
@@ -83,8 +82,6 @@ export default function HomePage() {
           <TeacherView />
         ) : user.role === 'DIRETOR' ? (
           <DirectorView />
-        ) : user.role === 'SECRETARIA' ? (
-          <SecretaryView />
         ) : (
           <div className="p-8 text-center text-sm text-slate-400">
             Perfil de usuário não identificado.

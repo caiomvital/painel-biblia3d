@@ -9,7 +9,6 @@ import DirectorFinanceControls from "./DirectorFinanceControls";
 import { DirectorCurricula } from "./DirectorCurricula";
 import { DirectorKids } from "./DirectorKids";
 import { DirectorCourses } from "./DirectorCourses";
-import { DirectorSecretaries } from "./DirectorSecretaries";
 import { LessonCreateForm } from "@/components/lessons/LessonCreateForm";
 import {
   api,
@@ -25,7 +24,6 @@ const tabs = [
   "Professores",
   "Alunos",
   "Aulas e Presenças",
-  "Secretaria",
   "Gamificação e Leilões",
   "Currículos",
   "Crianças",
@@ -56,7 +54,6 @@ export function DirectorView() {
   const [diary, setDiary] = useState<string | null>(null);
   const [editor, setEditor] = useState<AcademicEditor | null>(null);
   const [enrollClass, setEnrollClass] = useState("");
-  const [bulkStudentIds, setBulkStudentIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     function onNavigate(event: Event) {
@@ -129,7 +126,6 @@ export function DirectorView() {
     setDiaryStatus("");
     setEnrollmentStatus("");
     setAttendanceStatus("PENDING");
-    setBulkStudentIds([]);
   }
   function openClass(id: string) {
     navigate("Turmas");
@@ -571,16 +567,6 @@ export function DirectorView() {
               </div>
               <section className={panel}>
                 <h3 className="font-bold">Alunos matriculados</h3>
-                <form className="space-y-2 border-b border-slate-800 pb-3" onSubmit={async (event) => {
-                  event.preventDefault();
-                  await mutate("/api/staff/enrollments/bulk", "POST", { classId: cls.id, studentIds: bulkStudentIds });
-                  setBulkStudentIds([]);
-                }}>
-                  <label className="block text-sm">Adicionar alunos à turma<select aria-label={`Adicionar alunos à turma ${cls.name}`} multiple className={`${fieldClass} min-h-36`} value={bulkStudentIds} onChange={(event) => setBulkStudentIds(Array.from(event.target.selectedOptions, (option) => option.value))}>
-                    {data.students.filter((student) => !student.enrollments.some((enrollment) => enrollment.status === "ACTIVE") && !student.enrollments.some((enrollment) => enrollment.classId === cls.id && enrollment.status === "COMPLETED")).map((student) => <option key={student.id} value={student.id}>{student.name}</option>)}
-                  </select><span className="text-xs text-slate-400">Use Ctrl (ou Command no Mac) para selecionar vários.</span></label>
-                  <button className={buttonClass} disabled={busy || !bulkStudentIds.length}>{busy ? "Salvando…" : `Matricular ${bulkStudentIds.length || "alunos"}`}</button>
-                </form>
                 {cls.enrollments.length ? (
                   cls.enrollments.map((e) => (
                     <div key={e.id} className="flex flex-wrap items-center justify-between gap-2">
@@ -967,7 +953,6 @@ export function DirectorView() {
           )}
         </>
       )}
-      {tab === "Secretaria" && <DirectorSecretaries />}
       {tab === "Aulas e Presenças" && (
         <>
           <h2 className="font-bold text-lg">Aulas e Presenças</h2>
