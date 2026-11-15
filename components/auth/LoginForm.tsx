@@ -135,47 +135,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           </button>
         </form>
 
-        {/* Development-only demo credentials; never rendered in production. */}
-        {process.env.NODE_ENV !== 'production' && <div className="mt-6 pt-5 border-t border-slate-800/80 space-y-2.5">
-          <span className="text-[11px] font-semibold text-slate-400 block text-center">
-            Acesso Rápido para Demonstração &amp; Testes:
-          </span>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('diretor@biblia3d.com.br');
-                setPassword('Password123!');
-              }}
-              className="rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 py-2 px-1 text-[11px] font-bold text-amber-300 text-center transition-all"
-            >
-              👑 Diretor
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('henrique.silveira@biblia3d.com.br');
-                setPassword('Password123!');
-              }}
-              className="rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 py-2 px-1 text-[11px] font-bold text-amber-300 text-center transition-all"
-            >
-              👨‍🏫 Professor
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('aluno@biblia3d.com.br');
-                setPassword('Password123!');
-              }}
-              className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 py-2 px-1 text-[11px] font-bold text-emerald-300 text-center transition-all"
-            >
-              🎓 Aluno
-            </button>
-          </div>
-        </div>
-
-        }
-
         <div className="mt-4 text-center text-[10px] text-slate-500">
           O sistema identifica automaticamente o perfil de <span className="text-slate-400 font-medium">Aluno</span>, <span className="text-slate-400 font-medium">Professor</span> ou <span className="text-slate-400 font-medium">Diretor</span>.
         </div>
