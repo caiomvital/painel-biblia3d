@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useUserPreferences } from './UserPreferences';
 import { panelApi, panelButton, panelField } from './panel-ui';
-export function AccountSettings() {
+export function AccountSettings({ hideColor = false }: { hideColor?: boolean } = {}) {
   const { preferences, ready, saving, loading, error, reload, save } = useUserPreferences();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -24,7 +24,7 @@ export function AccountSettings() {
     {message && <p role="status" className="text-emerald-300">{message}</p>}
     <fieldset disabled={!ready || saving || loading} className="space-y-3">
       <legend className="mb-2 font-semibold">Aparência</legend>
-      <label className="block text-sm">Cor do painel<select aria-label="Cor do painel" className={panelField} value={preferences.color} onChange={e => update({ ...preferences, color: e.target.value as typeof preferences.color })}><option value="default">Padrão</option><option value="blue">Azul</option><option value="green">Verde</option><option value="violet">Violeta</option></select></label>
+      {!hideColor && <label className="block text-sm">Cor do painel<select aria-label="Cor do painel" className={panelField} value={preferences.color} onChange={e => update({ ...preferences, color: e.target.value as typeof preferences.color })}><option value="default">Padrão</option><option value="blue">Azul</option><option value="green">Verde</option><option value="violet">Violeta</option></select></label>}
       <label className="block text-sm">Tamanho do texto<select aria-label="Tamanho do texto" className={panelField} value={preferences.textSize} onChange={e => update({ ...preferences, textSize: e.target.value as typeof preferences.textSize })}><option value="normal">Normal</option><option value="large">Grande</option><option value="larger">Muito grande</option></select></label>
       <p className="text-xs text-slate-400">As preferências acompanham sua conta em outros dispositivos.</p>
     </fieldset>

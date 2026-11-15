@@ -9,6 +9,7 @@ export const GAMES_TEXT = {
   opening: 'Abrindo o jogo…',
   slow: 'O jogo está demorando para abrir.',
   retry: 'Tentar de novo',
+  navigated: 'O jogo recarregou. Tentar de novo?',
   mine: 'Meus jogos',
   send: 'Enviar um jogo meu',
   sendHelp: 'Seu jogo é um arquivo HTML. Peça ajuda ao professor.',

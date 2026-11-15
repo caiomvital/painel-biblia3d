@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { gameHtmlAllowedHere } from '@/lib/probe-guard';
+import { gameNavigationRisk } from '@/lib/game-risk';
 
 const MAX_HTML = 200_000;
 
@@ -14,9 +15,9 @@ export async function GET() {
   if (!(await director())) return NextResponse.json({ error: 'Acesso restrito à direção.' }, { status: 403 });
   const games = await prisma.game.findMany({
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
-    select: { id: true, title: true, description: true, authorName: true, status: true, plays: true },
+    select: { id: true, title: true, description: true, authorName: true, status: true, plays: true, html: true },
   });
-  return NextResponse.json({ games });
+  return NextResponse.json({ games: games.map(({ html, ...g }) => ({ ...g, navRisk: gameNavigationRisk(html) })) });
 }
 
 export async function POST(req: NextRequest) {

@@ -13,13 +13,14 @@ export function GamePlayer({ game, onBack }: { game: GameItem; onBack: () => voi
   const [loaded, setLoaded] = useState(false);
   const [slow, setSlow] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [loads, setLoads] = useState(0);
 
   useEffect(() => {
     const t = setTimeout(() => setSlow(true), 12000);
     return () => clearTimeout(t);
   }, [attempt]);
 
-  const retry = () => { setLoaded(false); setSlow(false); setAttempt((n) => n + 1); };
+  const retry = () => { setLoaded(false); setSlow(false); setLoads(0); setAttempt((n) => n + 1); };
 
   return (
     <div className="space-y-3" data-testid="game-player">
@@ -51,9 +52,16 @@ export function GamePlayer({ game, onBack }: { game: GameItem; onBack: () => voi
           sandbox="allow-scripts"
           allow={GAME_ALLOW}
           referrerPolicy="no-referrer"
-          onLoad={() => setLoaded(true)}
+          onLoad={() => { setLoaded(true); setLoads((n) => n + 1); }}
           className="h-[70dvh] min-h-96 w-full rounded-game-lg border-2 border-game-line bg-white"
         />
+        {/* Segunda carga = o jogo tentou ir para outra página (o CSP não controla isso): troca o quadro por um aviso. */}
+        {loads > 1 && (
+          <div role="alert" data-testid="game-navigated" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-game-lg bg-game-surface p-4 text-center">
+            <p className="text-lg font-semibold">{T.navigated}</p>
+            <Button onClick={retry}>{T.retry}</Button>
+          </div>
+        )}
       </div>
     </div>
   );

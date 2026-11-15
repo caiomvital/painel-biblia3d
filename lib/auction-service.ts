@@ -1114,9 +1114,9 @@ export async function withdrawAuctionBid(itemId: string, studentId: string): Pro
   try {
     return await prisma.$transaction(async (tx) => {
       const locked = await tx.$queryRaw<
-        Array<{ id: string; status: string; highestBidderId: string | null; startingBid: number; endsAt: Date }>
+        Array<{ id: string; seasonId: string; status: string; highestBidderId: string | null; startingBid: number; endsAt: Date }>
       >`
-        SELECT id, status, "highestBidderId", "startingBid", "endsAt"
+        SELECT id, "seasonId", status, "highestBidderId", "startingBid", "endsAt"
         FROM "AuctionItem"
         WHERE id = ${itemId}
         FOR UPDATE;
@@ -1129,13 +1129,16 @@ export async function withdrawAuctionBid(itemId: string, studentId: string): Pro
       if (item.highestBidderId !== studentId) {
         return { success: false, error: 'Você não está liderando este prêmio.' };
       }
+      // O mínimo volta ao mesmo valor de um lote recém-criado (inicial + incremento), igual à criação do lote.
+      const season = await tx.auctionSeason.findUnique({ where: { id: item.seasonId } });
+      const minIncrement = season?.minBidIncrement || 50;
       await tx.coinReservation.updateMany({
         where: { itemId, studentId, status: ReservationStatus.ACTIVE },
         data: { status: ReservationStatus.RELEASED },
       });
       await tx.auctionItem.update({
         where: { id: itemId },
-        data: { highestBidderId: null, highestBidderName: 'Sem lances', currentBid: item.startingBid, minNextBid: item.startingBid },
+        data: { highestBidderId: null, highestBidderName: 'Sem lances', currentBid: item.startingBid, minNextBid: item.startingBid + minIncrement },
       });
       return { success: true };
     });
