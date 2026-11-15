@@ -1,4 +1,4 @@
-# Exemplo de drop-in /etc/systemd/journald.conf.d/fuctura.conf, sujeito ao operador.
+# Exemplo de drop-in /etc/systemd/journald.conf.d/biblia3d.conf, sujeito ao operador.
 [Journal]
 Storage=persistent
 SystemMaxUse=500M

@@ -6,7 +6,7 @@ import { approveStagingTarget, targetFingerprint } from "../lib/staging-target";
 import { productionConfiguration } from "../lib/production-config";
 import { pendingRegistrationMessage, registrationInput } from "../lib/registration-input";
 
-const origin = "https://fuctura-hml.69.169.102.111.sslip.io";
+const origin = process.env.APP_URL ?? "https://<HOST_DE_HOMOLOGACAO>"; // origem vem do ambiente
 const args = process.argv.slice(2);
 const mobile = args.includes("--mobile");
 const contextOptions = { baseURL: origin, ...(mobile

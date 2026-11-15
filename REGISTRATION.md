@@ -1,3 +1,5 @@
+> **Documento herdado do painel da Fuctura (histórico).** Não descreve a operação do Bíblia 3D; veja `DEPLOYMENT.md`. Valores como domínios e IPs aqui são placeholders.
+
 # Cadastro público com definição de perfil pela direção
 
 Link: `/cadastro`, também disponível na tela de login. Campos: nome, curso (Java, Python ou IA), e-mail e senha. A senha tem 6–8 caracteres e pelo menos um número, sem exigência de letras, maiúsculas ou símbolos; `senha123` é válida. Acima de 8 caracteres, o campo preserva toda a digitação e mostra “A senha pode ter no máximo 8 caracteres.”, bloqueando o envio; não há truncamento silencioso. A regra aplica-se ao cadastro público; contas já existentes e cadastro administrativo preservam seu comportamento.

@@ -164,8 +164,8 @@ describe("Etapa 2A: guardas de homologação sem conectar ou criar dados", () =>
   });
   test("promoção em endereço temporário preserva anti-indexação", () => {
     for (const origin of [
-      "https://fuctura-hml.69.169.102.111.sslip.io",
-      "https://panel.69.169.102.111.sslip.io",
+      "https://hml.198.51.100.10.sslip.io",
+      "https://panel.198.51.100.10.sslip.io",
       "https://staging.example.test",
     ]) {
       expect(stagingIndexHeaders("production", origin)).toEqual({

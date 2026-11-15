@@ -1,7 +1,7 @@
 # Incluir no contexto http. Substituir REPLACE_*; validar nginx -t antes de ativar.
 # O access log não registra IP, query string, cookies, corpo ou Authorization.
-log_format fuctura '$time_iso8601 $request_method $uri $status $request_time $upstream_http_x_request_id';
-limit_req_zone $binary_remote_addr zone=fuctura_login:10m rate=5r/m;
+log_format biblia3d '$time_iso8601 $request_method $uri $status $request_time $upstream_http_x_request_id';
+limit_req_zone $binary_remote_addr zone=biblia3d_login:10m rate=5r/m;
 server {
     listen REPLACE_HTTP_PORT;
     server_name REPLACE_DOMAIN;
@@ -13,13 +13,13 @@ server {
     ssl_certificate REPLACE_CERTIFICATE_FULLCHAIN;
     ssl_certificate_key REPLACE_CERTIFICATE_KEY;
     ssl_protocols TLSv1.2 TLSv1.3;
-    access_log REPLACE_ACCESS_LOG_PATH fuctura;
+    access_log REPLACE_ACCESS_LOG_PATH biblia3d;
     error_log REPLACE_ERROR_LOG_PATH warn;
     client_max_body_size 6m;
     # Ativar HSTS somente depois de confirmar HTTPS para este domínio.
     # add_header Strict-Transport-Security "max-age=31536000" always;
     location = /api/auth/login {
-        limit_req zone=fuctura_login burst=10 nodelay;
+        limit_req zone=biblia3d_login burst=10 nodelay;
         limit_req_status 429;
         proxy_pass http://127.0.0.1:REPLACE_APP_PORT;
         proxy_set_header Host $host;

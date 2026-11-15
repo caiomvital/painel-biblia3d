@@ -1,6 +1,6 @@
 # Modelo: substitua TODOS os REPLACE_* antes de instalar; não executado pelo repositório.
 [Unit]
-Description=Plataforma Fuctura
+Description=Painel Bíblia 3D
 After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=60
@@ -28,7 +28,7 @@ ProtectSystem=strict
 ReadWritePaths=REPLACE_RELEASE_ROOT/current/.next/standalone/.next/cache
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=fuctura
+SyslogIdentifier=biblia3d
 
 [Install]
 WantedBy=multi-user.target

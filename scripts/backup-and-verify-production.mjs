@@ -6,7 +6,8 @@ import { once } from "node:events";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 
-const ORIGIN = "https://fuctura-hml.69.169.102.111.sslip.io";
+// Origem aprovada vem do ambiente; sem ela o script recusa (nunca fixe IP/domínio no código).
+const ORIGIN = process.env.APPROVED_ORIGIN || "https://<HOST_DE_HOMOLOGACAO>";
 const CONTAINER = "fuctura-productivity-tests";
 const LOCAL_DB_USER = "fuctura_test";
 const BACKUP_DIR = "/var/backups/fuctura";
