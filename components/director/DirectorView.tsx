@@ -1,5 +1,4 @@
 "use client";
-import { RegistrationRequests } from "./RegistrationRequests";
 import { useEffect, useState } from "react";
 import type { DirectorDashboardData } from "@/lib/academic-service";
 import { LessonDiaryModal } from "@/components/lessons/LessonDiaryModal";
@@ -784,7 +783,6 @@ export function DirectorView() {
       )}
       {tab === "Alunos" && (
         <>
-          <RegistrationRequests onApproved={reload} />
           <div className="flex flex-wrap justify-between gap-3">
             <h2 className="font-bold text-lg">Alunos</h2>
             <button

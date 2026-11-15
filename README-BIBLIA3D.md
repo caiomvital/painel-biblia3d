@@ -9,4 +9,4 @@ Usa o mesmo projeto Supabase, em um schema separado (`?schema=biblia3d` na `DATA
 
 Segredos (`AUTH_SECRET`, `DATABASE_URL`, `SUPABASE_SECRET_KEY`) ficam só no ambiente do servidor, nunca no repositório.
 
-Documentação: `DEPLOYMENT.md` (implantação, backup, rollback, com placeholders) e `TESTING.md` (testes). `HOMOLOGATION.md`, `REGISTRATION*.md` e `MARCO9.md` são histórico herdado.
+Documentação: `DEPLOYMENT.md` (implantação, backup, rollback, com placeholders) e `TESTING.md` (testes). `HOMOLOGATION.md` e `MARCO9.md` são histórico herdado.

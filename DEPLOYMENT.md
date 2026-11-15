@@ -2,7 +2,7 @@
 
 Guia de operação com **placeholders**. Substitua `<...>` pelos valores do seu ambiente; nenhum IP, domínio, e-mail ou segredo real deve entrar neste repositório.
 
-> Este arquivo substitui o antigo guia de homologação herdado da Fuctura. Os documentos `HOMOLOGATION.md`, `REGISTRATION*.md` e `MARCO9.md` são histórico desse painel e não descrevem a operação do Bíblia 3D.
+> Este arquivo substitui o antigo guia de homologação herdado da Fuctura. Os documentos `HOMOLOGATION.md` e `MARCO9.md` são histórico desse painel e não descrevem a operação do Bíblia 3D.
 
 ## 1. Visão geral
 
