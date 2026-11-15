@@ -6,6 +6,7 @@ export { HUD, type HUDProps } from './HUD';
 export * from './icons';
 export { LiveMascot, MASCOT_NAME, Mascot, type MascotPose, type MascotProps } from './Mascot';
 export { RewardPop, type RewardPopProps } from './RewardPop';
+export { RewardSummary, type RewardSummaryItem, type RewardSummaryProps } from './RewardSummary';
 export { TabBar, type TabBarProps, type TabItem } from './TabBar';
 export { SoundToggle, useGameSound } from './useGameSound';
 export { XPBar, type XPBarProps } from './XPBar';

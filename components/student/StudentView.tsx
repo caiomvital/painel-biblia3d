@@ -3,9 +3,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MotionConfig } from 'motion/react';
 import {
-  Card, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, RewardPop, SoundToggle, TabBar, TargetIcon, UserIcon, useGameSound,
+  Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, UserIcon, useGameSound,
 } from '@/components/ui/game';
+import { levelProgress } from '@/lib/level';
 import type { PanelTarget } from '@/lib/panel-navigation';
+import { shouldShowSummary, type RewardSummaryData } from '@/lib/reward-summary';
 import { GamesScreen } from './games/GamesScreen';
 import { useKidsHome, type PointsGain } from './useKidsHome';
 import type { StudentTab } from './student-types';
@@ -26,6 +28,8 @@ const TABS = [
   { id: 'profile', label: 'Perfil', icon: <UserIcon /> },
 ];
 
+const ICONS = { star: <StarIcon />, coin: <CoinIcon />, check: <CheckIcon />, trophy: <TrophyIcon /> };
+
 export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) => {
   const [view, setView] = useState<View>('home');
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
@@ -37,15 +41,28 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   const [noticeVersion, setNoticeVersion] = useState(0);
   const unread = useUnreadNotices(noticeVersion);
   const { play } = useGameSound();
+  const [summary, setSummary] = useState<(RewardSummaryData & { levelUp: number | null }) | null>(null);
+  const summaryOpen = useRef(false);
   const celebrateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const onGain = useCallback((gain: PointsGain) => {
+    if (summaryOpen.current) {
+      // a Tela de Resultado já está aberta: ela mostra o nível novo e toca o som; sem RewardPop duplicado
+      if (gain.leveledUp) setSummary((s) => (s ? { ...s, levelUp: gain.level } : s));
+      return;
+    }
     setReward({ id: gain.id, amount: gain.amount });
     setCelebrate(true);
     play(gain.leveledUp ? 'levelUp' : 'coin');
     if (celebrateTimer.current) clearTimeout(celebrateTimer.current);
     celebrateTimer.current = setTimeout(() => setCelebrate(false), 2400);
   }, [play]);
+  const onReward = useCallback((s: RewardSummaryData) => {
+    if (!shouldShowSummary(s.items.length, false)) return; // ganho simples continua no RewardPop
+    summaryOpen.current = true;
+    setSummary({ ...s, levelUp: null });
+  }, []);
+  const closeSummary = useCallback(() => { summaryOpen.current = false; setSummary(null); }, []);
   useEffect(() => () => { if (celebrateTimer.current) clearTimeout(celebrateTimer.current); }, []);
 
   const { home, error: loadError, reload } = useKidsHome(onGain);
@@ -80,7 +97,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     screen = <HomeScreen home={home} celebrate={celebrate} unread={unread} onGo={go} onOpenNotices={() => setNoticesOpen(true)}
       onNotice={setNotice} onError={setError} onRefresh={reload} />;
   } else if (view === 'quests') {
-    screen = <QuestsScreen home={home} onNotice={setNotice} onError={setError} onRefresh={reload} />;
+    screen = <QuestsScreen home={home} onNotice={setNotice} onError={setError} onRefresh={reload} onReward={onReward} />;
   } else if (view === 'auction') {
     screen = <AuctionScreen home={home} onRefresh={reload} />;
   } else if (view === 'games') {
@@ -106,6 +123,12 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
           {screen}
         </main>
         <TabBar items={TABS} activeId={parentTab(view)} onChange={(id) => go(id as View)} />
+        {summary && (
+          <RewardSummary title={summary.title} subtitle={summary.subtitle} xp={summary.xp} totalCoins={summary.totalCoins}
+            items={summary.items.map((it) => ({ ...it, icon: ICONS[it.icon] }))} levelUp={summary.levelUp}
+            progress={home ? (() => { const p = levelProgress(home.points); return { value: p.xpIntoLevel, max: p.xpForLevel }; })() : undefined}
+            onContinue={closeSummary} />
+        )}
         {noticesOpen && <NoticesDialog onClose={() => setNoticesOpen(false)} onRead={() => setNoticeVersion((v) => v + 1)} />}
       </div>
     </MotionConfig>
