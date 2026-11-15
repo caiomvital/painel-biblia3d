@@ -12,7 +12,6 @@ const { getPanelTasks } = await import('../lib/panel-tasks');
 const { getReport, toCsv } = await import('../lib/report-data');
 const { trackedChange } = await import('../lib/panel-events');
 const { placeAuctionBid, closeAuctionItem } = await import('../lib/auction-service');
-const { requestRegistration, reviewRegistration } = await import('../lib/registration-service');
 const { healthDetails } = await import('../lib/health');
 const prefix = `panel_${randomUUID()}`;
 const oldPassword = 'Senha-antiga-local-123';
@@ -109,14 +108,9 @@ try {
   assert.equal(auctions.rows[0][2], 'Encerrado'); assert.equal(auctions.rows[0][5], 200);
   pass('lance superado, vencedor e encerramento idempotente geram avisos e resultado correto');
 
-  const registration = await requestRegistration({ name: prefix, email: `${prefix}_applicant@example.test`, password: 'senha123', course: 'JAVA' });
-  const applicant = await prisma.user.findUniqueOrThrow({ where: { email: `${prefix}_applicant@example.test` } }); userIds.push(applicant.id);
-  await reviewRegistration(director.id, registration!.id, 'APPROVED', 'ALUNO');
-  await reviewRegistration(director.id, registration!.id, 'APPROVED', 'ALUNO');
-  assert.equal(await prisma.notification.count({ where: { userId: applicant.id, title: 'Cadastro aprovado' } }), 1);
   const auditText = JSON.stringify(await prisma.auditLog.findMany({ where: { actorId: { in: userIds } } }));
   assert.ok(!auditText.includes(oldPassword) && !auditText.includes(newPassword) && !auditText.includes('passwordHash'));
-  pass('aprovação repetida não duplica aviso e auditoria não contém senhas');
+  pass('auditoria não contém senhas');
 
   const migration = await prisma.$queryRaw<{ id: string; finished_at: Date | null }[]>`SELECT id, finished_at FROM "_prisma_migrations" WHERE migration_name = '20261011_secretary_role' AND finished_at IS NOT NULL AND rolled_back_at IS NULL`;
   assert.equal(migration.length, 1);

@@ -1,6 +1,5 @@
 "use client";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { RegistrationRequests } from "@/components/director/RegistrationRequests";
 
 type Data = {
   classes: { id: string; name: string; code: string; status: string; courseName: string; teacherName: string; daysOfWeek: string; scheduleTime: string; enrolledCount: number }[];
@@ -11,7 +10,7 @@ type Data = {
 const button = "rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-500/20 disabled:opacity-40";
 const field = "mt-1 w-full min-w-0 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white";
 export function SecretaryView() {
-  const [tab, setTab] = useState<"Cadastros" | "Turmas">("Cadastros");
+  const [tab, setTab] = useState<"Turmas">("Turmas");
   const [data, setData] = useState<Data | null>(null); const [error, setError] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
   const [name, setName] = useState(""); const [code, setCode] = useState(""); const [courseId, setCourseId] = useState(""); const [teacherId, setTeacherId] = useState(""); const [daysOfWeek, setDaysOfWeek] = useState(""); const [scheduleTime, setScheduleTime] = useState(""); const [startDate, setStartDate] = useState("");
   const [classId, setClassId] = useState(""); const [studentIds, setStudentIds] = useState<string[]>([]);
@@ -20,7 +19,6 @@ export function SecretaryView() {
   useEffect(() => {
     const onNavigate = (event: Event) => {
       const target = (event as CustomEvent<{ target?: string }>).detail?.target;
-      if (target === "registrations") setTab("Cadastros");
       if (target === "classes") setTab("Turmas");
     };
     window.addEventListener("panel:navigate", onNavigate);
@@ -31,8 +29,7 @@ export function SecretaryView() {
   if (error && !data) return <div className="p-6 text-white"><p role="alert">{error}</p><button className={button} onClick={() => void load()}>Tentar novamente</button></div>;
   return <section className="mx-auto w-full max-w-6xl space-y-5 px-4 py-6 text-white">
     <h1 className="text-2xl font-bold">Painel da Secretaria</h1>
-    <nav className="flex gap-2">{(["Cadastros", "Turmas"] as const).map((item) => <button key={item} className={`${button} ${tab === item ? "bg-amber-500/25" : ""}`} onClick={() => setTab(item)}>{item}</button>)}</nav>
-    {tab === "Cadastros" && <RegistrationRequests secretaryMode onApproved={async () => { await load(); }} />}
+    <nav className="flex gap-2">{(["Turmas"] as const).map((item) => <button key={item} className={`${button} ${tab === item ? "bg-amber-500/25" : ""}`} onClick={() => setTab(item)}>{item}</button>)}</nav>
     {tab === "Turmas" && data && <div className="space-y-5">
       <form onSubmit={createClass} className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:grid-cols-2">
         <h2 className="font-bold sm:col-span-2">Criar turma</h2>

@@ -5,14 +5,6 @@ import { lessonTiming } from './teacher-metrics';
 export async function getPanelTasks(session: SessionUser, now = new Date()) {
   const tasks: { id: string; title: string; detail: string; target: string; classId?: string }[] = [];
   let total = 0;
-  if (session.role === 'DIRETOR' || session.role === 'SECRETARIA') {
-    const [registrations, count] = await Promise.all([
-      prisma.registrationRequest.findMany({ where: { status: 'PENDING' }, take: 10, orderBy: { createdAt: 'asc' }, select: { id: true, user: { select: { name: true } } } }),
-      prisma.registrationRequest.count({ where: { status: 'PENDING' } }),
-    ]);
-    total += count;
-    tasks.push(...registrations.map(r => ({ id: r.id, title: 'Cadastro aguardando aprovação', detail: r.user.name, target: 'registrations' })));
-  }
   if (session.role === 'DIRETOR' || session.role === 'PROFESSOR') {
     const teacher = session.role === 'PROFESSOR' ? await prisma.teacher.findUnique({ where: { userId: session.id }, select: { id: true } }) : null;
     if (session.role === 'PROFESSOR' && !teacher) return { tasks, total };

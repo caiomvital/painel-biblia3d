@@ -5,7 +5,7 @@ export default async function setup() {
     // Compile the protected dashboard routes before UI assertions start their clocks.
     // These unauthenticated GETs must return early, without domain writes.
     const origin = `http://127.0.0.1:${process.env.TEST_APP_PORT ?? 3100}`;
-    for (const path of ['/api/student/dashboard', '/api/teacher/dashboard', '/api/director/dashboard', '/api/account', '/api/notifications', '/api/tasks', '/api/director/registrations', '/api/lessons/__e2e_warmup__', '/api/director/reports', '/api/director/reports/options', '/api/director/history', '/api/director/search?q=xx']) {
+    for (const path of ['/api/student/dashboard', '/api/teacher/dashboard', '/api/director/dashboard', '/api/account', '/api/notifications', '/api/tasks', '/api/lessons/__e2e_warmup__', '/api/director/reports', '/api/director/reports/options', '/api/director/history', '/api/director/search?q=xx']) {
       const response = await fetch(`${origin}${path}`);
       if (response.status !== 401) throw new Error(`Preparo do servidor E2E recusado: ${path} deve exigir autenticação.`);
     }

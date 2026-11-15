@@ -19,7 +19,6 @@ const links = {
     ['Presenças pendentes', 'presença chamada frequência confirmar', 'attendance'],
   ],
   SECRETARIA: [
-    ['Cadastros pendentes', 'aprovar cadastro aluno secretaria', 'registrations'],
     ['Turmas', 'criar turma matricular alunos', 'classes'],
   ],
   ALUNO: [
