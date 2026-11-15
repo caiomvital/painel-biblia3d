@@ -18,9 +18,6 @@ const links = {
     ['Aulas e diário', 'aula agenda calendário conteúdo diário', 'lessons'],
     ['Presenças pendentes', 'presença chamada frequência confirmar', 'attendance'],
   ],
-  SECRETARIA: [
-    ['Turmas', 'criar turma matricular alunos', 'classes'],
-  ],
   ALUNO: [
     ['Visão geral e progresso', 'início xp nível evolução', 'overview'],
     ['Aulas e cronograma', 'aula agenda calendário próxima', 'lessons'],

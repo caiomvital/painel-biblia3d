@@ -15,10 +15,6 @@ const help = {
     ['Onde vejo minhas próximas aulas?', 'A Visão Geral mostra a próxima aula; Minhas Turmas lista as aulas de cada turma.'],
     ['Como altero minha senha ou aparência?', 'Em Meu painel → Minha conta, informe a senha atual para definir uma nova; nessa tela também é possível ajustar cor, tamanho do texto e avisos.'],
   ],
-  SECRETARIA: [
-    ['Como aprovo cadastros?', 'Abra Cadastros e revise as solicitações de alunos. A Secretaria pode aprovar somente alunos.'],
-    ['Como matriculo uma turma?', 'Abra Turmas, selecione vários alunos disponíveis e matricule-os de uma vez.'],
-  ],
   ALUNO: [
     ['Como acompanho meu progresso?', 'A Visão Geral mostra seu nível, XP, frequência e a próxima aula. Abra Aulas & Cronograma para rever os conteúdos e o registro de presença.'],
     ['Como marco presença?', 'Na próxima aula, use “Marcar minha presença”. O professor precisa validar a solicitação.'],

@@ -906,31 +906,6 @@ export async function enrollStudentByDirector(
     });
   });
 }
-export async function enrollStudentsInClassByStaff(studentIds: string[], classId: string) {
-  if (!Array.isArray(studentIds) || !studentIds.length || studentIds.length > 200 || !classId)
-    throw Object.assign(new Error("Selecione de 1 a 200 alunos e uma turma."), { statusCode: 400 });
-  const uniqueIds = [...new Set(studentIds)];
-  if (uniqueIds.length !== studentIds.length) throw Object.assign(new Error("A lista contém alunos repetidos."), { statusCode: 400 });
-  return prisma.$transaction(async (tx) => {
-    const cls = await tx.class.findUnique({ where: { id: classId }, select: { id: true, status: true } });
-    if (!cls) throw Object.assign(new Error("Turma não encontrada."), { statusCode: 404 });
-    if (cls.status === "FINISHED") throw Object.assign(new Error("Não é possível matricular alunos em uma turma encerrada."), { statusCode: 409 });
-    const students = await tx.student.findMany({ where: { id: { in: uniqueIds } }, select: { id: true } });
-    if (students.length !== uniqueIds.length) throw Object.assign(new Error("Um ou mais alunos não foram encontrados."), { statusCode: 404 });
-    const existing = await tx.enrollment.findMany({ where: { studentId: { in: uniqueIds }, status: "ACTIVE" }, select: { studentId: true, classId: true } });
-    const conflicts = existing.filter((e) => e.classId !== classId);
-    if (conflicts.length) throw Object.assign(new Error("Alguns alunos já têm matrícula ativa em outra turma. Remova-os da seleção e tente novamente."), { statusCode: 409 });
-    const done = await tx.enrollment.findMany({ where: { studentId: { in: uniqueIds }, classId, status: "COMPLETED" }, select: { studentId: true } });
-    if (done.length) throw Object.assign(new Error("Alguns alunos já concluíram esta turma. Remova-os da seleção e tente novamente."), { statusCode: 409 });
-    for (const studentId of uniqueIds) {
-      const row = await tx.enrollment.findUnique({ where: { studentId_classId: { studentId, classId } } });
-      if (row) await tx.enrollment.update({ where: { id: row.id }, data: { status: "ACTIVE" } });
-      else await tx.enrollment.create({ data: { studentId, classId, status: "ACTIVE" } });
-    }
-    return { count: uniqueIds.length };
-  });
-}
-
 export async function createLessonByStaff(userId: string, role: string, data: { classId: string; date: string; title: string; plannedContent?: string }) {
   if (!data.classId || !/^\d{4}-\d{2}-\d{2}$/.test(data.date) || !data.title?.trim() || data.title.trim().length > 120)
     throw Object.assign(new Error("Informe turma, data e título da aula (até 120 caracteres)."), { statusCode: 400 });
