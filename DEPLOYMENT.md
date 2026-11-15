@@ -2,7 +2,7 @@
 
 Guia de operação com **placeholders**. Substitua `<...>` pelos valores do seu ambiente; nenhum IP, domínio, e-mail ou segredo real deve entrar neste repositório.
 
-> Este arquivo substitui o antigo guia de homologação herdado da Fuctura. Os documentos `HOMOLOGATION.md` e `MARCO9.md` são histórico desse painel e não descrevem a operação do Bíblia 3D.
+> Este arquivo substitui o antigo guia de homologação herdado da Fuctura. O documento `MARCO9.md` é histórico desse painel e não descrevem a operação do Bíblia 3D.
 
 ## 1. Visão geral
 
@@ -58,7 +58,7 @@ docker exec restore-test pg_restore -U postgres -d restore_check --no-owner --ex
 # compare contagens das tabelas com as de produção; depois: docker rm -f restore-test
 ```
 
-Ainda não há rotina agendada de backup; o `scripts/backup-and-verify-production.mjs` é herança da Fuctura (manual, só schema `public`) e **não** cobre o `biblia3d`.
+Ainda não há rotina agendada de backup: o procedimento acima é manual. (O antigo script de backup herdado da Fuctura cobria só o schema `public` e foi removido.)
 
 ## 7. Verificação rápida pós-deploy
 
