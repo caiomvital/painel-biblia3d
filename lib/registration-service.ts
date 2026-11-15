@@ -22,6 +22,7 @@ export async function requestRegistration(body: unknown) {
       name: data.name,
       email: data.email,
       passwordHash,
+      mustChangePassword: false, // quem se cadastra já escolheu a própria senha
       role: "ALUNO",
       profile: { create: {} },
       registration: { create: { course: data.course } },

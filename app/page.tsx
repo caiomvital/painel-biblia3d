@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { StudentView } from '@/components/student/StudentView';
+import { FirstPasswordScreen } from '@/components/auth/FirstPasswordScreen';
 import { TeacherView } from '@/components/teacher/TeacherView';
 import { DirectorView } from '@/components/director/DirectorView';
 import { SecretaryView } from '@/components/secretary/SecretaryView';
@@ -58,6 +59,11 @@ export default function HomePage() {
         </div>
       </div>
     );
+  }
+
+  // Aluno com a senha padrão só enxerga a tela de criar a senha nova (o servidor bloqueia o resto).
+  if (user?.role === 'ALUNO' && user.mustChangePassword) {
+    return <FirstPasswordScreen onDone={() => setUser({ ...user, mustChangePassword: false })} onLogout={handleLogout} />;
   }
 
   const content = (

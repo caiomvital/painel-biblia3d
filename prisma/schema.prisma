@@ -76,6 +76,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   sessionVersion Int @default(0)
+  /// Conta com a senha padrão: o aluno precisa criar uma senha nova antes de usar o painel (só vale para ALUNO).
+  mustChangePassword Boolean @default(true)
   preferences Json @default("{}")
 
   profile               Profile?
