@@ -5,6 +5,7 @@ import { loginLimiterKey } from '@/lib/phone';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { awardDailyLoginXp } from '@/lib/academic-service';
+import { touchStreak } from '@/lib/chest-service';
 import { verifyPassword, createSessionToken, setSessionCookie, SessionUser } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
@@ -96,6 +97,15 @@ export async function POST(req: NextRequest) {
         }
       } catch (e) {
         operationalLog('auth.login.xp.failed', e);
+      }
+    }
+
+    // Sequência de dias seguidos (e baú dos marcos 3/7/14/30). Falha aqui nunca impede o login.
+    if (user.role === 'ALUNO' && studentId) {
+      try {
+        await touchStreak(studentId);
+      } catch (e) {
+        operationalLog('auth.login.streak.failed', e);
       }
     }
 

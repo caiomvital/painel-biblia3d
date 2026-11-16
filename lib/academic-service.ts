@@ -6,13 +6,15 @@ import { prisma } from '@/lib/prisma';
 import { positionInClass } from './class-ranking';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
+import { brazilDay } from './kids-service';
 
 // ==========================================
 // 1. AUTENTICAÇÃO E XP DE LOGIN (FASE 1 & 10)
 // ==========================================
 
 export async function awardDailyLoginXp(studentId: string): Promise<{ awarded: boolean; xpAmount: number }> {
-  const todayStr = new Date().toISOString().split('T')[0];
+  // dia de Recife (o painel todo usa esse dia; em UTC o "dia" virava às 21h e dava XP de login duas vezes)
+  const todayStr = brazilDay();
   const originRef = `LOGIN_${studentId}_${todayStr}`;
 
   try {
