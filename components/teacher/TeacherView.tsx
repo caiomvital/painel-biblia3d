@@ -6,6 +6,7 @@ import { TeacherEnrollmentManager } from "./TeacherEnrollmentManager";
 import { LessonCreateForm } from "@/components/lessons/LessonCreateForm";
 import { TeacherExercises } from "./TeacherExercises";
 import { TeacherKids } from "./TeacherKids";
+import { AttitudesPanel } from "@/components/attitudes/AttitudesPanel";
 
 const areas = [
   "Visão Geral",
@@ -13,6 +14,7 @@ const areas = [
   "Aulas e Diário",
   "Exercícios",
   "Aula e Perguntas",
+  "Atitudes",
   "Presenças",
   "Alunos",
 ] as const;
@@ -458,6 +460,7 @@ export function TeacherView() {
       )}
       {area === "Exercícios" && <TeacherExercises key={classId} classes={data.classes.map(c => ({ id: c.id, name: c.name, status: c.status, lessons: c.lessons }))} selectedClassId={classId} onCreated={load} />}
       {area === "Aula e Perguntas" && <TeacherKids />}
+      {area === "Atitudes" && <AttitudesPanel />}
       {area === "Aulas e Diário" && schedule}
       {area === "Alunos" && students}
       {area === "Presenças" && (

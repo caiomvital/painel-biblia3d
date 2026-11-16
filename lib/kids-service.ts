@@ -51,8 +51,11 @@ export async function awardPoints(
   description: string,
   originReference: string,
   type: 'LOGIN' | 'ATTENDANCE' | 'ACTIVITY' | 'MANUAL' = 'ACTIVITY',
+  /** Fichas a creditar. Padrão: iguais ao XP (comportamento de sempre). 0 = só XP. */
+  options: { coins?: number } = {},
 ): Promise<boolean> {
   if (amount <= 0) return false;
+  const coins = options.coins ?? amount;
   try {
     return await prisma.$transaction(async (tx) => {
       const exists = await tx.pointTransaction.findUnique({
@@ -60,12 +63,14 @@ export async function awardPoints(
       });
       if (exists) return false;
       await tx.pointTransaction.create({ data: { studentId, amount, type, description, originReference } });
-      await tx.coinTransaction.create({
-        data: { studentId, amount, type: 'EARNED', description, originReference },
-      });
+      if (coins > 0) {
+        await tx.coinTransaction.create({
+          data: { studentId, amount: coins, type: 'EARNED', description, originReference },
+        });
+      }
       const student = await tx.student.update({
         where: { id: studentId },
-        data: { currentXp: { increment: amount }, coinBalance: { increment: amount } },
+        data: { currentXp: { increment: amount }, coinBalance: { increment: coins } },
       });
       const level = Math.floor(student.currentXp / 300) + 1;
       if (level !== student.level) await tx.student.update({ where: { id: studentId }, data: { level } });

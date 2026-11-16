@@ -7,8 +7,9 @@ import {
 } from '@/components/ui/game';
 import { levelProgress } from '@/lib/level';
 import type { PanelTarget } from '@/lib/panel-navigation';
-import { shouldShowSummary, type RewardSummaryData } from '@/lib/reward-summary';
+import { attitudeRewardSummary, shouldShowSummary, type RewardSummaryData } from '@/lib/reward-summary';
 import { GamesScreen } from './games/GamesScreen';
+import { kidsCall } from './kids-api';
 import { useKidsHome, type PointsGain } from './useKidsHome';
 import type { StudentTab } from './student-types';
 import { AuctionScreen } from './shell/AuctionScreen';
@@ -41,7 +42,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   const [noticeVersion, setNoticeVersion] = useState(0);
   const unread = useUnreadNotices(noticeVersion);
   const { play } = useGameSound();
-  const [summary, setSummary] = useState<(RewardSummaryData & { levelUp: number | null }) | null>(null);
+  const [summary, setSummary] = useState<(RewardSummaryData & { levelUp: number | null; seenUpTo?: string }) | null>(null);
   const summaryOpen = useRef(false);
   const celebrateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -62,7 +63,23 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     summaryOpen.current = true;
     setSummary({ ...s, levelUp: null });
   }, []);
-  const closeSummary = useCallback(() => { summaryOpen.current = false; setSummary(null); }, []);
+  const closeSummary = useCallback(() => {
+    summaryOpen.current = false;
+    setSummary((s) => {
+      if (s?.seenUpTo) void kidsCall('/api/kids/attitudes', 'POST', { upTo: s.seenUpTo }).catch(() => {}); // marca como visto no servidor
+      return null;
+    });
+  }, []);
+
+  // Ganhos por atitude recebidos enquanto o aluno estava fora: mostra a Tela de Resultado ao entrar.
+  useEffect(() => {
+    let alive = true;
+    kidsCall('/api/kids/attitudes').then((r: { count: number; xp: number; coins: number; upTo: string | null }) => {
+      const s = alive && r.upTo ? attitudeRewardSummary(r) : null;
+      if (s && !summaryOpen.current) { summaryOpen.current = true; setSummary({ ...s, levelUp: null, seenUpTo: r.upTo as string }); }
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
   useEffect(() => () => { if (celebrateTimer.current) clearTimeout(celebrateTimer.current); }, []);
 
   const { home, error: loadError, reload } = useKidsHome(onGain);
