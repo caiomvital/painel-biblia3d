@@ -53,3 +53,28 @@ export function quizRewardSummary(r: QuizServerResult): RewardSummaryData | null
     totalCoins: coins,
   };
 }
+
+export interface AttitudeServerResult {
+  count: number;
+  xp: number;
+  coins: number;
+}
+
+/** Ganhos por atitude positiva que o aluno ainda não viu. Só totais dele (sem professor nem colegas). */
+export function attitudeRewardSummary(r: AttitudeServerResult): RewardSummaryData | null {
+  const safe = (n: unknown) => (typeof n === 'number' && Number.isFinite(n) && n > 0 ? Math.floor(n) : 0);
+  const xp = safe(r.xp);
+  const coins = safe(r.coins);
+  const count = safe(r.count);
+  if (count === 0 || (xp === 0 && coins === 0)) return null;
+  return {
+    title: 'BOA ATITUDE!',
+    subtitle: count === 1 ? 'Reconheceram uma atitude sua' : `Reconheceram ${count} atitudes suas`,
+    xp,
+    items: [
+      { label: 'Pontos', icon: 'star', value: xp, unit: 'xp' },
+      { label: 'Fichas', icon: 'coin', value: coins, unit: 'coins' },
+    ],
+    totalCoins: coins,
+  };
+}

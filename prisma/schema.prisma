@@ -191,6 +191,7 @@ model Student {
   quizDays         QuizDay[]
   lessonChecks     LessonCheck[]
   teacherRatings   TeacherRating[]
+  attitudes        Attitude[]
 
   @@index([userId])
   @@index([registrationNumber])
@@ -285,6 +286,7 @@ model Class {
   lessons     Lesson[]
   exercises   ClassExercise[]
   lessonReports LessonReport[]
+  attitudes     Attitude[]
 
   @@index([courseId])
   @@index([teacherId])
@@ -697,6 +699,37 @@ model LessonCheck {
   report  LessonReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, reportId])
+}
+
+enum AttitudeKind {
+  POSITIVE
+  ATTENTION
+}
+
+/// Atitude registrada pelo professor/diretor. POSITIVE gera XP/fichas (via awardPoints, origem ATT_<id>);
+/// ATTENTION é um registro privado do professor: sem pontos, nunca exibido ao aluno.
+/// O id é gerado no aparelho a cada toque (chave de idempotência contra duplo toque).
+model Attitude {
+  id          String       @id
+  kind        AttitudeKind
+  code        String
+  studentId   String
+  classId     String
+  teacherId   String?
+  actorUserId String
+  xp          Int          @default(0)
+  coins       Int          @default(0)
+  note        String?
+  day         String
+  seenAt      DateTime?
+  createdAt   DateTime     @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, day])
+  @@index([actorUserId, day])
+  @@index([classId, createdAt])
 }
 
 model TeacherPoint {

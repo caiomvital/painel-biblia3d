@@ -8,6 +8,7 @@ import DirectorAcademicForm, {
 import DirectorFinanceControls from "./DirectorFinanceControls";
 import { DirectorCurricula } from "./DirectorCurricula";
 import { DirectorKids } from "./DirectorKids";
+import { AttitudesPanel } from "@/components/attitudes/AttitudesPanel";
 import { DirectorCourses } from "./DirectorCourses";
 import { LessonCreateForm } from "@/components/lessons/LessonCreateForm";
 import {
@@ -27,6 +28,7 @@ const tabs = [
   "Gamificação e Leilões",
   "Currículos",
   "Crianças",
+  "Atitudes",
 ] as const;
 type Tab = (typeof tabs)[number];
 type Lesson = DirectorDashboardData["lessons"][number];
@@ -1051,6 +1053,7 @@ export function DirectorView() {
       )}
       {tab === "Currículos" && <DirectorCurricula />}
       {tab === "Crianças" && <DirectorKids />}
+      {tab === "Atitudes" && <AttitudesPanel />}
       {editor && (
         <DirectorAcademicForm
           key={`${editor.kind}-${editor.id ?? "new"}`}
