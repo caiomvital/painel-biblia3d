@@ -2,6 +2,8 @@ export type Rank = { position: number; total: number };
 export type QuizSummary = { available: boolean; completedToday: boolean; scoreToday: number | null };
 export type KidsHomeData = {
   firstName: string;
+  /** Visual equipado do Lofi (códigos do catálogo). */
+  mascotLook: import('@/lib/mascot-look').MascotLook;
   points: number;
   level: number;
   coins: { balance: number; reserved: number; available: number };

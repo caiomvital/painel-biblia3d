@@ -1,0 +1,1 @@
+ALTER TABLE "Student" ADD COLUMN "mascotLook" JSONB NOT NULL DEFAULT '{}';

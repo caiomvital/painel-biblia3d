@@ -194,6 +194,8 @@ model Student {
   attitudes        Attitude[]
   chests           Chest[]
   items            StudentItem[]
+  /// Visual equipado do Lofi ({color, accessory, background, frame} = códigos de CosmeticItem). Validado no servidor.
+  mascotLook       Json @default("{}")
 
   @@index([userId])
   @@index([registrationNumber])
