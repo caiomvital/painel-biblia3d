@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button, Card } from '@/components/ui/game';
 import { kidsCall, type QuizSummary } from '../kids-api';
+import { quizRewardSummary, type RewardSummaryData } from '@/lib/reward-summary';
 import { OptionTile } from './OptionTile';
 
 type Review = { id: string; text: string; options: string[]; correctIndex: number; chosen: number | null };
@@ -11,9 +12,11 @@ type QuizState =
   | { available: true; completed: false; total: number; questions: { id: string; text: string; options: string[] }[] }
   | { available: true; completed: true; score: number; total: number; pointsAwarded: number; review: Review[] };
 
-export function QuizCard({ kind, title, intro, doneText, emptyText, summary, onDone, onError }: {
+export function QuizCard({ kind, title, intro, doneText, emptyText, summary, onDone, onError, onReward }: {
   kind: 'daily' | 'weekly'; title: string; intro: string; doneText: string; emptyText: string;
   summary: QuizSummary; onDone: () => void; onError: (m: string) => void;
+  /** Recebe a Tela de Resultado montada com os valores que o servidor devolveu. */
+  onReward?: (s: RewardSummaryData) => void;
 }) {
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -32,6 +35,8 @@ export function QuizCard({ kind, title, intro, doneText, emptyText, summary, onD
     try {
       const r = await kidsCall('/api/kids/quiz', 'POST', { kind, answers });
       setQuiz({ available: true, ...r });
+      const reward = quizRewardSummary(r);
+      if (reward) onReward?.(reward); // antes do recarregamento, para ela assumir o lugar do RewardPop
       onDone();
     } catch (e) { onError(e instanceof Error ? e.message : 'Erro.'); } finally { setSending(false); }
   };

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { levelFromXp } from '@/lib/level';
 import { kidsCall, type KidsHomeData } from './kids-api';
 
-export type PointsGain = { id: number; amount: number; leveledUp: boolean };
+export type PointsGain = { id: number; amount: number; leveledUp: boolean; level: number };
 
 /** Carrega GET /api/kids/home e avisa (onGain) quando os pontos sobem depois de uma ação. */
 export function useKidsHome(onGain?: (gain: PointsGain) => void) {
@@ -24,7 +24,7 @@ export function useKidsHome(onGain?: (gain: PointsGain) => void) {
       setHome(h);
       setError('');
       if (before !== null && h.points > before) {
-        gainRef.current?.({ id: Date.now(), amount: h.points - before, leveledUp: levelFromXp(h.points) > levelFromXp(before) });
+        gainRef.current?.({ id: Date.now(), amount: h.points - before, leveledUp: levelFromXp(h.points) > levelFromXp(before), level: levelFromXp(h.points) });
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não foi possível carregar.');

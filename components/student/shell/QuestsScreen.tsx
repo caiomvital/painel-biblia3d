@@ -4,10 +4,12 @@ import React from 'react';
 import type { KidsHomeData } from '../kids-api';
 import { LessonCard } from '../quests/LessonCard';
 import { QuizCard } from '../quests/QuizCard';
+import type { RewardSummaryData } from '@/lib/reward-summary';
 import { RatingCard } from '../quests/RatingCard';
 
-export function QuestsScreen({ home, onNotice, onError, onRefresh }: {
+export function QuestsScreen({ home, onNotice, onError, onRefresh, onReward }: {
   home: KidsHomeData; onNotice: (m: string) => void; onError: (m: string) => void; onRefresh: () => void;
+  onReward?: (s: RewardSummaryData) => void;
 }) {
   const done = (m: string) => { onNotice(m); onRefresh(); };
   return (
@@ -20,7 +22,7 @@ export function QuestsScreen({ home, onNotice, onError, onRefresh }: {
         intro="5 perguntas. Cada acerto vale 5 pontos. Acertou tudo? Ganha mais 10!"
         doneText="Você acertou {n} hoje! Volte amanhã."
         emptyText="Ainda não tem perguntas. Volte logo!"
-        onDone={onRefresh} onError={onError} />
+        onDone={onRefresh} onError={onError} onReward={onReward} />
       {home.rating && (
         <RatingCard key={String(home.rating.done)} rating={home.rating} googleUrl={home.googleReviewUrl} onDone={done} onError={onError} />
       )}
@@ -28,7 +30,7 @@ export function QuestsScreen({ home, onNotice, onError, onRefresh }: {
         <QuizCard kind="weekly" title="Desafio da semana" summary={home.weekly}
           intro="Perguntas do seu professor sobre as aulas. Mesmos pontos!"
           doneText="Você acertou {n} nesta semana! Volte na próxima."
-          emptyText="" onDone={onRefresh} onError={onError} />
+          emptyText="" onDone={onRefresh} onError={onError} onReward={onReward} />
       )}
     </div>
   );

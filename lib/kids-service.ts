@@ -291,8 +291,9 @@ export async function submitQuiz(studentId: string, kind: QuizKindName, rawAnswe
   });
   if (done.count === 0) throw new Error('Você já respondeu este desafio.');
   const label = kind === 'daily' ? 'Desafio do dia' : 'Desafio da semana';
-  await awardPoints(studentId, points, `${label} (${key}): ${score}/${questions.length}`, `QUIZ_${studentId}_${key}`);
-  return { completed: true as const, score, total: questions.length, pointsAwarded: points, review: review(questions, answers) };
+  const credited = await awardPoints(studentId, points, `${label} (${key}): ${score}/${questions.length}`, `QUIZ_${studentId}_${key}`);
+  // fichas creditadas pelo próprio awardPoints (regra do servidor); aqui só repassamos o valor para a tela
+  return { completed: true as const, score, total: questions.length, pointsAwarded: points, coinsAwarded: credited ? points : 0, review: review(questions, answers) };
 }
 
 /** Checklist "o que aprendi na aula": 2 pontos por tópico marcado; o que não marcar não altera a pontuação. */
