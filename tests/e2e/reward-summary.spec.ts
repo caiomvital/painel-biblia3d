@@ -51,6 +51,7 @@ test("resultado do desafio: tela aparece, mostra o total do servidor e CONTINUAR
 
   const quizCard = page.getByTestId("quiz-daily");
   await quizCard.getByRole("button", { name: "Começar" }).click();
+  await expect(quizCard.getByRole("radio").first()).toBeVisible();
   // pergunta quais perguntas foram sorteadas e responde todas certo (a correta vem do banco de teste)
   const drawn = await db.quizDay.findFirstOrThrow({ where: { studentId: x.studentId } });
   const questions = await db.quizQuestion.findMany({ where: { id: { in: drawn.questionIds } } });

@@ -185,8 +185,9 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
         </motion.div>
 
         <motion.div
-          className="mt-2 w-full"
-          animate={reduce ? undefined : { scale: [1, 1.04, 1] }}
+          className="mt-2 w-full rounded-game"
+          // pulso de brilho (não muda o tamanho: o alvo de toque fica parado)
+          animate={reduce ? undefined : { boxShadow: ['0 0 0 0 rgba(47,208,160,0.0)', '0 0 0 10px rgba(47,208,160,0.35)', '0 0 0 0 rgba(47,208,160,0.0)'] }}
           transition={reduce ? undefined : { duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: totalDelay + 0.6 }}
         >
           <Button ref={continueRef} size="lg" variant="success" onClick={onContinue} className="min-h-16 w-full text-2xl">
