@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useId, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
+import { COSMETICS } from '@/lib/cosmetics';
+import type { MascotLook } from '@/lib/mascot-look';
 
 /** Nome do mascote (escolhido pelo Caio em 2026-11-14). */
 export const MASCOT_NAME = 'Lofi';
@@ -29,7 +31,18 @@ const C = {
   mouth: '#ff8fa3',
 };
 
+/** Visual equipado do aluno logado. Todo Lofi da tela usa este valor, a menos que receba `look` explícito. */
+const MascotLookContext = createContext<MascotLook>({});
+export const MascotLookProvider = MascotLookContext.Provider;
+
+const tintOf = (code?: string): [string, string] | null => {
+  const def = code ? COSMETICS.find((c) => c.code === code) : undefined;
+  return def ? def.tint : null;
+};
+
 export interface MascotProps {
+  /** Visual a desenhar (cor, acessório, fundo, moldura). Padrão: o do aluno logado; sem nada = Lofi original. */
+  look?: MascotLook;
   pose?: MascotPose;
   /** Largura em rem (a altura acompanha). */
   size?: number;
@@ -66,7 +79,15 @@ function Eyes({ pose }: { pose: MascotPose }) {
 }
 
 /** Robô parado, piscando ou comemorando. Componente só de desenho (sem animação própria). */
-export function Mascot({ pose = 'idle', size = 10, className, label = '' }: MascotProps) {
+export function Mascot({ pose = 'idle', size = 10, className, label = '', look: lookProp }: MascotProps) {
+  const ctxLook = useContext(MascotLookContext);
+  const look = lookProp ?? ctxLook;
+  const gid = useId();
+  const colorTint = tintOf(look.color);
+  const pal = { head: colorTint?.[0] ?? C.head, headShade: colorTint?.[1] ?? C.headShade };
+  const bg = tintOf(look.background);
+  const frame = tintOf(look.frame);
+  const acc = look.accessory ? tintOf(look.accessory) : null;
   const cheer = pose === 'cheer';
   const decorative = label === '';
   return (
@@ -78,7 +99,24 @@ export function Mascot({ pose = 'idle', size = 10, className, label = '' }: Masc
       role={decorative ? 'presentation' : 'img'}
       aria-label={decorative ? undefined : label}
       aria-hidden={decorative ? true : undefined}
+      data-look={Object.values(look).filter(Boolean).join(',') || undefined}
     >
+      <defs>
+        {bg && (
+          <linearGradient id={`${gid}-bg`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={bg[0]} />
+            <stop offset="1" stopColor={bg[1]} />
+          </linearGradient>
+        )}
+        {frame && (
+          <linearGradient id={`${gid}-fr`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={frame[0]} />
+            <stop offset="1" stopColor={frame[1]} />
+          </linearGradient>
+        )}
+      </defs>
+      {bg && <rect x="3" y="3" width="194" height="214" rx="30" fill={`url(#${gid}-bg)`} />}
+      {bg && look.background === 'bg-noite' && [[26, 30], [170, 40], [24, 180], [176, 170], [100, 14]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3" fill="#ffd23f" />)}
       <g transform={cheer ? 'translate(0 -6)' : undefined}>
         {/* antena */}
         <path d="M100 40V22" stroke={C.limb} strokeWidth={5} strokeLinecap="round" />
@@ -130,8 +168,8 @@ export function Mascot({ pose = 'idle', size = 10, className, label = '' }: Masc
         <circle cx="164" cy="84" r="13" fill={C.ear} />
 
         {/* cabeça */}
-        <rect x="40" y="44" width="120" height="90" rx="38" fill={C.headShade} />
-        <rect x="40" y="40" width="120" height="90" rx="38" fill={C.head} />
+        <rect x="40" y="44" width="120" height="90" rx="38" fill={pal.headShade} />
+        <rect x="40" y="40" width="120" height="90" rx="38" fill={pal.head} />
         {/* visor */}
         <rect x="54" y="56" width="92" height="58" rx="26" fill={C.visor} />
 
@@ -148,6 +186,40 @@ export function Mascot({ pose = 'idle', size = 10, className, label = '' }: Masc
           <path d="M91 101q9 7 18 0" stroke={C.mouth} strokeWidth={3.5} strokeLinecap="round" fill="none" />
         )}
 
+        {/* acessório equipado */}
+        {acc && look.accessory === 'acc-oculos' && (
+          <g fill="#ffffff" fillOpacity={0.2} stroke={acc[1]} strokeWidth={4.5} strokeLinecap="round">
+            <circle cx="80" cy="84" r="19" /><circle cx="120" cy="84" r="19" />
+            <path d="M99 84h2M61 80 46 74M139 80l15-6" fill="none" />
+          </g>
+        )}
+        {acc && look.accessory === 'acc-bone' && (
+          <g stroke="#15123a" strokeWidth={3.5} strokeLinejoin="round">
+            <path d="M46 60C46 22 154 22 154 60Z" fill={acc[0]} />
+            <path d="M118 58h52c0 10-24 14-52 8Z" fill={acc[1]} />
+            <circle cx="100" cy="30" r="5" fill={acc[1]} />
+          </g>
+        )}
+        {acc && look.accessory === 'acc-laco' && (
+          <g stroke="#15123a" strokeWidth={3} strokeLinejoin="round">
+            <path d="M146 48 120 32v32Z" fill={acc[0]} /><path d="M146 48l26-16v32Z" fill={acc[0]} />
+            <circle cx="146" cy="48" r="7" fill="#ffd23f" />
+          </g>
+        )}
+        {acc && look.accessory === 'acc-fones' && (
+          <g stroke="#15123a" strokeWidth={3}>
+            <path d="M42 80C42 30 158 30 158 80" fill="none" stroke={acc[1]} strokeWidth={9} strokeLinecap="round" />
+            <rect x="22" y="66" width="20" height="36" rx="10" fill={acc[0]} />
+            <rect x="158" y="66" width="20" height="36" rx="10" fill={acc[0]} />
+          </g>
+        )}
+        {acc && look.accessory === 'acc-coroa' && (
+          <g stroke={acc[1]} strokeWidth={3} strokeLinejoin="round">
+            <path d="M62 46 66 14l18 18 16-24 16 24 18-18 4 32Z" fill={acc[0]} />
+            <circle cx="100" cy="36" r="4" fill="#ff5d73" stroke="none" />
+          </g>
+        )}
+
         {/* brilhos da comemoração */}
         {cheer && (
           <g fill={C.gold}>
@@ -157,6 +229,13 @@ export function Mascot({ pose = 'idle', size = 10, className, label = '' }: Masc
           </g>
         )}
       </g>
+      {frame && (
+        <>
+          <rect x="5" y="5" width="190" height="210" rx="28" fill="none" stroke={`url(#${gid}-fr)`} strokeWidth="10" />
+          <rect x="5" y="5" width="190" height="210" rx="28" fill="none" stroke="#15123a" strokeWidth="2" />
+          {look.frame === 'frame-estrelas' && [[10, 10], [190, 10], [10, 210], [190, 210]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="6" fill="#fff6c9" />)}
+        </>
+      )}
     </svg>
   );
 }

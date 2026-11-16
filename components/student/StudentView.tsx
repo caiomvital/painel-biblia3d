@@ -2,8 +2,9 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MotionConfig } from 'motion/react';
+import { WardrobeScreen } from './shell/WardrobeScreen';
 import {
-  Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, UserIcon, useGameSound,
+  Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, MascotLookProvider, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, UserIcon, useGameSound,
 } from '@/components/ui/game';
 import { levelProgress } from '@/lib/level';
 import type { PanelTarget } from '@/lib/panel-navigation';
@@ -121,6 +122,8 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     screen = <GamesScreen />;
   } else if (view === 'ranking') {
     screen = <RankingScreen home={home} />;
+  } else if (view === 'wardrobe') {
+    screen = <WardrobeScreen onBack={() => go('profile')} onSaved={reload} />;
   } else if (view === 'profile') {
     screen = <ProfileScreen home={home} onGo={go} onLogout={onLogout} />;
   } else {
@@ -131,6 +134,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
 
   return (
     <MotionConfig reducedMotion="user">
+      <MascotLookProvider value={home?.mascotLook ?? {}}>
       <div className="min-h-screen bg-game-bg pb-28 font-[family-name:var(--font-game-body)] text-lg text-game-ink" data-testid="student-shell">
         <HUD coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<SoundToggle />} />
         <RewardPop reward={reward} onDone={() => setReward(null)} />
@@ -148,6 +152,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
         )}
         {noticesOpen && <NoticesDialog onClose={() => setNoticesOpen(false)} onRead={() => setNoticeVersion((v) => v + 1)} />}
       </div>
+      </MascotLookProvider>
     </MotionConfig>
   );
 };

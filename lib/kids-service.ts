@@ -1,5 +1,6 @@
 // Serviço do painel infantil: pontos, desafios (dia e semana), checklist da aula, cadastro e ranking.
 import { prisma } from '@/lib/prisma';
+import { parseLook } from '@/lib/mascot-look';
 
 export const QUIZ_SIZE = 5;
 export const POINTS_PER_CORRECT = 5;
@@ -155,6 +156,7 @@ export async function getKidsHome(studentId: string) {
   return {
     name: student.user.name,
     firstName: student.user.name.split(' ')[0],
+    mascotLook: parseLook(student.mascotLook),
     points: student.currentXp,
     level: student.level,
     // saldo de fichas (campo novo, aditivo): total, reservado em lances ativos e disponível para gastar

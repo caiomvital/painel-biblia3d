@@ -5,7 +5,7 @@ import { PanelDialog } from '@/components/layout/PanelDialog';
 import { AccountSettings } from '@/components/layout/AccountSettings';
 import { useUserPreferences } from '@/components/layout/UserPreferences';
 import { textSizes } from '@/lib/panel-preferences';
-import { Button, Card, Mascot, SoundOffIcon, SoundOnIcon, useGameSound } from '@/components/ui/game';
+import { Button, Card, MASCOT_NAME, Mascot, SoundOffIcon, SoundOnIcon, useGameSound } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import type { View } from './views';
 
@@ -27,6 +27,11 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
             <span className="shrink-0">{home.className ? '· ' : ''}Nível {home.level}</span>
           </p>
       </div>
+
+      <Card title={`Meu ${MASCOT_NAME}`}>
+        <p className="text-game-ink-dim">Troque a cor, o acessório, o fundo e a moldura com os itens que você ganhou.</p>
+        <Button className="mt-3" onClick={() => onGo('wardrobe')} data-testid="profile-wardrobe">Personalizar e ver coleção</Button>
+      </Card>
 
       <Card title="Ajustes">
         <div className="space-y-4">

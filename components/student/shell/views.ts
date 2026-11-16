@@ -3,11 +3,13 @@ import type { StudentTab } from '../student-types';
 export type View =
   | 'home' | 'quests' | 'auction' | 'games' | 'profile' // abas da barra inferior
   | 'ranking' | 'badges' // atalhos laterais da tela inicial
+  | 'wardrobe' // Meu Lofi e coleção, em Perfil
   | 'overview' | 'lessons' | 'exercises' | 'curriculum'; // telas herdadas, em Perfil > Mais
 
 /** Qual aba da barra inferior fica marcada para cada tela. */
 export function parentTab(view: View): 'home' | 'quests' | 'auction' | 'games' | 'profile' {
   if (view === 'ranking' || view === 'badges') return 'home';
+  if (view === 'wardrobe') return 'profile';
   if (view === 'overview' || view === 'lessons' || view === 'exercises' || view === 'curriculum') return 'profile';
   return view;
 }
