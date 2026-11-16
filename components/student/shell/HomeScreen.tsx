@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button, Card, LiveMascot, MASCOT_NAME, MedalIcon, TargetIcon, TrophyIcon, BellIcon } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
+import { ChestCard } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
 import { SideShortcut } from './SideShortcut';
 import type { View } from './views';
@@ -44,6 +45,8 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
         </p>
         <Button className="mt-3" icon={<TargetIcon />} onClick={() => onGo('quests')}>{pending ? 'Jogar' : 'Ver'}</Button>
       </Card>
+
+      <ChestCard refreshKey={home.points + home.level} onOpened={onRefresh} />
 
       <div className="grid grid-cols-2 gap-3">
         <Card as="div" className="text-center" data-testid="home-rank-class">

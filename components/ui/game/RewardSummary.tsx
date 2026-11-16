@@ -15,7 +15,7 @@ export interface RewardSummaryItem {
   /** Quantidade ("×3") mostrada ao lado do rótulo. */
   count?: number;
   /** Moeda ao lado do valor: fichas (padrão) ou pontos de XP. */
-  unit?: 'coins' | 'xp';
+  unit?: 'coins' | 'xp' | 'item';
 }
 
 export interface RewardSummaryProps {
@@ -29,6 +29,8 @@ export interface RewardSummaryProps {
   onContinue: () => void;
   /** Barra de XP do nível (valores do servidor). */
   progress?: { value: number; max: number };
+  /** Esconde a caixa TOTAL (ex.: item novo, sem fichas). */
+  hideTotal?: boolean;
   /** Nível novo, quando o aluno subiu de nível. */
   levelUp?: number | null;
 }
@@ -56,7 +58,7 @@ const OUTLINE = '[-webkit-text-stroke:7px_#15123a] [paint-order:stroke_fill] dro
  * Tela de resultado em tela cheia (missão cumprida, vitória...). Só EXIBE valores já calculados pelo servidor.
  * Foco no CONTINUAR; Esc também continua. Movimento reduzido: sem animação, só o conteúdo.
  */
-export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContinue, progress, levelUp }: RewardSummaryProps) {
+export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContinue, progress, levelUp, hideTotal = false }: RewardSummaryProps) {
   const reduce = useReducedMotion() ?? false;
   const { play } = useGameSound();
   const continueRef = useRef<HTMLButtonElement>(null);
@@ -160,16 +162,18 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
                 {it.label}
                 {typeof it.count === 'number' && <span className="ml-1 text-game-ink-dim">×{it.count}</span>}
               </span>
-              <span className="flex items-center gap-1.5 text-xl font-bold">
-                <CountUp value={it.value} delay={rowsStart + i * step + 0.1} reduce={reduce} />
-                <span className="text-game-coin">{it.unit === 'xp' ? <StarIcon /> : <CoinIcon />}</span>
-                <span className="sr-only">{it.unit === 'xp' ? 'pontos' : 'fichas'}</span>
-              </span>
+              {it.unit !== 'item' && (
+                <span className="flex items-center gap-1.5 text-xl font-bold">
+                  <CountUp value={it.value} delay={rowsStart + i * step + 0.1} reduce={reduce} />
+                  <span className="text-game-coin">{it.unit === 'xp' ? <StarIcon /> : <CoinIcon />}</span>
+                  <span className="sr-only">{it.unit === 'xp' ? 'pontos' : 'fichas'}</span>
+                </span>
+              )}
             </motion.li>
           ))}
         </ul>
 
-        <motion.div
+        {!hideTotal && <motion.div
           initial={reduce ? false : { y: -120, rotate: 0, opacity: 0 }}
           animate={{ y: 0, rotate: -3, opacity: 1 }}
           transition={reduce ? { duration: 0 } : { delay: totalDelay, type: 'spring', stiffness: 260, damping: 12 }}
@@ -182,7 +186,7 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
             <CoinIcon />
           </span>
           <span className="sr-only">fichas no total</span>
-        </motion.div>
+        </motion.div>}
 
         <motion.div
           className="mt-2 w-full rounded-game"

@@ -2,6 +2,7 @@ export { AnimatedNumber } from './AnimatedNumber';
 export { Button, type ButtonProps } from './Button';
 export { Card, type CardProps } from './Card';
 export { gameBodyFont, gameFontVariables, gameTitleFont } from './fonts';
+export { ItemIcon } from './ItemIcon';
 export { HUD, type HUDProps } from './HUD';
 export * from './icons';
 export { LiveMascot, MASCOT_NAME, Mascot, type MascotPose, type MascotProps } from './Mascot';

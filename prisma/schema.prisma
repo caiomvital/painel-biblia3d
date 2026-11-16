@@ -192,6 +192,8 @@ model Student {
   lessonChecks     LessonCheck[]
   teacherRatings   TeacherRating[]
   attitudes        Attitude[]
+  chests           Chest[]
+  items            StudentItem[]
 
   @@index([userId])
   @@index([registrationNumber])
@@ -699,6 +701,62 @@ model LessonCheck {
   report  LessonReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, reportId])
+}
+
+enum ItemSlot {
+  COLOR
+  ACCESSORY
+  BACKGROUND
+  FRAME
+}
+
+enum Rarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+/// Item visual (cosmético) do Lofi. Sem nenhuma vantagem em jogo, leilão ou pontuação.
+model CosmeticItem {
+  id     String   @id @default(cuid())
+  code   String   @unique
+  name   String
+  slot   ItemSlot
+  rarity Rarity
+  active Boolean  @default(true)
+
+  chests Chest[]
+  owners StudentItem[]
+}
+
+/// Baú SEMPRE conquistado (nível, sequência, atitudes), nunca comprado. Um por origem (idempotente).
+/// O sorteio é feito no servidor, na mesma transação que grava o item no inventário.
+model Chest {
+  id              String    @id @default(cuid())
+  studentId       String
+  originReference String
+  openedAt        DateTime?
+  itemId          String?
+  duplicateCoins  Int?
+  createdAt       DateTime  @default(now())
+
+  student Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item    CosmeticItem? @relation(fields: [itemId], references: [id])
+
+  @@unique([studentId, originReference])
+  @@index([studentId, openedAt])
+}
+
+model StudentItem {
+  studentId  String
+  itemId     String
+  acquiredAt DateTime @default(now())
+
+  student Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item    CosmeticItem @relation(fields: [itemId], references: [id])
+
+  @@id([studentId, itemId])
 }
 
 enum AttitudeKind {
