@@ -62,7 +62,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ user, onLogout }) => {
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black tracking-wider text-white">BÍBLIA 3D</span>
+              <span className="text-sm font-black tracking-wider text-white">FUCTURA</span>
               <span className="text-[10px] font-semibold tracking-widest text-amber-400 uppercase">TECNOLOGIA</span>
             </div>
             <span className="text-[10px] text-slate-400 hidden sm:inline">Escola de Informática &bull; Recife - PE</span>
