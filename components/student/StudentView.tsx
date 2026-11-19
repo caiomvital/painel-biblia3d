@@ -3,6 +3,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MotionConfig } from 'motion/react';
 import { WardrobeScreen } from './shell/WardrobeScreen';
+import { useUserPreferences } from '@/components/layout/UserPreferences';
+import { LevelEffect } from './themes/LevelEffect';
+import { ThemeApplier } from './themes/ThemeApplier';
+import { ThemeBanner } from './themes/ThemeBanner';
+import { ThemesScreen } from './themes/ThemesScreen';
 import {
   Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, MascotLookProvider, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, UserIcon, useGameSound,
 } from '@/components/ui/game';
@@ -43,6 +48,10 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   const [noticeVersion, setNoticeVersion] = useState(0);
   const unread = useUnreadNotices(noticeVersion);
   const { play } = useGameSound();
+  const { preferences } = useUserPreferences();
+  const prefsRef = useRef(preferences);
+  useEffect(() => { prefsRef.current = preferences; }, [preferences]);
+  const [burst, setBurst] = useState(0);
   const [summary, setSummary] = useState<(RewardSummaryData & { levelUp: number | null; seenUpTo?: string }) | null>(null);
   const summaryOpen = useRef(false);
   const celebrateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -50,12 +59,16 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   const onGain = useCallback((gain: PointsGain) => {
     if (summaryOpen.current) {
       // a Tela de Resultado já está aberta: ela mostra o nível novo e toca o som; sem RewardPop duplicado
-      if (gain.leveledUp) setSummary((s) => (s ? { ...s, levelUp: gain.level } : s));
+      if (gain.leveledUp) { setSummary((s) => (s ? { ...s, levelUp: gain.level } : s)); setBurst((b) => b + 1); }
       return;
     }
     setReward({ id: gain.id, amount: gain.amount });
     setCelebrate(true);
-    play(gain.leveledUp ? 'levelUp' : 'coin');
+    if (gain.leveledUp) {
+      setBurst((b) => b + 1);
+      const chosen = prefsRef.current.achievementSound;
+      play(chosen === 'sino' ? 'sino' : chosen === 'fanfarra' ? 'fanfarra' : 'levelUp');
+    } else play('coin');
     if (celebrateTimer.current) clearTimeout(celebrateTimer.current);
     celebrateTimer.current = setTimeout(() => setCelebrate(false), 2400);
   }, [play]);
@@ -122,6 +135,8 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     screen = <GamesScreen />;
   } else if (view === 'ranking') {
     screen = <RankingScreen home={home} />;
+  } else if (view === 'themes') {
+    screen = <ThemesScreen home={home} onBack={() => go('profile')} onPreviewEffect={() => setBurst((b) => b + 1)} />;
   } else if (view === 'wardrobe') {
     screen = <WardrobeScreen onBack={() => go('profile')} onSaved={reload} />;
   } else if (view === 'profile') {
@@ -136,7 +151,10 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     <MotionConfig reducedMotion="user">
       <MascotLookProvider value={home?.mascotLook ?? {}}>
       <div className="min-h-screen bg-game-bg pb-28 font-[family-name:var(--font-game-body)] text-lg text-game-ink" data-testid="student-shell">
+        <ThemeApplier themeId={preferences.theme} look={home?.mascotLook ?? {}} />
+        <LevelEffect effect={preferences.levelEffect} burst={burst} />
         <HUD coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<SoundToggle />} />
+        <ThemeBanner themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <RewardPop reward={reward} onDone={() => setReward(null)} />
         <main className="mx-auto max-w-3xl space-y-4 px-4 py-4">
           {error && <div role="alert" className="rounded-game border-2 border-game-danger bg-game-surface p-3 font-semibold">{error}</div>}

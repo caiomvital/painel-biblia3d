@@ -2,7 +2,7 @@
  * Efeitos sonoros gerados com a Web Audio API (nenhum arquivo de áudio).
  * Desligado por padrão: só toca depois que a criança liga o som.
  */
-export type SoundName = 'tap' | 'coin' | 'success' | 'levelUp';
+export type SoundName = 'tap' | 'coin' | 'success' | 'levelUp' | 'sino' | 'fanfarra';
 
 /** Notas de cada efeito: [frequência em Hz, duração em segundos, atraso em segundos]. */
 const SOUNDS: Record<SoundName, Array<[number, number, number]>> = {
@@ -10,6 +10,8 @@ const SOUNDS: Record<SoundName, Array<[number, number, number]>> = {
   coin: [[988, 0.07, 0], [1319, 0.18, 0.07]],
   success: [[523, 0.1, 0], [659, 0.1, 0.1], [784, 0.2, 0.2]],
   levelUp: [[523, 0.1, 0], [659, 0.1, 0.1], [784, 0.1, 0.2], [1047, 0.3, 0.3]],
+  sino: [[1319, 0.3, 0], [1760, 0.3, 0.16], [2093, 0.5, 0.32]],
+  fanfarra: [[523, 0.1, 0], [523, 0.1, 0.12], [523, 0.1, 0.24], [698, 0.32, 0.36], [587, 0.1, 0.72], [784, 0.5, 0.84]],
 };
 
 export const SOUND_STORAGE_KEY = 'biblia3d:sound';

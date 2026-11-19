@@ -42,3 +42,10 @@
   --radius-game: 1.25rem;
   --radius-game-lg: 1.75rem;
 }
+
+/* Chuva de partículas (efeito ao subir de nível): cada partícula cai com --dx de deriva e --rot de giro. */
+@keyframes b3d-fall {
+  0% { transform: translate3d(0, -12vh, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate3d(var(--dx, 0), 110vh, 0) rotate(var(--rot, 360deg)); opacity: 0.9; }
+}
