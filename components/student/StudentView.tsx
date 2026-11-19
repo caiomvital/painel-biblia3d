@@ -6,7 +6,8 @@ import { WardrobeScreen } from './shell/WardrobeScreen';
 import { useUserPreferences } from '@/components/layout/UserPreferences';
 import { LevelEffect } from './themes/LevelEffect';
 import { ThemeApplier } from './themes/ThemeApplier';
-import { ThemeBanner } from './themes/ThemeBanner';
+import { ThemeBackdrop } from './themes/ThemeBackdrop';
+import { hasScene } from './themes/scenes';
 import { ThemesScreen } from './themes/ThemesScreen';
 import {
   Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, MascotLookProvider, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, UserIcon, useGameSound,
@@ -150,11 +151,11 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   return (
     <MotionConfig reducedMotion="user">
       <MascotLookProvider value={home?.mascotLook ?? {}}>
-      <div className="min-h-screen bg-game-bg pb-28 font-[family-name:var(--font-game-body)] text-lg text-game-ink" data-testid="student-shell">
+      <div className={`min-h-screen pb-28 font-[family-name:var(--font-game-body)] text-lg text-game-ink ${hasScene(preferences.theme) ? 'relative z-10' : 'bg-game-bg'}`} data-testid="student-shell">
+        <ThemeBackdrop themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <ThemeApplier themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <LevelEffect effect={preferences.levelEffect} burst={burst} />
         <HUD coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<SoundToggle />} />
-        <ThemeBanner themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <RewardPop reward={reward} onDone={() => setReward(null)} />
         <main className="mx-auto max-w-3xl space-y-4 px-4 py-4">
           {error && <div role="alert" className="rounded-game border-2 border-game-danger bg-game-surface p-3 font-semibold">{error}</div>}
