@@ -3,7 +3,9 @@ import React from 'react';
 import { Button, Card, useGameSound } from '@/components/ui/game';
 import { useUserPreferences } from '@/components/layout/UserPreferences';
 import { ACHIEVEMENT_SOUNDS, LEVEL_EFFECTS, THEMES, isThemeUnlocked, type ThemeDef } from '@/lib/game-themes';
+import { COSMETICS } from '@/lib/cosmetics';
 import type { KidsHomeData } from '../kids-api';
+import { ThemeScene } from './scenes';
 
 const SECTIONS: { title: string; hint: string; match: (t: ThemeDef) => boolean }[] = [
   { title: 'Temas livres', hint: 'Escolha à vontade.', match: (t) => t.group === 'livre' || t.group === 'lofi' },
@@ -34,8 +36,9 @@ export function ThemesScreen({ home, onBack, onPreviewEffect }: { home: KidsHome
                   <button type="button" disabled={!ready || saving || !unlocked} aria-pressed={active} data-testid={`theme-${t.id}`}
                     onClick={() => apply({ theme: t.id })}
                     className={`flex w-full flex-col gap-2 rounded-game border-2 p-2 text-left transition-transform active:scale-[0.98] ${active ? 'border-game-primary' : 'border-game-line'} ${unlocked ? '' : 'opacity-60'}`}>
-                    <span className="flex h-12 overflow-hidden rounded-xl border border-game-line" aria-hidden>
-                      {t.swatch.map((c) => <span key={c} className="flex-1" style={{ background: c }} />)}
+                    <span className="relative block aspect-video overflow-hidden rounded-xl border border-game-line" aria-hidden>
+                      <ThemeScene id={t.id} tint={COSMETICS.find((c) => c.code === home.mascotLook.color)?.tint} className="absolute inset-0 h-full w-full" />
+                      {!unlocked && <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-3xl">🔒</span>}
                     </span>
                     <span className="font-semibold leading-tight">{t.name}</span>
                     <span className="text-sm leading-tight text-game-ink-dim">
