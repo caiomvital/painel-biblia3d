@@ -1,5 +1,6 @@
 import { compare, hash } from 'bcryptjs';
 import { prisma } from './prisma';
+import { isThemeUnlocked, themeById } from './game-themes';
 import { passwordChangeInput, preferencesInput, readPreferences } from './panel-preferences';
 import type { SessionUser } from './session-token';
 import { MSG, firstPasswordProblem } from './password-rules';
@@ -10,6 +11,13 @@ export async function getAccount(userId: string) {
 }
 export async function savePreferences(userId: string, value: unknown) {
   const preferences = preferencesInput(value);
+  // Tema desbloqueável só vale para quem já chegou no nível (o cliente não é confiável).
+  const theme = themeById(preferences.theme);
+  if (theme.group === 'desbloqueavel') {
+    const student = await prisma.student.findUnique({ where: { userId }, select: { currentXp: true } });
+    const level = Math.floor((student?.currentXp ?? 0) / 300) + 1;
+    if (!isThemeUnlocked(theme, level)) throw Object.assign(new Error(`Esse tema abre no nível ${theme.unlockLevel}.`), { statusCode: 403 });
+  }
   await prisma.user.update({ where: { id: userId }, data: { preferences } });
   return preferences;
 }

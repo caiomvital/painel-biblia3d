@@ -33,6 +33,11 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
         <Button className="mt-3" onClick={() => onGo('wardrobe')} data-testid="profile-wardrobe">Personalizar e ver coleção</Button>
       </Card>
 
+      <Card title="Meu tema">
+        <p className="text-game-ink-dim">Mude o visual do painel inteiro: cores, cenário, efeitos e som ao subir de nível.</p>
+        <Button className="mt-3" onClick={() => onGo('themes')} data-testid="profile-themes">Escolher tema</Button>
+      </Card>
+
       <Card title="Ajustes">
         <div className="space-y-4">
           <Button variant="ghost" aria-pressed={enabled} onClick={toggle} icon={enabled ? <SoundOnIcon /> : <SoundOffIcon />}>

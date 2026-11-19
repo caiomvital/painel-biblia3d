@@ -1,13 +1,18 @@
+import { ACHIEVEMENT_SOUND_IDS, DEFAULT_THEME, LEVEL_EFFECT_IDS, THEME_IDS } from './game-themes';
 export const panelColors = ['default', 'blue', 'green', 'violet'] as const;
 export const textSizes = ['normal', 'large', 'larger'] as const;
 export const notificationCategories = ['ACCOUNT', 'ACADEMIC', 'AUCTION'] as const;
 export type Preferences = {
   color: typeof panelColors[number];
   textSize: typeof textSizes[number];
+  /** Tema visual do painel do aluno (ver lib/game-themes.ts). */
+  theme: string;
+  levelEffect: string;
+  achievementSound: string;
   notifications: Record<typeof notificationCategories[number], boolean>;
 };
 export const defaultPreferences: Preferences = {
-  color: 'default', textSize: 'normal',
+  color: 'default', textSize: 'normal', theme: DEFAULT_THEME, levelEffect: 'estrelas', achievementSound: 'classico',
   notifications: { ACCOUNT: true, ACADEMIC: true, AUCTION: true },
 };
 export function readPreferences(value: unknown): Preferences {
@@ -15,6 +20,9 @@ export function readPreferences(value: unknown): Preferences {
   return {
     color: panelColors.includes(data?.color as Preferences['color']) ? data!.color! : 'default',
     textSize: textSizes.includes(data?.textSize as Preferences['textSize']) ? data!.textSize! : 'normal',
+    theme: THEME_IDS.includes(data?.theme as string) ? data!.theme! : DEFAULT_THEME,
+    levelEffect: LEVEL_EFFECT_IDS.includes(data?.levelEffect as never) ? data!.levelEffect! : 'estrelas',
+    achievementSound: ACHIEVEMENT_SOUND_IDS.includes(data?.achievementSound as never) ? data!.achievementSound! : 'classico',
     notifications: Object.fromEntries(notificationCategories.map(category => [category, typeof data?.notifications?.[category] === 'boolean' ? data.notifications[category] : true])) as Preferences['notifications'],
   };
 }
