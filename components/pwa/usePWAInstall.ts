@@ -1,63 +1,69 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
+/*
+ * O navegador avisa "este app é instalável" (beforeinstallprompt) UMA vez, logo que a página abre. Quem só começa a
+ * ouvir depois (ex.: o cartão do Perfil do aluno) perderia o aviso. Por isso o aviso é capturado na abertura do site
+ * (capturePWAInstallEvents, chamada pelo ServiceWorkerRegister do layout) e guardado aqui até alguém precisar.
+ */
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
+let installed = false;
+let captured = false;
+const listeners = new Set<() => void>();
+const notify = () => listeners.forEach((l) => l());
+
+function isStandalone() {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true
+  );
+}
+
+export function capturePWAInstallEvents() {
+  if (captured || typeof window === 'undefined') return;
+  captured = true;
+  installed = isStandalone();
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e as BeforeInstallPromptEvent;
+    notify();
+  });
+  window.addEventListener('appinstalled', () => {
+    installed = true;
+    deferredPrompt = null;
+    notify();
+  });
+  notify();
+}
+
+const subscribe = (cb: () => void) => { listeners.add(cb); return () => { listeners.delete(cb); }; };
+
 export function usePWAInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return (
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true
-    );
-  });
-  const [isIOS] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    return /iphone|ipad|ipod/.test(userAgent);
-  });
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    const handleAppInstalled = () => {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
+  // Garante a captura mesmo se o hook for usado antes do layout registrar (idempotente).
+  if (typeof window !== 'undefined') capturePWAInstallEvents();
+  const isInstallable = useSyncExternalStore(subscribe, () => !!deferredPrompt, () => false);
+  const isInstalled = useSyncExternalStore(subscribe, () => installed, () => false);
+  const isIOS = useSyncExternalStore(subscribe, () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()), () => false);
 
   const install = async () => {
     if (!deferredPrompt) return false;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    const prompt = deferredPrompt;
+    await prompt.prompt();
+    const { outcome } = await prompt.userChoice;
     if (outcome === 'accepted') {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
+      installed = true;
+      deferredPrompt = null;
+      notify();
       return true;
     }
     return false;
   };
 
-  return {
-    isInstallable: !!deferredPrompt,
-    isInstalled,
-    isIOS,
-    install,
-  };
+  return { isInstallable, isInstalled, isIOS, install };
 }

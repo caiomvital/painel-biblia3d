@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
+import { capturePWAInstallEvents } from './usePWAInstall';
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
+    capturePWAInstallEvents(); // guarda o aviso "app instalável" para o botão do aluno, que só aparece no Perfil
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       window.addEventListener('load', () => {
         navigator.serviceWorker
