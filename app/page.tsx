@@ -8,10 +8,13 @@ import { FirstPasswordScreen } from '@/components/auth/FirstPasswordScreen';
 import { TeacherView } from '@/components/teacher/TeacherView';
 import { DirectorView } from '@/components/director/DirectorView';
 import { UserPreferences } from '@/components/layout/UserPreferences';
+import { OnboardingTour, TOUR_EVENT, type TourRole } from '@/components/onboarding/OnboardingTour';
+import { TestAccountsPanel, useTestAccounts } from '@/components/onboarding/TestAccountsPanel';
 
 export default function HomePage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const testAccounts = useTestAccounts();
 
   useEffect(() => {
     let isMounted = true;
@@ -65,6 +68,14 @@ export default function HomePage() {
     return <FirstPasswordScreen onDone={() => setUser({ ...user, mustChangePassword: false })} onLogout={handleLogout} />;
   }
 
+  const tourRole: TourRole = user?.role === 'ALUNO' || user?.role === 'PROFESSOR' || user?.role === 'DIRETOR' ? user.role : 'VISITANTE';
+  const extras = (
+    <>
+      <OnboardingTour key={`${tourRole}:${user?.id ?? ''}`} role={tourRole} userId={user?.id} />
+      {testAccounts && <TestAccountsPanel accounts={testAccounts} currentLogin={user?.email} onSwitch={handleLoginSuccess} onOpenTour={() => window.dispatchEvent(new Event(TOUR_EVENT))} />}
+    </>
+  );
+
   const content = (
     <div className="min-h-screen bg-[#070a12] flex flex-col text-slate-100 selection:bg-amber-500/20 selection:text-amber-300">
       {/* Brand Header with PWA installation & profile info */}
@@ -88,6 +99,8 @@ export default function HomePage() {
           </div>
         )}
       </main>
+
+      {extras}
 
       {/* Footer */}
       {user?.role !== 'ALUNO' && <footer className="border-t border-slate-900/80 bg-[#05070d] py-5 text-center text-[11px] text-slate-500">
