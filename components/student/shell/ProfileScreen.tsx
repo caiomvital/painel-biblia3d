@@ -8,6 +8,7 @@ import { textSizes } from '@/lib/panel-preferences';
 import { Button, Card, MASCOT_NAME, Mascot, SoundOffIcon, SoundOnIcon, useGameSound } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import type { View } from './views';
+import { InstallAppCard } from './InstallAppCard';
 
 const SIZE_LABEL: Record<(typeof textSizes)[number], string> = { normal: 'Normal', large: 'Grande', larger: 'Enorme' };
 
@@ -37,6 +38,8 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
         <p className="text-game-ink-dim">Mude o visual do painel inteiro: cores, cenário, efeitos e som ao subir de nível.</p>
         <Button className="mt-3" onClick={() => onGo('themes')} data-testid="profile-themes">Escolher tema</Button>
       </Card>
+
+      <InstallAppCard />
 
       <Card title="Ajustes">
         <div className="space-y-4">
