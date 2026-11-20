@@ -124,7 +124,10 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
         {subtitle && <p className="text-center text-xl font-semibold">{subtitle}</p>}
 
         <div className="flex items-center gap-3">
+          {/* o mascote acompanha a altura da tela: grande, médio ou pequeno */}
           <span className="[@media(max-height:760px)]:hidden"><LiveMascot size={6} cheering={!reduce} label="" /></span>
+          <span className="hidden [@media(max-height:760px)]:block [@media(max-height:620px)]:hidden"><LiveMascot size={4} cheering={!reduce} label="" /></span>
+          <span className="hidden [@media(max-height:620px)]:block"><LiveMascot size={3} cheering={!reduce} label="" /></span>
           {typeof xp === 'number' && (
             <motion.div
               initial={reduce ? false : { scale: 0, opacity: 0 }}
