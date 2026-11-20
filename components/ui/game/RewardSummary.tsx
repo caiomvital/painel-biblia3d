@@ -111,20 +111,20 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
 
       <div className="absolute right-3 top-3 z-10"><SoundToggle /></div>
 
-      <div className="relative mx-auto flex min-h-full w-full max-w-md flex-col items-center gap-4 px-4 pb-8 pt-14">
+      <div className="relative mx-auto flex min-h-full w-full max-w-md flex-col items-center gap-4 px-4 pt-14 [@media(max-height:760px)]:gap-2 [@media(max-height:760px)]:pt-10">
         <motion.h1
           id="reward-summary-title"
           initial={reduce ? false : { scale: 0.3, opacity: 0, rotate: -6 }}
           animate={{ scale: 1, opacity: 1, rotate: 0 }}
           transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 14 }}
-          className={`text-center font-[family-name:var(--font-game-title)] text-5xl leading-none text-game-primary min-[420px]:text-6xl ${OUTLINE}`}
+          className={`text-center font-[family-name:var(--font-game-title)] text-5xl leading-none text-game-primary min-[420px]:text-6xl [@media(max-height:760px)]:!text-4xl ${OUTLINE}`}
         >
           {title}
         </motion.h1>
         {subtitle && <p className="text-center text-xl font-semibold">{subtitle}</p>}
 
         <div className="flex items-center gap-3">
-          <LiveMascot size={6} cheering={!reduce} label="" />
+          <span className="[@media(max-height:760px)]:hidden"><LiveMascot size={6} cheering={!reduce} label="" /></span>
           {typeof xp === 'number' && (
             <motion.div
               initial={reduce ? false : { scale: 0, opacity: 0 }}
@@ -155,7 +155,7 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
               initial={reduce ? false : { x: -40, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={reduce ? { duration: 0 } : { delay: rowsStart + i * step, type: 'spring', stiffness: 320, damping: 24 }}
-              className="flex min-h-14 items-center gap-3 rounded-full border-2 border-game-line bg-game-surface/90 px-4 py-2"
+              className="flex min-h-14 items-center gap-3 rounded-full border-2 border-game-line bg-game-surface/90 px-4 py-2 [@media(max-height:760px)]:min-h-11 [@media(max-height:760px)]:py-1"
             >
               <span className="text-2xl text-game-primary">{it.icon}</span>
               <span className="flex-1 text-lg font-semibold leading-tight">
@@ -177,7 +177,7 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
           initial={reduce ? false : { y: -120, rotate: 0, opacity: 0 }}
           animate={{ y: 0, rotate: -3, opacity: 1 }}
           transition={reduce ? { duration: 0 } : { delay: totalDelay, type: 'spring', stiffness: 260, damping: 12 }}
-          className="flex items-center gap-3 rounded-game border-4 border-game-coin-deep bg-game-primary px-6 py-3 text-game-ink-on-light shadow-lg"
+          className="flex items-center gap-3 rounded-game border-4 border-game-coin-deep bg-game-primary px-6 py-3 text-game-ink-on-light shadow-lg [@media(max-height:760px)]:py-1.5"
           data-testid="reward-total"
         >
           <span className="font-[family-name:var(--font-game-title)] text-xl">TOTAL</span>
@@ -189,12 +189,12 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
         </motion.div>}
 
         <motion.div
-          className="mt-2 w-full rounded-game"
+          className="sticky bottom-0 z-10 mt-auto w-full rounded-game bg-[#2b1a6e]/95 pb-4 pt-2"
           // pulso de brilho (não muda o tamanho: o alvo de toque fica parado)
           animate={reduce ? undefined : { boxShadow: ['0 0 0 0 rgba(47,208,160,0.0)', '0 0 0 10px rgba(47,208,160,0.35)', '0 0 0 0 rgba(47,208,160,0.0)'] }}
           transition={reduce ? undefined : { duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: totalDelay + 0.6 }}
         >
-          <Button ref={continueRef} size="lg" variant="success" onClick={onContinue} className="min-h-16 w-full text-2xl">
+          <Button ref={continueRef} size="lg" variant="success" onClick={onContinue} className="min-h-16 w-full text-2xl [@media(max-height:760px)]:min-h-14">
             CONTINUAR
           </Button>
         </motion.div>
