@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "../components/ui/game/game.css";
+/* App de celular: nunca rolar para os lados (nem por cenário de tema, efeito ou elemento largo). */
+html, body { max-width: 100%; overflow-x: clip; overscroll-behavior-x: none; }
 html[data-text-size="large"] { font-size: 18px; }
 html[data-text-size="larger"] { font-size: 20px; }
 
