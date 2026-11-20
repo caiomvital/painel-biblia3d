@@ -13,7 +13,7 @@ const digits = (v: string) => v.replace(/\D/g, '');
 export async function GET() {
   if (!(await director())) return NextResponse.json({ error: 'Acesso restrito à direção.' }, { status: 403 });
   const rows = await prisma.student.findMany({
-    where: { guardianPhone: { not: null } },
+    where: { OR: [{ guardianPhone: { not: null } }, { accessPending: true }] },
     include: { user: { select: { name: true } }, enrollments: { where: { status: 'ACTIVE' }, include: { class: { select: { name: true } } } } },
     orderBy: { user: { name: 'asc' } },
   });
@@ -21,7 +21,7 @@ export async function GET() {
     students: rows.map((s) => ({
       id: s.id, name: s.user.name, guardianName: s.guardianName, guardianPhone: s.guardianPhone,
       birthDate: s.birthDate ? s.birthDate.toISOString().slice(0, 10) : null,
-      points: s.currentXp, profileCompleted: s.profileCompleted,
+      points: s.currentXp, profileCompleted: s.profileCompleted, accessPending: s.accessPending,
       className: s.enrollments[0]?.class.name ?? null,
     })),
   });
@@ -46,6 +46,7 @@ export async function PATCH(req: NextRequest) {
       if (!d) return NextResponse.json({ error: 'Data de nascimento inválida.' }, { status: 400 });
       data.birthDate = d;
     }
+    if (b.release === true) data.accessPending = false; // equipe revisou: libera o acesso da criança
     if (Object.keys(data).length) await prisma.student.update({ where: { id: student.id }, data });
     if (typeof b.name === 'string' && b.name.trim().length >= 2) {
       await prisma.user.update({ where: { id: student.userId }, data: { name: b.name.trim().slice(0, 120) } });

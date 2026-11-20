@@ -131,6 +131,8 @@ export async function POST(req: NextRequest) {
         name: user.name,
         role: user.role,
         mustChangePassword: user.role === 'ALUNO' && user.mustChangePassword === true,
+        accessPending: user.role === 'ALUNO' && user.student?.accessPending === true,
+        profileCompleted: user.student?.profileCompleted === true,
       },
       loginXpAwarded,
     });

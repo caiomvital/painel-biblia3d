@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth';
 import { saveKidsProfile } from '@/lib/kids-service';
 
 export async function POST(req: NextRequest) {
-  const session = await getSession();
+  const session = await getSession({ allowAccessPending: true });
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (session.role !== 'ALUNO' || !session.studentId) return NextResponse.json({ error: 'Acesso restrito a alunos.' }, { status: 403 });
   try {

@@ -25,13 +25,22 @@ export function GamesScreen() {
   }, []);
   useEffect(() => { const t = setTimeout(load, 0); return () => clearTimeout(t); }, [load]);
 
-  const submit = async (data: { title: string; description: string; html: string }) => {
+  const submit = async (data: { title: string; description: string; html: string; isPublic: boolean }) => {
     setSending(true); setError('');
     try {
       await gamesCall('/api/games', 'POST', data);
-      setNotice(T.sent);
+      setNotice(data.isPublic ? T.sent : T.sentPrivate);
       setShowForm(false); await load();
     } catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível enviar.'); } finally { setSending(false); }
+  };
+
+  const toggle = async (m: MyGame) => {
+    setError(''); setNotice('');
+    try {
+      await gamesCall('/api/games', 'PATCH', { id: m.id, isPublic: !m.isPublic || m.status === 'REJECTED' });
+      setNotice(m.isPublic && m.status !== 'REJECTED' ? 'Pronto! Agora só você vê esse jogo.' : T.sent);
+      await load();
+    } catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível salvar.'); }
   };
 
   if (playing) return <GamePlayer game={playing} onBack={() => { setPlaying(null); load(); }} />;
@@ -46,25 +55,33 @@ export function GamesScreen() {
       {notice && <div role="status" className="rounded-game border-2 border-game-success bg-game-surface p-3 font-semibold">{notice}</div>}
 
       {!games && <p role="status" className="py-8 text-center text-game-ink-dim">{T.loading}</p>}
-      {games && games.length === 0 && <p className="py-8 text-center text-game-ink-dim">{T.empty}</p>}
-      <div className="grid gap-4 md:grid-cols-2">
-        {games?.map((g) => <GameCard key={g.id} game={g} onPlay={setPlaying} />)}
-      </div>
 
       {mine.length > 0 && (
-        <Card title={T.mine} data-testid="my-games">
-          <ul className="space-y-2">
+        <section aria-label={T.mine} data-testid="my-games" className="space-y-3">
+          <h2 className="font-[family-name:var(--font-game-title)] text-2xl tracking-wide">{T.mine}</h2>
+          <div className="grid gap-4 md:grid-cols-2">
             {mine.map((m) => {
-              const v = myGameStatusView(m.status);
+              const v = myGameStatusView(m.status, m.isPublic);
+              const canPublish = !m.isPublic || m.status === 'REJECTED';
               return (
-                <li key={m.id} className="flex items-center justify-between gap-3 rounded-game bg-game-bg px-3 py-2">
-                  <span className="min-w-0 truncate font-semibold">{m.title}</span>
-                  <span className="shrink-0 text-sm text-game-ink-dim"><span aria-hidden="true">{v.symbol}</span> {v.label}</span>
-                </li>
+                <GameCard key={m.id} game={{ id: m.id, title: m.title, description: m.description, authorName: 'você', plays: m.plays }}
+                  onPlay={setPlaying} badge={`${v.symbol} ${v.label}`}
+                  action={<Button variant="ghost" onClick={() => toggle(m)} data-testid={`game-visibility-${m.id}`} disabled={!canPublish && m.status === 'PENDING'}>
+                    {canPublish ? T.makePublic : T.makePrivate}</Button>} />
               );
             })}
-          </ul>
-        </Card>
+          </div>
+        </section>
+      )}
+
+      {games && (games.length > 0 || mine.length === 0) && (
+        <section aria-label={T.others} className="space-y-3">
+          {mine.length > 0 && <h2 className="font-[family-name:var(--font-game-title)] text-2xl tracking-wide">{T.others}</h2>}
+          {games.length === 0 && <p className="py-8 text-center text-game-ink-dim">{T.empty}</p>}
+          <div className="grid gap-4 md:grid-cols-2">
+            {games.map((g) => <GameCard key={g.id} game={g} onPlay={setPlaying} />)}
+          </div>
+        </section>
       )}
 
       {!showForm ? (

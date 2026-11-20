@@ -984,6 +984,8 @@ export async function createStudentByDirector(data: {
         registrationNumber: regNumber,
         currentXp: initialXp,
         level: Math.floor(initialXp / 300) + 1,
+        // a criança preenche os próprios dados e a equipe libera o acesso (aba Crianças)
+        accessPending: true,
       },
     });
 

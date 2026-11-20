@@ -12,6 +12,10 @@ export interface SessionUser {
   sessionVersion?: number;
   /** Só preenchido por getSession({ allowPasswordPending: true }). */
   mustChangePassword?: boolean;
+  /** Só preenchido por getSession({ allowAccessPending: true }): cadastro novo aguardando a equipe liberar. */
+  accessPending?: boolean;
+  /** Idem: a criança já preencheu os próprios dados. */
+  profileCompleted?: boolean;
 }
 const issuer = "biblia3d",
   audience = "biblia3d-panel";

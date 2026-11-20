@@ -4,7 +4,7 @@ import { api, buttonClass, fieldClass } from "./director-ui";
 
 type KStudent = {
   id: string; name: string; guardianName: string | null; guardianPhone: string | null;
-  birthDate: string | null; points: number; profileCompleted: boolean; className: string | null;
+  birthDate: string | null; points: number; profileCompleted: boolean; accessPending: boolean; className: string | null;
 };
 type Question = {
   id: string; text: string; options: string[]; correctIndex: number; topic: string | null;
@@ -17,7 +17,7 @@ type Ratings = {
   teachers: { name: string; count: number; average: number | null }[];
   recent: { id: string; student: string; teacher: string; score: number; enjoying: string; comment: string | null; createdAt: string }[];
 };
-type AdminGame = { id: string; title: string; description: string | null; authorName: string; status: "PENDING" | "APPROVED" | "REJECTED"; plays: number; navRisk?: boolean };
+type AdminGame = { id: string; title: string; description: string | null; authorName: string; status: "PENDING" | "APPROVED" | "REJECTED"; isPublic?: boolean; plays: number; navRisk?: boolean };
 const enjoyText: Record<string, string> = { YES: "gostando", SO_SO: "mais ou menos", NO: "não muito" };
 
 const panel = "rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3";
@@ -119,7 +119,7 @@ export function DirectorKids() {
         <ul className="space-y-2">
           {games.map((g) => (
             <li key={g.id} className="rounded-xl border border-slate-800 p-3 text-sm text-slate-200">
-              <p className="font-semibold text-white">{g.title} <span className="text-[11px] font-normal text-slate-400">· por {g.authorName} · {statusText[g.status]} · {g.plays} partida(s)</span></p>
+              <p className="font-semibold text-white">{g.title} <span className="text-[11px] font-normal text-slate-400">· por {g.authorName} · {g.isPublic === false ? "só do autor (privado)" : statusText[g.status]} · {g.plays} partida(s)</span></p>
               {g.navRisk && <p role="note" data-testid="game-nav-risk" className="text-xs text-amber-300">⚠ Este código tem endereço externo ou troca de página (location, meta refresh ou link http). Confira antes de aprovar.</p>}
               {g.description && <p className="text-xs text-slate-400">{g.description}</p>}
               <div className="mt-2 flex flex-wrap gap-2">
@@ -171,6 +171,31 @@ export function DirectorKids() {
         )}
       </section>
 
+      {students.some((s) => s.accessPending) && (
+        <section className={`${panel} border-amber-500/40`} data-testid="access-review">
+          <h3 className="text-lg font-bold text-white">Aguardando liberação ({students.filter((s) => s.accessPending).length})</h3>
+          <p className="text-xs text-slate-400">A criança preenche os próprios dados. Confira, corrija se precisar (Editar) e libere o acesso.</p>
+          <ul className="space-y-2">
+            {students.filter((s) => s.accessPending).map((s) => (
+              <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 p-3 text-sm text-slate-200">
+                <div>
+                  <p className="font-semibold text-white">{s.name} <span className="text-xs font-normal text-slate-400">· {s.className ?? "sem turma"}</span></p>
+                  <p className="text-xs text-slate-400">
+                    {s.profileCompleted
+                      ? `Nascimento: ${s.birthDate ? s.birthDate.split("-").reverse().join("/") : "—"} · Responsável: ${s.guardianName ?? "—"}`
+                      : "Ainda não preencheu os dados."}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button className={buttonClass} onClick={() => setEditing(s)}>Editar</button>
+                  <button className={buttonClass} onClick={() => run(() => api("/api/director/kids/students", "PATCH", { id: s.id, release: true }), `Acesso de ${s.name} liberado.`)}>Liberar acesso</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className={panel}>
         <h3 className="text-lg font-bold text-white">Crianças ({students.length})</h3>
         <p className="text-xs text-slate-400">O telefone do responsável é o usuário de login da criança (DDD + número, ex.: 81995474295). Senha inicial: 123.</p>
@@ -180,8 +205,8 @@ export function DirectorKids() {
             <tbody>
               {students.map((s) => (
                 <tr key={s.id} className="border-t border-slate-800 text-slate-200">
-                  <td className="py-2 pr-2">{s.name}</td><td>{s.className ?? "—"}</td><td>{s.guardianName ?? "—"}</td>
-                  <td>{s.guardianPhone}</td><td>{s.points}</td>
+                  <td className="py-2 pr-2">{s.name}{s.accessPending && <span className="ml-2 rounded bg-amber-500/20 px-1.5 text-[11px] text-amber-300">aguardando</span>}</td><td>{s.className ?? "—"}</td><td>{s.guardianName ?? "—"}</td>
+                  <td>{s.guardianPhone ?? "—"}</td><td>{s.points}</td>
                   <td className="text-right"><button className={buttonClass} onClick={() => setEditing(s)}>Editar</button></td>
                 </tr>
               ))}
@@ -197,6 +222,7 @@ export function DirectorKids() {
             <div className="flex flex-wrap gap-2 sm:col-span-2">
               <button className={buttonClass} type="submit">Salvar</button>
               <button className={buttonClass} type="button" onClick={() => setEditing(null)}>Cancelar</button>
+              {editing.accessPending && <button className={buttonClass} type="button" onClick={() => run(async () => { await api("/api/director/kids/students", "PATCH", { id: editing.id, release: true }); setEditing(null); }, "Acesso liberado.")}>Liberar acesso</button>}
               <button className={buttonClass} type="button" onClick={() => run(() => api("/api/director/kids/students", "PATCH", { id: editing.id, resetPassword: true }), "Senha redefinida para 123.")}>Redefinir senha para 123</button>
             </div>
           </form>

@@ -38,7 +38,7 @@ test("sonda: laço infinito num jogo", async ({ browser }, info) => {
     await info.attach("sonda-laco.txt", { body: table, contentType: "text/plain" });
   };
   await db.game.deleteMany({ where: { id } });
-  await db.game.create({ data: { id, title: `Sonda laço ${info.project.name}`, authorName: "Sonda de segurança", status: "APPROVED", html: loopHtml } });
+  await db.game.create({ data: { id, title: `Sonda laço ${info.project.name}`, authorName: "Sonda de segurança", status: "APPROVED", isPublic: true, html: loopHtml } });
   try {
     await login(page, info.project.name);
     await page.getByRole("button", { name: "Jogos", exact: true }).click();

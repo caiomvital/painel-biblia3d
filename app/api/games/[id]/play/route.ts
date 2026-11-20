@@ -27,12 +27,12 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   if (!session) return errorPage('Entre no painel para jogar.', 401);
   const { id } = await ctx.params;
   const game = await prisma.game.findUnique({ where: { id } });
-  const canSee = game && (game.status === 'APPROVED' || session.role === 'DIRETOR' ||
+  const canSee = game && ((game.status === 'APPROVED' && game.isPublic) || session.role === 'DIRETOR' ||
     (session.role === 'ALUNO' && session.studentId && game.authorStudentId === session.studentId));
   if (!game || !canSee) return errorPage('Este jogo não está disponível agora.', 404);
   // Jogos de sonda (testes de segurança) nunca são servidos fora do ambiente de teste local.
   if (!gameHtmlAllowedHere(game.html)) return errorPage('Este jogo não está disponível agora.', 404);
-  if (game.status === 'APPROVED' && session.role === 'ALUNO') {
+  if (game.status === 'APPROVED' && game.isPublic && session.role === 'ALUNO' && game.authorStudentId !== session.studentId) {
     prisma.game.update({ where: { id }, data: { plays: { increment: 1 } } }).catch(() => undefined);
   }
   // Aviso amigável injetado antes do código do jogo (desligável em lib/game-shim.ts).
