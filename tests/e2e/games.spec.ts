@@ -51,10 +51,10 @@ test.beforeAll(async ({}, info) => {
   await db.game.deleteMany({ where: { id: { startsWith: `${x.f.prefix}_game_` } } });
   await db.game.createMany({
     data: [
-      { id: x.approved.id, title: x.approved.title, description: "Um jogo de teste.", authorName: "Exemplo da Bíblia 3D", html: GAME_HTML(x.approved.word), status: "APPROVED" },
-      { id: x.byClassmate.id, title: x.byClassmate.title, description: "Feito por uma colega.", authorName: x.byClassmate.author, authorStudentId: x.outsiderId, html: GAME_HTML("COLEGA-OK"), status: "APPROVED" },
-      { id: x.mine.id, title: x.mine.title, authorName: "Aluno Teste Da Silva", authorStudentId: x.studentId, html: GAME_HTML("MEU-PENDENTE-OK"), status: "PENDING" },
-      { id: x.theirs.id, title: x.theirs.title, authorName: x.byClassmate.author, authorStudentId: x.outsiderId, html: GAME_HTML("ALHEIO-PENDENTE"), status: "PENDING" },
+      { id: x.approved.id, title: x.approved.title, description: "Um jogo de teste.", authorName: "Exemplo da Bíblia 3D", html: GAME_HTML(x.approved.word), status: "APPROVED", isPublic: true },
+      { id: x.byClassmate.id, title: x.byClassmate.title, description: "Feito por uma colega.", authorName: x.byClassmate.author, authorStudentId: x.outsiderId, html: GAME_HTML("COLEGA-OK"), status: "APPROVED", isPublic: true },
+      { id: x.mine.id, title: x.mine.title, authorName: "Aluno Teste Da Silva", authorStudentId: x.studentId, html: GAME_HTML("MEU-PENDENTE-OK"), status: "PENDING", isPublic: true },
+      { id: x.theirs.id, title: x.theirs.title, authorName: x.byClassmate.author, authorStudentId: x.outsiderId, html: GAME_HTML("ALHEIO-PENDENTE"), status: "PENDING", isPublic: true },
     ],
   });
 });
@@ -117,11 +117,13 @@ test("aluno envia um jogo e ele fica pendente", async ({ page }, info) => {
   const title = `Enviado Pelo Teste ${info.project.name}`;
   await page.getByLabel("Nome do jogo").fill(title);
   await page.getByLabel("Código do jogo (HTML)").fill(GAME_HTML("ENVIADO-OK"));
+  await page.getByTestId("game-public").check(); // "Tornar público": vai para a revisão da equipe
   const sent = page.waitForResponse((r) => r.url().endsWith("/api/games") && r.request().method() === "POST");
   await page.getByRole("button", { name: "Enviar", exact: true }).click();
   expect((await sent).status()).toBe(200);
   const row = await db.game.findFirstOrThrow({ where: { title } });
   expect(row.status).toBe("PENDING");
+  expect(row.isPublic).toBe(true);
   expect(row.authorStudentId).toBe(x.studentId);
   await expect(page.getByText(title).first()).toBeVisible(); // aparece em "Meus jogos"
   await db.game.delete({ where: { id: row.id } });
@@ -145,7 +147,7 @@ test("alert e eval no jogo mostram um aviso amigável em vez de falhar em silên
   const x = fixtures(info.project.name);
   const mk = (n: string, script: string) =>
     db.game.create({
-      data: { id: `${x.f.prefix}_game_${n}`, title: `Aviso ${n} ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED",
+      data: { id: `${x.f.prefix}_game_${n}`, title: `Aviso ${n} ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED", isPublic: true,
         html: `<!doctype html><html><head><title>t</title></head><body><p id="vivo">vivo</p><script>${script}</script></body></html>` },
     });
   await mk("alert", `alert("oi");`);
@@ -167,7 +169,7 @@ test("os 3 jogos de exemplo continuam funcionando com o aviso injetado", async (
   const dir = join(process.cwd(), "_scripts", "games");
   const ids3 = { memoria: `${x.f.prefix}_game_ex_m`, estrela: `${x.f.prefix}_game_ex_e`, numero: `${x.f.prefix}_game_ex_n` };
   for (const [name, id] of Object.entries(ids3))
-    await db.game.create({ data: { id, title: `Ex ${name} ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED", html: readFileSync(join(dir, `${name}.html`), "utf8") } });
+    await db.game.create({ data: { id, title: `Ex ${name} ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED", isPublic: true, html: readFileSync(join(dir, `${name}.html`), "utf8") } });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await login(page, info.project.name);
@@ -198,7 +200,7 @@ test("jogo que navega o próprio quadro para outra página é parado com um avis
   const x = fixtures(info.project.name);
   const id = `${x.f.prefix}_game_selfnav`;
   await db.game.create({
-    data: { id, title: `Navega ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED",
+    data: { id, title: `Navega ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED", isPublic: true,
       html: `<!doctype html><html><head><title>t</title></head><body><p>oi</p><script>setTimeout(function(){location.href='/api/games/${x.approved.id}/play';},300);</script></body></html>` },
   });
   await login(page, info.project.name);
@@ -215,7 +217,7 @@ test('jogo legítimo que reinicia com location.reload(): aviso neutro e Tentar d
   const x = fixtures(info.project.name);
   const id = `${x.f.prefix}_game_reload`;
   await db.game.create({
-    data: { id, title: `Reinicia ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED",
+    data: { id, title: `Reinicia ${info.project.name}`, authorName: "Exemplo da Bíblia 3D", status: "APPROVED", isPublic: true,
       html: `<!doctype html><html><head><title>t</title></head><body><button id="again" onclick="location.reload()">Jogar de novo</button></body></html>` },
   });
   await login(page, info.project.name);
@@ -229,4 +231,26 @@ test('jogo legítimo que reinicia com location.reload(): aviso neutro e Tentar d
   await page.getByRole("button", { name: "Tentar de novo" }).click();
   await expect(page.getByTestId("game-navigated")).toHaveCount(0);
   await expect(page.frameLocator("iframe").locator("#again")).toBeVisible(); // o jogo volta
+});
+
+test("jogo sem \"Tornar público\" fica só do autor: nem aparece nem abre para os colegas", async ({ page }, info) => {
+  const x = fixtures(info.project.name);
+  await login(page, info.project.name);
+  await ui.openGamesTab(page);
+  await ui.openSubmit(page);
+  const title = `Privado Pelo Teste ${info.project.name}`;
+  await page.getByLabel("Nome do jogo").fill(title);
+  await page.getByLabel("Código do jogo (HTML)").fill(GAME_HTML("PRIVADO-OK"));
+  const sent = page.waitForResponse((r) => r.url().endsWith("/api/games") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "Enviar", exact: true }).click();
+  expect((await sent).status()).toBe(200);
+  const row = await db.game.findFirstOrThrow({ where: { title } });
+  expect(row.isPublic).toBe(false);
+  expect(row.authorStudentId).toBe(x.studentId);
+  // o dono joga; "Meus jogos" vem primeiro
+  expect((await page.request.get(`/api/games/${row.id}/play`)).status()).toBe(200);
+  const list = await (await page.request.get("/api/games")).json();
+  expect(list.mine.map((g: { id: string }) => g.id)).toContain(row.id);
+  expect(list.games.map((g: { id: string }) => g.id)).not.toContain(row.id);
+  await db.game.delete({ where: { id: row.id } });
 });

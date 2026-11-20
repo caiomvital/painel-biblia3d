@@ -11,9 +11,14 @@ export const GAMES_TEXT = {
   retry: 'Tentar de novo',
   navigated: 'O jogo recarregou. Tentar de novo?',
   mine: 'Meus jogos',
+  others: 'Jogos dos colegas',
+  makePublic: 'Tornar público',
+  makePublicHelp: 'Os colegas poderão jogar. A equipe confere antes de aparecer para todos.',
+  makePrivate: 'Deixar só meu',
+  sentPrivate: 'Jogo guardado! Só você vê. Marque "Tornar público" quando quiser mostrar aos colegas.',
   send: 'Enviar um jogo meu',
   sendHelp: 'Seu jogo é um arquivo HTML. Peça ajuda ao professor.',
-  sent: 'Jogo enviado! Quando o professor aprovar, ele aparece aqui.',
+  sent: 'Jogo enviado! Quando a equipe aprovar, ele aparece para todos.',
 } as const;
 
 /**
@@ -33,8 +38,9 @@ export const GAME_ALLOW = GAME_DENIED_FEATURES.map((f) => `${f} 'none'`).join(';
 export type MyGameStatus = 'PENDING' | 'REJECTED' | string;
 
 /** Estado de um jogo enviado: símbolo + texto (nunca só cor). */
-export function myGameStatusView(status: MyGameStatus): { symbol: string; label: string } {
+export function myGameStatusView(status: MyGameStatus, isPublic = true): { symbol: string; label: string } {
+  if (!isPublic) return { symbol: '🔒', label: 'Só meu' };
   if (status === 'PENDING') return { symbol: '⏳', label: 'Esperando revisão' };
   if (status === 'REJECTED') return { symbol: '✋', label: 'Não aprovado' };
-  return { symbol: '✔', label: 'Aprovado' };
+  return { symbol: '🌎', label: 'Público' };
 }

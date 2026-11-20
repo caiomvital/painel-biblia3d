@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 export async function GET() {
-  const session = await getSession({ allowPasswordPending: true });
+  const session = await getSession({ allowPasswordPending: true, allowAccessPending: true });
   if (!session) {
     return NextResponse.json({ user: null }, { status: 401 });
   }
@@ -14,6 +14,8 @@ export async function GET() {
       name: session.name,
       role: session.role,
       mustChangePassword: session.mustChangePassword === true,
+      accessPending: session.accessPending === true,
+      profileCompleted: session.profileCompleted === true,
     },
   });
 }

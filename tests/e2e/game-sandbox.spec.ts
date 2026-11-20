@@ -106,7 +106,7 @@ test("sonda: jogo malicioso não alcança cookies, sessão, painel nem a rede", 
   const rows: Array<[string, string, string]> = []; // [tentativa, esperado, observado]
   try {
     await db.game.deleteMany({ where: { id: { startsWith: `${f.prefix}_game_probe_` } } });
-    const mk = (n: string, html: string) => db.game.create({ data: { id: gid(n), title: `Sonda ${n} ${info.project.name}`, authorName: "Sonda de segurança", status: "APPROVED", html } });
+    const mk = (n: string, html: string) => db.game.create({ data: { id: gid(n), title: `Sonda ${n} ${info.project.name}`, authorName: "Sonda de segurança", status: "APPROVED", isPublic: true, html } });
     await mk("main", probeHtml(canary.url));
     for (const how of ["location", "meta", "link"]) await mk(`nav_${how}`, navHtml(how, canary.url));
 

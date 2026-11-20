@@ -5,6 +5,7 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { StudentView } from '@/components/student/StudentView';
 import { FirstPasswordScreen } from '@/components/auth/FirstPasswordScreen';
+import { AccessPendingScreen } from '@/components/auth/AccessPendingScreen';
 import { TeacherView } from '@/components/teacher/TeacherView';
 import { DirectorView } from '@/components/director/DirectorView';
 import { UserPreferences } from '@/components/layout/UserPreferences';
@@ -66,6 +67,12 @@ export default function HomePage() {
   // Aluno com a senha padrão só enxerga a tela de criar a senha nova (o servidor bloqueia o resto).
   if (user?.role === 'ALUNO' && user.mustChangePassword) {
     return <FirstPasswordScreen onDone={() => setUser({ ...user, mustChangePassword: false })} onLogout={handleLogout} />;
+  }
+
+  // Cadastro novo: a criança preenche os próprios dados e espera a equipe liberar o acesso.
+  if (user?.role === 'ALUNO' && user.accessPending) {
+    return <AccessPendingScreen profileCompleted={user.profileCompleted === true} onProfileSaved={() => setUser({ ...user, profileCompleted: true })}
+      onReleased={() => setUser({ ...user, accessPending: false })} onLogout={handleLogout} />;
   }
 
   const tourRole: TourRole = user?.role === 'ALUNO' || user?.role === 'PROFESSOR' || user?.role === 'DIRETOR' ? user.role : 'VISITANTE';
