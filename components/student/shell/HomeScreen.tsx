@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { BookIcon, LiveMascot, MASCOT_NAME, MoreIcon, SunIcon, TargetIcon } from '@/components/ui/game';
+import React, { useEffect, useRef, useState } from 'react';
+import { BookIcon, Button, GamepadIcon, GavelIcon, LiveMascot, MASCOT_NAME, MoreIcon, SunIcon, TargetIcon } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import { ChestCard } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
@@ -24,12 +24,40 @@ function BigAction({ icon, title, hint, onClick, disabled, highlight, testId }: 
   );
 }
 
+function Tile({ icon, title, onClick, testId }: { icon: React.ReactNode; title: string; onClick: () => void; testId: string }) {
+  return (
+    <button type="button" onClick={onClick} data-testid={testId}
+      className="flex min-h-28 flex-col items-center justify-center gap-1 rounded-game-lg border-2 border-b-4 border-game-line bg-game-surface p-3 text-game-ink transition-transform active:translate-y-0.5 active:border-b-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none">
+      <span className="text-5xl text-game-primary">{icon}</span>
+      <span className="font-[family-name:var(--font-game-title)] text-2xl tracking-wide">{title}</span>
+    </button>
+  );
+}
+
+/** O cadastro não fica aberto na tela inicial: o aluno abre quando quiser, por um botão. */
+function ProfileSheet({ home, onClose, onNotice, onError, onRefresh }: {
+  home: KidsHomeData; onClose: () => void; onNotice: (m: string) => void; onError: (m: string) => void; onRefresh: () => void;
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => { const d = ref.current; d?.showModal(); return () => d?.close(); }, []);
+  return (
+    <dialog ref={ref} aria-label="Complete seu cadastro" onCancel={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }} data-testid="profile-sheet"
+      className="m-auto w-[calc(100%-1.5rem)] max-w-md rounded-game-lg border-2 border-b-4 border-game-line bg-game-surface p-0 text-game-ink shadow-2xl backdrop:bg-black/70">
+      <div className="space-y-3 p-4">
+        <ProfileForm home={home} onError={onError} onDone={(m) => { onNotice(m); onRefresh(); onClose(); }} />
+        <Button variant="ghost" onClick={onClose} className="w-full">Agora não</Button>
+      </div>
+    </dialog>
+  );
+}
+
 /** Tela inicial pensada para celular: três botões grandes. Os dados do aluno ficam no menu de três pontinhos. */
 export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNotice, onError, onRefresh }: {
   home: KidsHomeData; celebrate: boolean; unread: number; onGo: (v: View) => void; onOpenNotices: () => void;
   onNotice: (m: string) => void; onError: (m: string) => void; onRefresh: () => void;
 }) {
   const [menu, setMenu] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const quizPending = home.quiz.available && !home.quiz.completedToday;
   const lessonOpen = !!home.lesson && !home.lesson.done;
 
@@ -56,11 +84,20 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
           onClick={() => onGo('quests')} highlight={quizPending} />
       </div>
 
+      <div className="grid grid-cols-2 gap-3">
+        <Tile testId="home-games" icon={<GamepadIcon />} title="Jogos" onClick={() => onGo('games')} />
+        <Tile testId="home-auction" icon={<GavelIcon />} title="Leilão" onClick={() => onGo('auction')} />
+      </div>
+
       <ChestCard refreshKey={home.points + home.level} onOpened={onRefresh} />
 
       {!home.profileCompleted && (
-        <ProfileForm home={home} onError={onError} onDone={(m) => { onNotice(m); onRefresh(); }} />
+        <button type="button" onClick={() => setProfileOpen(true)} data-testid="home-profile-open"
+          className="w-full rounded-full border-2 border-dashed border-game-line px-4 py-3 text-center font-semibold text-game-ink-dim focus-visible:outline-3 focus-visible:outline-white">
+          Complete seu cadastro e ganhe 20 pontos
+        </button>
       )}
+      {profileOpen && <ProfileSheet home={home} onClose={() => setProfileOpen(false)} onNotice={onNotice} onError={onError} onRefresh={onRefresh} />}
       {menu && <MyDataSheet home={home} unread={unread} onGo={onGo} onOpenNotices={onOpenNotices} onClose={() => setMenu(false)} />}
     </div>
   );
