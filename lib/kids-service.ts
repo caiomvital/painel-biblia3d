@@ -1,12 +1,12 @@
 // Serviço do painel infantil: pontos, desafios (dia e semana), checklist da aula, cadastro e ranking.
 import { prisma } from '@/lib/prisma';
 import { parseLook } from '@/lib/mascot-look';
+import { quizBreakdown } from './quiz-points';
+import { POINTS_PER_LESSON_TOPIC } from './lesson-points';
 
 export const QUIZ_SIZE = 5;
-export const POINTS_PER_CORRECT = 5;
-export const POINTS_PERFECT_BONUS = 10;
 export const POINTS_PROFILE = 20;
-export const POINTS_PER_LESSON_TOPIC = 2;
+export { POINTS_PER_LESSON_TOPIC };
 
 export type QuizKindName = 'daily' | 'weekly';
 
@@ -291,7 +291,7 @@ export async function submitQuiz(studentId: string, kind: QuizKindName, rawAnswe
   }
   const answers = rawAnswers as number[];
   const score = questions.filter((q, i) => q.correctIndex === answers[i]).length;
-  const points = score * POINTS_PER_CORRECT + (score === questions.length && score > 0 ? POINTS_PERFECT_BONUS : 0);
+  const points = quizBreakdown(questions.map((q, i) => q.correctIndex === answers[i])).total;
   const done = await prisma.quizDay.updateMany({
     where: { id: qd.id, completedAt: null },
     data: { answers, score, pointsAwarded: points, completedAt: new Date() },

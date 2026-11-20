@@ -50,20 +50,22 @@ test("resultado do desafio: tela aparece, mostra o total do servidor e CONTINUAR
   await page.getByRole("button", { name: "Desafios", exact: true }).click();
 
   const quizCard = page.getByTestId("quiz-daily");
-  await quizCard.getByRole("button", { name: "Começar" }).click();
+  // o desafio abre direto na primeira pergunta (uma por vez), sem tela de escolha
   await expect(quizCard.getByRole("radio").first()).toBeVisible();
   // pergunta quais perguntas foram sorteadas e responde todas certo (a correta vem do banco de teste)
   const drawn = await db.quizDay.findFirstOrThrow({ where: { studentId: x.studentId } });
   const questions = await db.quizQuestion.findMany({ where: { id: { in: drawn.questionIds } } });
   const byId = new Map(questions.map((q) => [q.id, q]));
-  for (const id of drawn.questionIds) {
+  for (const [i, id] of drawn.questionIds.entries()) {
     const q = byId.get(id)!;
     await quizCard.getByText(q.options[q.correctIndex], { exact: true }).click();
+    await quizCard.getByRole("button", { name: i === drawn.questionIds.length - 1 ? "Concluir" : "Próxima" }).click();
   }
-  await quizCard.getByRole("button", { name: "Enviar" }).click();
+  // as moedas sobem pergunta por pergunta antes da Tela de Resultado
+  await expect(quizCard.getByTestId("coin-rise").first()).toBeAttached();
 
   const dialog = page.getByRole("dialog", { name: "MISSÃO CUMPRIDA" });
-  await expect(dialog).toBeVisible();
+  await expect(dialog).toBeVisible({ timeout: 20_000 });
   await expect(dialog.getByRole("button", { name: "CONTINUAR" })).toBeFocused();
 
   // o total mostrado é o que o servidor creditou (fichas EARNED desse desafio)

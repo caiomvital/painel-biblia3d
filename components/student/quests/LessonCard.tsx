@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button, Card } from '@/components/ui/game';
 import { kidsCall, type KidsHomeData } from '../kids-api';
+import { POINTS_PER_LESSON_TOPIC } from '@/lib/lesson-points';
 import { OptionTile } from './OptionTile';
 
 export function LessonCard({ lesson, onDone, onError }: {
@@ -33,14 +34,14 @@ export function LessonCard({ lesson, onDone, onError }: {
         </>
       ) : (
         <>
-          <p className="text-game-ink-dim">Marque o que você aprendeu. Cada item vale 2 pontos.</p>
+          <p className="text-game-ink-dim">Marque só o que você lembra. Cada item vale {POINTS_PER_LESSON_TOPIC} pontos.</p>
           <div className="mt-3 space-y-2">
             {lesson.topics.map((t, i) => (
               <OptionTile key={i} type="checkbox" checked={checked.includes(i)}
                 onChange={() => setChecked((c) => (c.includes(i) ? c.filter((x) => x !== i) : [...c, i]))}>{t}</OptionTile>
             ))}
           </div>
-          <Button onClick={send} disabled={sending} className="mt-4">Enviar</Button>
+          <Button onClick={send} disabled={sending} className="mt-4">Salvar</Button>
         </>
       )}
     </Card>

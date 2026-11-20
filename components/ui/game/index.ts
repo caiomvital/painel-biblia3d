@@ -1,6 +1,7 @@
 export { AnimatedNumber } from './AnimatedNumber';
 export { Button, type ButtonProps } from './Button';
 export { Card, type CardProps } from './Card';
+export { CoinRise } from './CoinRise';
 export { gameBodyFont, gameFontVariables, gameTitleFont } from './fonts';
 export { ItemIcon } from './ItemIcon';
 export { HUD, type HUDProps } from './HUD';

@@ -1,81 +1,67 @@
 'use client';
 
-import React from 'react';
-import { Button, Card, LiveMascot, MASCOT_NAME, MedalIcon, TargetIcon, TrophyIcon, BellIcon } from '@/components/ui/game';
+import React, { useState } from 'react';
+import { BookIcon, LiveMascot, MASCOT_NAME, MoreIcon, SunIcon, TargetIcon } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import { ChestCard } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
-import { SideShortcut } from './SideShortcut';
+import { MyDataSheet } from './MyDataSheet';
 import type { View } from './views';
 
-const ord = (n: number) => `${n}º`;
+function BigAction({ icon, title, hint, onClick, disabled, highlight, testId }: {
+  icon: React.ReactNode; title: string; hint: string; onClick: () => void; disabled?: boolean; highlight?: boolean; testId: string;
+}) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} data-testid={testId}
+      className={`flex w-full items-center gap-4 rounded-game-lg border-2 border-b-4 p-4 text-left font-[family-name:var(--font-game-body)] transition-transform active:translate-y-0.5 active:border-b-2 disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none ${
+        highlight ? 'border-game-primary-deep bg-game-primary text-game-ink-on-light' : 'border-game-line bg-game-surface text-game-ink'}`}>
+      <span className={`flex size-16 shrink-0 items-center justify-center rounded-full border-b-4 text-4xl ${highlight ? 'border-game-primary-deep bg-white/30' : 'border-game-line bg-game-surface-2 text-game-primary'}`}>{icon}</span>
+      <span className="min-w-0">
+        <span className="block font-[family-name:var(--font-game-title)] text-3xl leading-tight tracking-wide">{title}</span>
+        <span className={`block text-base ${highlight ? 'text-game-ink-on-light/80' : 'text-game-ink-dim'}`}>{hint}</span>
+      </span>
+    </button>
+  );
+}
 
+/** Tela inicial pensada para celular: três botões grandes. Os dados do aluno ficam no menu de três pontinhos. */
 export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNotice, onError, onRefresh }: {
   home: KidsHomeData; celebrate: boolean; unread: number; onGo: (v: View) => void; onOpenNotices: () => void;
   onNotice: (m: string) => void; onError: (m: string) => void; onRefresh: () => void;
 }) {
-  const goal = home.prize?.pointsGoal ?? 0;
-  const pct = goal ? Math.min(100, Math.round((home.points / goal) * 100)) : 0;
-  const pending = !home.quiz.completedToday && home.quiz.available;
+  const [menu, setMenu] = useState(false);
+  const quizPending = home.quiz.available && !home.quiz.completedToday;
+  const lessonOpen = !!home.lesson && !home.lesson.done;
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-1">
-        <div className="flex flex-col gap-3">
-          <SideShortcut label="Ranking" icon={<TrophyIcon />} onClick={() => onGo('ranking')} />
-          <SideShortcut label="Conquistas" icon={<MedalIcon />} onClick={() => onGo('badges')} />
-        </div>
-        <div className="flex flex-col items-center text-center">
-          <LiveMascot size={9.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
-          <h1 className="mt-1 font-[family-name:var(--font-game-title)] text-3xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
-          <p className="flex max-w-full items-baseline justify-center gap-1 text-game-ink-dim">
-            {home.className && <span className="min-w-0 truncate" title={home.className}>{home.className}</span>}
-            <span className="shrink-0">{home.className ? '· ' : ''}Nível {home.level}</span>
-          </p>
-          <p className="text-sm text-game-ink-dim">{MASCOT_NAME} está com você!</p>
-        </div>
-        <div className="flex flex-col gap-3">
-          <SideShortcut label="Avisos" icon={<BellIcon />} onClick={onOpenNotices} badge={unread} />
-        </div>
+      <div className="relative flex flex-col items-center text-center">
+        <button type="button" onClick={() => setMenu(true)} aria-label="Meus dados e mais" data-testid="home-menu"
+          className="absolute right-0 top-0 flex size-12 items-center justify-center rounded-full border-b-4 border-game-line bg-game-surface-2 text-2xl text-game-ink focus-visible:outline-3 focus-visible:outline-white">
+          <MoreIcon />
+          {unread ? <span className="absolute -right-1 -top-1 size-4 rounded-full bg-game-danger" aria-hidden /> : null}
+        </button>
+        <LiveMascot size={9.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
+        <h1 className="mt-1 font-[family-name:var(--font-game-title)] text-3xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
+        <p className="text-game-ink-dim">{MASCOT_NAME} está com você!</p>
       </div>
 
-      <Card title="Desafio do dia" tone={pending ? 'highlight' : 'success'} data-testid="home-daily">
-        <p className="text-game-ink-dim">
-          {!home.quiz.available ? 'Ainda não tem perguntas. Volte logo!' : home.quiz.completedToday ? `Você acertou ${home.quiz.scoreToday ?? 0} hoje. Volte amanhã!` : '5 perguntas. Ganhe pontos!'}
-        </p>
-        <Button className="mt-3" icon={<TargetIcon />} onClick={() => onGo('quests')}>{pending ? 'Jogar' : 'Ver'}</Button>
-      </Card>
+      <div className="space-y-3">
+        <BigAction testId="home-day" icon={<SunIcon />} title="Dia" hint="Veja o que tem para hoje" onClick={() => onGo('day')} />
+        <BigAction testId="home-learned" icon={<BookIcon />} title="O que aprendi"
+          hint={lessonOpen ? 'Novo! Conte o que você aprendeu' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando o professor registrar a aula'}
+          onClick={() => onGo('learned')} disabled={!home.lesson} highlight={lessonOpen} />
+        <BigAction testId="home-daily" icon={<TargetIcon />} title="Desafio"
+          hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe moedas!' : 'Feito hoje. Volte amanhã!'}
+          onClick={() => onGo('quests')} highlight={quizPending} />
+      </div>
 
       <ChestCard refreshKey={home.points + home.level} onOpened={onRefresh} />
-
-      <div className="grid grid-cols-2 gap-3">
-        <Card as="div" className="text-center" data-testid="home-rank-class">
-          <p className="text-sm text-game-ink-dim">Na turma</p>
-          <p className="font-[family-name:var(--font-game-title)] text-4xl">{home.rankTurma ? ord(home.rankTurma.position) : '—'}</p>
-          <p className="text-sm text-game-ink-dim">{home.rankTurma ? `de ${home.rankTurma.total}` : 'Sem turma'}</p>
-        </Card>
-        <Card as="div" className="text-center" data-testid="home-rank-academy">
-          <p className="text-sm text-game-ink-dim">Na escola</p>
-          <p className="font-[family-name:var(--font-game-title)] text-4xl">{ord(home.rankAcademia.position)}</p>
-          <p className="text-sm text-game-ink-dim">de {home.rankAcademia.total}</p>
-        </Card>
-      </div>
-
-      {home.prize && (
-        <Card title="Prêmio do mês" tone="highlight" data-testid="home-prize">
-          <p className="font-semibold">{home.prize.title}</p>
-          {home.prize.description && <p className="text-game-ink-dim">{home.prize.description}</p>}
-          <div className="mt-3 h-4 overflow-hidden rounded-full border-2 border-game-line bg-game-xp-track" role="progressbar"
-            aria-label="Pontos para o prêmio" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <div className="h-full rounded-full bg-game-primary" style={{ width: `${pct}%` }} />
-          </div>
-          <p className="mt-2 font-semibold text-game-primary">{home.points} de {goal} pontos{home.points >= goal ? ' · Conseguiu!' : ''}</p>
-        </Card>
-      )}
 
       {!home.profileCompleted && (
         <ProfileForm home={home} onError={onError} onDone={(m) => { onNotice(m); onRefresh(); }} />
       )}
+      {menu && <MyDataSheet home={home} unread={unread} onGo={onGo} onOpenNotices={onOpenNotices} onClose={() => setMenu(false)} />}
     </div>
   );
 }
