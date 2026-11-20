@@ -24,7 +24,9 @@ import { HomeScreen } from './shell/HomeScreen';
 import { LegacyArea, type LegacyView } from './shell/LegacyArea';
 import { NoticesDialog, useUnreadNotices } from './shell/NoticesDialog';
 import { ProfileScreen } from './shell/ProfileScreen';
-import { QuestsScreen } from './shell/QuestsScreen';
+import { ChallengeScreen } from './shell/ChallengeScreen';
+import { DayScreen } from './shell/DayScreen';
+import { LearnedScreen } from './shell/LearnedScreen';
 import { RankingScreen } from './shell/RankingScreen';
 import { parentTab, viewFromLegacyTab, viewFromPanelTarget, type View } from './shell/views';
 
@@ -129,7 +131,11 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     screen = <HomeScreen home={home} celebrate={celebrate} unread={unread} onGo={go} onOpenNotices={() => setNoticesOpen(true)}
       onNotice={setNotice} onError={setError} onRefresh={reload} />;
   } else if (view === 'quests') {
-    screen = <QuestsScreen home={home} onNotice={setNotice} onError={setError} onRefresh={reload} onReward={onReward} />;
+    screen = <ChallengeScreen home={home} onError={setError} onRefresh={reload} onReward={onReward} />;
+  } else if (view === 'day') {
+    screen = <DayScreen home={home} onGo={go} onNotice={setNotice} onError={setError} onRefresh={reload} />;
+  } else if (view === 'learned') {
+    screen = <LearnedScreen home={home} onNotice={setNotice} onError={setError} onRefresh={reload} />;
   } else if (view === 'auction') {
     screen = <AuctionScreen home={home} onRefresh={reload} />;
   } else if (view === 'games') {
