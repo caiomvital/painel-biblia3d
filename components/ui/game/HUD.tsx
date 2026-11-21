@@ -13,24 +13,34 @@ export interface HUDProps {
   points: number;
   /** Conteúdo extra à direita (ex.: botão de som). */
   actions?: React.ReactNode;
+  /** Se informado, o círculo do nível vira o botão que abre o perfil (discreto, sem aba própria). */
+  onProfile?: () => void;
+  /** O perfil está aberto (marca o círculo do nível). */
+  profileActive?: boolean;
   className?: string;
 }
 
 /** Barra fixa no topo: nível + barra de XP, pontos e moedas. O nível vem de lib/level. */
-export function HUD({ coins, points, actions, className = '' }: HUDProps) {
+export function HUD({ coins, points, actions, onProfile, profileActive = false, className = '' }: HUDProps) {
   const { level, xpIntoLevel, xpForLevel } = levelProgress(points);
   return (
     <header
       className={`sticky top-0 z-30 border-b-2 border-game-line bg-game-bg/95 px-3 py-2 backdrop-blur ${className}`}
     >
       <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 sm:flex-nowrap">
-        <div
-          className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-b-4 border-game-primary-deep bg-game-primary text-game-ink-on-light"
-          aria-label={`Nível ${level}`}
-        >
-          <span className="text-[0.55rem] font-bold uppercase leading-none">Nível</span>
-          <span className="font-[family-name:var(--font-game-title)] text-lg leading-none">{level}</span>
-        </div>
+        {(() => {
+          const cls = 'flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-b-4 border-game-primary-deep bg-game-primary text-game-ink-on-light';
+          const inner = (<>
+            <span className="text-[0.55rem] font-bold uppercase leading-none">Nível</span>
+            <span className="font-[family-name:var(--font-game-title)] text-lg leading-none">{level}</span>
+          </>);
+          return onProfile ? (
+            <button type="button" onClick={onProfile} aria-label="Perfil" aria-current={profileActive ? 'page' : undefined} data-testid="hud-profile"
+              className={`${cls} transition-transform active:translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${profileActive ? 'ring-4 ring-white/70' : ''}`}>{inner}</button>
+          ) : (
+            <div className={cls} aria-label={`Nível ${level}`}>{inner}</div>
+          );
+        })()}
 
         <div className="order-last min-w-0 basis-full sm:order-none sm:basis-0 sm:flex-1">
           <XPBar value={xpIntoLevel} max={xpForLevel} />
