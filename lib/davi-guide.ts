@@ -16,5 +16,5 @@ export function daviMessage(c: DaviContext): { text: string; mood: DaviMood } {
   if (c.celebrate) return { text: nome ? `Muito bem, ${nome}!` : 'Muito bem!', mood: 'comemorando' };
   if (c.lessonOpen) return { text: 'Me conta o que você aprendeu na aula!', mood: 'pensando' };
   if (c.quizPending) return { text: 'Bora fazer o desafio de hoje?', mood: 'feliz' };
-  return { text: nome ? `Estou com você, ${nome}!` : 'Estou com você!', mood: 'feliz' };
+  return { text: nome ? `Vamos aprender juntos, ${nome}?` : 'Vamos aprender juntos?', mood: 'feliz' };
 }
