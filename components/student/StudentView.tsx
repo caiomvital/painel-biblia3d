@@ -10,7 +10,7 @@ import { ThemeBackdrop } from './themes/ThemeBackdrop';
 import { hasScene } from './themes/scenes';
 import { ThemesScreen } from './themes/ThemesScreen';
 import {
-  Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, MascotLookProvider, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, UserIcon, useGameSound,
+  Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, MascotLookProvider, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, useGameSound,
 } from '@/components/ui/game';
 import { levelProgress } from '@/lib/level';
 import type { PanelTarget } from '@/lib/panel-navigation';
@@ -36,7 +36,6 @@ const TABS = [
   { id: 'quests', label: 'Desafios', icon: <TargetIcon /> },
   { id: 'auction', label: 'Leilão', icon: <GavelIcon /> },
   { id: 'games', label: 'Jogos', icon: <GamepadIcon /> },
-  { id: 'profile', label: 'Perfil', icon: <UserIcon /> },
 ];
 
 const ICONS = { star: <StarIcon />, coin: <CoinIcon />, check: <CheckIcon />, trophy: <TrophyIcon /> };
@@ -162,7 +161,8 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
         <ThemeBackdrop themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <ThemeApplier themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <LevelEffect effect={preferences.levelEffect} burst={burst} />
-        <HUD coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<SoundToggle />} />
+        <HUD coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<SoundToggle />}
+          onProfile={home ? () => go('profile') : undefined} profileActive={parentTab(view) === 'profile'} />
         <RewardPop reward={reward} onDone={() => setReward(null)} />
         <main className="mx-auto max-w-3xl space-y-4 px-4 py-4">
           {error && <div role="alert" className="rounded-game border-2 border-game-danger bg-game-surface p-3 font-semibold">{error}</div>}
