@@ -15,7 +15,7 @@ function GridButton({ icon, title, hint, onClick, disabled, highlight, testId }:
 }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} data-testid={testId}
-      className={`flex min-h-36 flex-col items-center justify-center gap-1 rounded-game-lg border-2 border-b-4 p-3 text-center font-[family-name:var(--font-game-body)] transition-transform active:translate-y-0.5 active:border-b-2 disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none [@media(max-height:760px)]:min-h-28 ${
+      className={`flex min-h-36 flex-col items-center justify-center gap-1 rounded-game-lg border-4 border-b-[7px] p-3 text-center font-[family-name:var(--font-game-body)] transition-transform active:translate-y-0.5 active:border-b-4disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none [@media(max-height:760px)]:min-h-28 ${
         highlight ? 'border-game-primary-deep bg-game-primary text-game-ink-on-light' : 'border-game-line bg-game-surface text-game-ink'}`}>
       <span className={`text-5xl ${highlight ? '' : 'text-game-primary'}`}>{icon}</span>
       <span className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide">{title}</span>
@@ -66,7 +66,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 pt-5">
         <GridButton testId="home-day" icon={<SunIcon />} title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
         <GridButton testId="home-learned" icon={<BookIcon />} title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
