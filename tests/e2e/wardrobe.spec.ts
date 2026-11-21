@@ -31,7 +31,7 @@ test("servidor: só equipa o que o aluno tem, no encaixe certo; coleção não r
   const sid = `${f.student}_profile`;
   const s = await api(f.email("student"));
   const first = await (await s.get("/api/kids/mascot")).json(); // garante o catálogo
-  expect(first.total).toBe(16);
+  expect(first.total).toBe(39);
   expect(first.ownedCount).toBe(0);
   const items = await db.cosmeticItem.findMany({ where: { code: { in: OWNED } } });
   await db.studentItem.createMany({ data: items.map((i) => ({ studentId: sid, itemId: i.id })) });
@@ -40,7 +40,7 @@ test("servidor: só equipa o que o aluno tem, no encaixe certo; coleção não r
   const col = JSON.parse(text);
   expect(col.ownedCount).toBe(4);
   const locked = col.items.filter((i: any) => !i.owned);
-  expect(locked.length).toBe(12);
+  expect(locked.length).toBe(35);
   expect(locked.every((i: any) => Object.keys(i).sort().join() === "owned,slot")).toBe(true); // só silhueta
   for (const hidden of ["acc-oculos", "Lofi Dourado", "color-dourado", "frame-dourada", "LEGENDARY"]) expect(text).not.toContain(hidden);
 

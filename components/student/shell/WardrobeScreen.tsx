@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Card, ItemIcon, LiveMascot, MASCOT_NAME } from '@/components/ui/game';
-import { LOOK_KEYS, SLOT_OF_KEY, type LookKey, type MascotLook } from '@/lib/mascot-look';
+import { DaviSprite } from '../guide/DaviGuide';
+import { DAVI_KEYS, LOFI_KEYS, LOOK_KEYS, SLOT_OF_KEY, type LookKey, type MascotLook } from '@/lib/mascot-look';
 import { kidsCall } from '../kids-api';
 
 type Item =
@@ -10,7 +11,10 @@ type Item =
   | { owned: false; slot: string };
 type Collection = { items: Item[]; total: number; ownedCount: number; look: MascotLook };
 
-const TITLE: Record<LookKey, string> = { color: 'Cor', accessory: 'Acessório', background: 'Fundo', frame: 'Moldura' };
+const TITLE: Record<LookKey, string> = {
+  color: 'Cor', accessory: 'Acessório', background: 'Fundo', frame: 'Moldura',
+  daviHead: 'Na cabeça', daviTunic: 'Túnica', daviBoots: 'Botas', daviWrists: 'Munhequeiras',
+};
 const sameLook = (a: MascotLook, b: MascotLook) => LOOK_KEYS.every((k) => (a[k] ?? '') === (b[k] ?? ''));
 
 /** "Meu Lofi": prévia antes de salvar e a coleção (itens ganhos e silhuetas dos que faltam, sem mostrar chances). */
@@ -21,6 +25,7 @@ export function WardrobeScreen({ onBack, onSaved }: { onBack: () => void; onSave
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const [who, setWho] = useState<'lofi' | 'davi'>('lofi');
 
   const load = useCallback(async () => {
     try {
@@ -50,14 +55,25 @@ export function WardrobeScreen({ onBack, onSaved }: { onBack: () => void; onSave
   return (
     <div className="space-y-4" data-testid="wardrobe-screen">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="font-[family-name:var(--font-game-title)] text-3xl tracking-wide">Meu {MASCOT_NAME}</h1>
+        <h1 className="font-[family-name:var(--font-game-title)] text-3xl tracking-wide">{who === 'lofi' ? `Meu ${MASCOT_NAME}` : 'Meu Davi'}</h1>
         <Button variant="ghost" onClick={onBack}>Voltar</Button>
       </div>
       {error && <div role="alert" className="rounded-game border-2 border-game-danger bg-game-surface p-3 font-semibold">{error}</div>}
       {notice && <div role="status" className="rounded-game border-2 border-game-success bg-game-surface p-3 font-semibold">{notice}</div>}
 
+      <div role="tablist" aria-label="Quem vestir" className="grid grid-cols-2 gap-2">
+        {([['lofi', MASCOT_NAME], ['davi', 'Davi']] as const).map(([id, label]) => (
+          <button key={id} type="button" role="tab" aria-selected={who === id} onClick={() => setWho(id)} data-testid={`wardrobe-tab-${id}`}
+            className={`min-h-12 rounded-game border-2 border-b-4 px-3 text-lg font-bold ${who === id ? 'border-game-primary bg-game-surface-2' : 'border-game-line bg-game-surface text-game-ink-dim'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
       <Card as="div" className="flex flex-col items-center gap-3 text-center" data-testid="wardrobe-preview">
-        <LiveMascot size={9} look={draft} label={`${MASCOT_NAME} com o visual escolhido`} />
+        {who === 'lofi'
+          ? <LiveMascot size={9} look={draft} label={`${MASCOT_NAME} com o visual escolhido`} />
+          : <div className="w-32"><DaviSprite mood="feliz" look={draft} /></div>}
         <p className="text-game-ink-dim">{dirty ? 'Prévia: ainda não salvou.' : 'Este é o visual salvo.'}</p>
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={save} disabled={!dirty || busy}>Salvar</Button>
@@ -69,7 +85,7 @@ export function WardrobeScreen({ onBack, onSaved }: { onBack: () => void; onSave
       {col && (
         <>
           <p className="text-center text-game-ink-dim" data-testid="wardrobe-count">Coleção: {col.ownedCount} de {col.total} itens</p>
-          {LOOK_KEYS.map((key) => {
+          {(who === 'lofi' ? LOFI_KEYS : DAVI_KEYS).map((key) => {
             const slot = SLOT_OF_KEY[key];
             const items = col.items.filter((i) => i.slot === slot);
             return (

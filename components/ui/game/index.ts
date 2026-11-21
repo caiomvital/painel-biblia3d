@@ -6,7 +6,7 @@ export { gameBodyFont, gameFontVariables, gameTitleFont } from './fonts';
 export { ItemIcon } from './ItemIcon';
 export { HUD, type HUDProps } from './HUD';
 export * from './icons';
-export { LiveMascot, MASCOT_NAME, Mascot, MascotLookProvider, type MascotPose, type MascotProps } from './Mascot';
+export { LiveMascot, MASCOT_NAME, Mascot, MascotLookProvider, useMascotLook, type MascotPose, type MascotProps } from './Mascot';
 export { RewardPop, type RewardPopProps } from './RewardPop';
 export { RewardSummary, type RewardSummaryItem, type RewardSummaryProps } from './RewardSummary';
 export { TabBar, type TabBarProps, type TabItem } from './TabBar';

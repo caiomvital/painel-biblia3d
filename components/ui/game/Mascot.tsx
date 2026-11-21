@@ -34,6 +34,7 @@ const C = {
 /** Visual equipado do aluno logado. Todo Lofi da tela usa este valor, a menos que receba `look` explícito. */
 const MascotLookContext = createContext<MascotLook>({});
 export const MascotLookProvider = MascotLookContext.Provider;
+export const useMascotLook = () => useContext(MascotLookContext);
 
 const tintOf = (code?: string): [string, string] | null => {
   const def = code ? COSMETICS.find((c) => c.code === code) : undefined;

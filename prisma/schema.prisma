@@ -712,6 +712,10 @@ enum ItemSlot {
   ACCESSORY
   BACKGROUND
   FRAME
+  DAVI_HEAD
+  DAVI_TUNIC
+  DAVI_BOOTS
+  DAVI_WRISTS
 }
 
 enum Rarity {
