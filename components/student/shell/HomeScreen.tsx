@@ -41,11 +41,11 @@ function GridButton({ icon, title, hint, onClick, disabled, highlight, testId }:
 }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} data-testid={testId}
-      className={`flex min-h-36 flex-col items-center justify-center gap-1 rounded-game-lg border-4 border-b-[7px] p-3 text-center font-[family-name:var(--font-game-body)] transition-transform active:translate-y-0.5 active:border-b-4 disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none [@media(max-height:760px)]:min-h-28 ${
+      className={`flex min-h-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-game-lg border-4 border-b-[7px] p-3 text-center font-[family-name:var(--font-game-body)] transition-transform active:translate-y-0.5 active:border-b-4 disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none ${
         highlight ? 'border-game-primary-deep bg-game-primary text-game-ink-on-light' : 'border-game-line bg-game-surface text-game-ink'}`}>
-      <span className={`text-5xl ${highlight ? '' : 'text-game-primary'}`}>{icon}</span>
-      <span className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide">{title}</span>
-      <span className={`text-sm leading-tight ${highlight ? 'text-game-ink-on-light/80' : 'text-game-ink-dim'}`}>{hint}</span>
+      <span className={`text-5xl [@media(max-height:700px)]:text-4xl ${highlight ? '' : 'text-game-primary'}`}>{icon}</span>
+      <span className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide [@media(max-height:700px)]:text-xl">{title}</span>
+      <span className={`text-sm leading-tight [@media(max-height:700px)]:hidden ${highlight ? 'text-game-ink-on-light/80' : 'text-game-ink-dim'}`}>{hint}</span>
     </button>
   );
 }
@@ -94,8 +94,8 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
   return (
     <div className="space-y-4">
       {pwa ? (
-        <>
-      <div className="relative grid grid-cols-2 items-center gap-3">
+        <div className="flex h-[calc(100dvh-var(--home-chrome,15rem))] min-h-72 flex-col gap-4">
+      <div className="relative grid shrink-0 grid-cols-2 items-center gap-3">
         <div className="flex min-w-0 flex-col items-center text-center">
           <LiveMascot size={5.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
           <h1 className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
@@ -108,7 +108,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 pt-5">
+      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 pt-2">
         <GridButton testId="home-day" icon={<SunIcon />} title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
         <GridButton testId="home-learned" icon={<BookIcon />} title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
@@ -118,7 +118,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
           onClick={() => onGo('quests')} highlight={quizPending} />
         <GridButton testId="home-live" icon={<TrophyIcon />} title="Quiz ao vivo" hint="Entre com o PIN" onClick={() => onGo('live')} />
       </div>
-        </>
+        </div>
       ) : (
         <>
       <div className="relative flex flex-col items-center text-center">
