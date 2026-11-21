@@ -67,18 +67,18 @@ enum ContentType {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         Role
-  avatarUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  sessionVersion Int @default(0)
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  passwordHash       String
+  name               String
+  role               Role
+  avatarUrl          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  sessionVersion     Int      @default(0)
   /// Conta com a senha padrão: o aluno precisa criar uma senha nova antes de usar o painel (só vale para ALUNO).
-  mustChangePassword Boolean @default(true)
-  preferences Json @default("{}")
+  mustChangePassword Boolean  @default(true)
+  preferences        Json     @default("{}")
 
   profile               Profile?
   student               Student?
@@ -86,23 +86,23 @@ model User {
   director              Director?
   registration          RegistrationRequest?  @relation("RegistrationApplicant")
   reviewedRegistrations RegistrationRequest[] @relation("RegistrationReviewer")
-  notifications Notification[]
-  curriculum    Curriculum?
+  notifications         Notification[]
+  curriculum            Curriculum?
 
   @@index([email])
   @@index([role])
 }
 
 model Notification {
-  id String @id @default(cuid())
-  userId String
-  category String
-  title String
-  message String
-  target String
-  readAt DateTime?
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  userId    String
+  category  String
+  title     String
+  message   String
+  target    String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
@@ -122,13 +122,13 @@ model Curriculum {
 }
 
 model AuditLog {
-  id String @id @default(cuid())
-  actorId String?
+  id        String   @id @default(cuid())
+  actorId   String?
   actorName String
-  action String
-  entityId String
-  summary String
-  reason String?
+  action    String
+  entityId  String
+  summary   String
+  reason    String?
   createdAt DateTime @default(now())
 
   @@index([createdAt])
@@ -172,7 +172,8 @@ model Student {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  liveQuizPlayers   LiveQuizPlayer[]
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   enrollments       Enrollment[]
   exerciseAttempts  ClassExerciseAttempt[]
   attendances       Attendance[]
@@ -182,22 +183,22 @@ model Student {
   badges            StudentBadge[]
   auctionBids       AuctionBid[]
   coinReservations  CoinReservation[]
-  leadingItems      AuctionItem[]      @relation("ItemHighestBidder")
-  guardianName     String?
-  guardianPhone    String?
-  birthDate        DateTime?
-  profileCompleted Boolean   @default(false)
-  fucturaId        String?
-  quizDays         QuizDay[]
-  lessonChecks     LessonCheck[]
-  teacherRatings   TeacherRating[]
-  attitudes        Attitude[]
-  chests           Chest[]
-  items            StudentItem[]
+  leadingItems      AuctionItem[]          @relation("ItemHighestBidder")
+  guardianName      String?
+  guardianPhone     String?
+  birthDate         DateTime?
+  profileCompleted  Boolean                @default(false)
+  fucturaId         String?
+  quizDays          QuizDay[]
+  lessonChecks      LessonCheck[]
+  teacherRatings    TeacherRating[]
+  attitudes         Attitude[]
+  chests            Chest[]
+  items             StudentItem[]
   /// Visual equipado do Lofi ({color, accessory, background, frame} = códigos de CosmeticItem). Validado no servidor.
-  mascotLook       Json @default("{}")
+  mascotLook        Json                   @default("{}")
   /// Cadastro novo aguardando a equipe revisar e liberar o acesso (alunos antigos ficam false e entram direto).
-  accessPending    Boolean @default(false)
+  accessPending     Boolean                @default(false)
 
   @@index([userId])
   @@index([registrationNumber])
@@ -212,9 +213,9 @@ model Teacher {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  classes Class[]
-  lessons Lesson[]
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classes       Class[]
+  lessons       Lesson[]
   lessonReports LessonReport[]
   points        TeacherPoint[]
   ratings       TeacherRating[]
@@ -286,11 +287,11 @@ model Class {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  teacher     Teacher?     @relation(fields: [teacherId], references: [id], onDelete: SetNull)
-  enrollments Enrollment[]
-  lessons     Lesson[]
-  exercises   ClassExercise[]
+  course        Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher       Teacher?        @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  enrollments   Enrollment[]
+  lessons       Lesson[]
+  exercises     ClassExercise[]
   lessonReports LessonReport[]
   attitudes     Attitude[]
 
@@ -317,7 +318,7 @@ model Enrollment {
 }
 
 model ClassExercise {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   classId       String
   lessonId      String?
   teacherId     String
@@ -330,7 +331,7 @@ model ClassExercise {
   correctCoins  Int
   attemptXp     Int
   attemptCoins  Int
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
   publishedAt   DateTime?
   archivedAt    DateTime?
 
@@ -862,4 +863,78 @@ model Game {
   updatedAt       DateTime   @updatedAt
 
   @@index([status])
+}
+
+enum LiveQuizStatus {
+  LOBBY
+  QUESTION
+  REVEAL
+  FINISHED
+}
+
+/// Quiz ao vivo comandado pelo professor. Pontos só valem no placar da sala (não geram XP nem fichas).
+model LiveQuiz {
+  id                 String         @id @default(cuid())
+  pin                String
+  teacherId          String
+  status             LiveQuizStatus @default(LOBBY)
+  questionIds        String[]
+  currentIndex       Int            @default(-1)
+  questionStartedAt  DateTime?
+  secondsPerQuestion Int            @default(20)
+  createdAt          DateTime       @default(now())
+  finishedAt         DateTime?
+
+  teams   LiveQuizTeam[]
+  players LiveQuizPlayer[]
+  answers LiveQuizAnswer[]
+
+  @@index([pin, status])
+  @@index([teacherId, status])
+}
+
+/// Equipe ou "solo" (equipe de uma pessoa), com nome definido pelo professor na hora.
+model LiveQuizTeam {
+  id     String @id @default(cuid())
+  quizId String
+  name   String
+
+  quiz    LiveQuiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  players LiveQuizPlayer[]
+
+  @@index([quizId])
+}
+
+model LiveQuizPlayer {
+  id        String   @id @default(cuid())
+  quizId    String
+  studentId String
+  teamId    String?
+  joinedAt  DateTime @default(now())
+
+  quiz    LiveQuiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  team    LiveQuizTeam?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  answers LiveQuizAnswer[]
+
+  @@unique([quizId, studentId])
+  @@index([studentId])
+}
+
+model LiveQuizAnswer {
+  id            String   @id @default(cuid())
+  quizId        String
+  playerId      String
+  questionIndex Int
+  choice        Int
+  correct       Boolean
+  elapsedMs     Int
+  points        Int
+  createdAt     DateTime @default(now())
+
+  quiz   LiveQuiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  player LiveQuizPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, questionIndex])
+  @@index([quizId, questionIndex])
 }
