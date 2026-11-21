@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { publicError } from '@/lib/operational-log';
-import { deleteTeacherQuestion, getTeacherKids, saveLessonReport, saveTeacherQuestion } from '@/lib/teacher-kids-service';
+import { deleteTeacherQuestion, getTeacherKids, saveLessonReport, saveTeacherQuestion, updateTeacherQuestion } from '@/lib/teacher-kids-service';
 
 async function teacher() {
   const session = await getSession();
@@ -37,9 +37,19 @@ export async function DELETE(req: NextRequest) {
   const t = await teacher();
   if ('error' in t) return t.error;
   try {
-    await deleteTeacherQuestion(t.id, req.nextUrl.searchParams.get('id') ?? '');
-    return NextResponse.json({ ok: true });
+    const result = await deleteTeacherQuestion(t.id, req.nextUrl.searchParams.get('id') ?? '');
+    return NextResponse.json({ ok: true, result });
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || 'Não foi possível apagar.' }, { status: 400 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  const t = await teacher();
+  if ('error' in t) return t.error;
+  try {
+    return NextResponse.json(await updateTeacherQuestion(t.id, await req.json()));
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || 'Não foi possível salvar.' }, { status: 400 });
   }
 }

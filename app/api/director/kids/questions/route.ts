@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { removeQuestion } from '@/lib/question-removal';
 
 async function director() {
   const s = await getSession();
@@ -60,6 +61,6 @@ export async function DELETE(req: NextRequest) {
   if (!(await director())) return NextResponse.json({ error: 'Acesso restrito à direção.' }, { status: 403 });
   const id = req.nextUrl.searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Informe a pergunta.' }, { status: 400 });
-  await prisma.quizQuestion.delete({ where: { id } }).catch(() => null);
-  return NextResponse.json({ ok: true });
+  const result = await removeQuestion(id).catch(() => null);
+  return NextResponse.json({ ok: true, result });
 }
