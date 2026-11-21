@@ -9,9 +9,14 @@ export interface MascotLook {
   accessory?: string;
   background?: string;
   frame?: string;
+  /** Visual do Davi (tutor). */
+  daviHead?: string;
+  daviTunic?: string;
+  daviBoots?: string;
+  daviWrists?: string;
 }
 
-export const LOOK_KEYS = ['color', 'accessory', 'background', 'frame'] as const;
+export const LOOK_KEYS = ['color', 'accessory', 'background', 'frame', 'daviHead', 'daviTunic', 'daviBoots', 'daviWrists'] as const;
 export type LookKey = (typeof LOOK_KEYS)[number];
 
 export const SLOT_OF_KEY: Record<LookKey, SlotName> = {
@@ -19,7 +24,14 @@ export const SLOT_OF_KEY: Record<LookKey, SlotName> = {
   accessory: 'ACCESSORY',
   background: 'BACKGROUND',
   frame: 'FRAME',
+  daviHead: 'DAVI_HEAD',
+  daviTunic: 'DAVI_TUNIC',
+  daviBoots: 'DAVI_BOOTS',
+  daviWrists: 'DAVI_WRISTS',
 };
+
+export const LOFI_KEYS = ['color', 'accessory', 'background', 'frame'] as const;
+export const DAVI_KEYS = ['daviHead', 'daviTunic', 'daviBoots', 'daviWrists'] as const;
 
 const bySlot = (code: string, slot: SlotName) => COSMETICS.some((c) => c.code === code && c.slot === slot);
 

@@ -2,6 +2,9 @@
 
 import React, { useId } from 'react';
 import { COSMETICS, type SlotName } from '@/lib/cosmetics';
+import { DAVI_PARTS, type DaviLookKey } from '@/lib/davi-parts';
+
+const DAVI_SLOT_KEY: Partial<Record<SlotName, DaviLookKey>> = { DAVI_HEAD: 'daviHead', DAVI_TUNIC: 'daviTunic', DAVI_BOOTS: 'daviBoots', DAVI_WRISTS: 'daviWrists' };
 
 /** Prévia de um item do catálogo (desenho próprio em SVG, sem imagens externas). Decorativa: o nome vem em texto. */
 export function ItemIcon({ code, size = 3, className }: { code: string; size?: number; className?: string }) {
@@ -9,6 +12,17 @@ export function ItemIcon({ code, size = 3, className }: { code: string; size?: n
   const def = COSMETICS.find((c) => c.code === code);
   const [a, b] = def?.tint ?? ['#bdb8e6', '#4a428f'];
   const slot: SlotName = def?.slot ?? 'COLOR';
+  const daviKey = DAVI_SLOT_KEY[slot];
+  if (daviKey) {
+    const file = DAVI_PARTS[daviKey].find((p) => p.code === code)?.file;
+    const src = file ? (daviKey === 'daviBoots' || daviKey === 'daviWrists' ? `/davi/${file}-e.png` : `/davi/${file}.png`) : null;
+    return (
+      <span className={className} aria-hidden="true" style={{ display: 'inline-flex', width: `${size}rem`, height: `${size}rem`, alignItems: 'center', justifyContent: 'center' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {src && <img src={src} alt="" draggable={false} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />}
+      </span>
+    );
+  }
   return (
     <svg viewBox="0 0 48 48" width={`${size}rem`} height={`${size}rem`} className={className} aria-hidden="true" focusable="false">
       <defs>

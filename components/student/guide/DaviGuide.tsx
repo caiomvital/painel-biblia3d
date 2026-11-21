@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import type { DaviMood } from '@/lib/davi-guide';
+import { HEAD_FIT, TUNIC_FIT, partFile } from '@/lib/davi-parts';
+import type { MascotLook } from '@/lib/mascot-look';
+import { useMascotLook } from '@/components/ui/game/Mascot';
 import { setDaviGuide, useDaviGuide } from './useDaviGuide';
 import './davi.css';
 
@@ -13,21 +16,29 @@ const BODY: Array<[string, number, number, number]> = [
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 const place = (x: number, y: number, w: number): React.CSSProperties => ({ left: pct(x, 700), top: pct(y, 960), width: pct(w, 700) });
 
-function Arm({ side }: { side: 'e' | 'd' }) {
+function Arm({ side, wrist }: { side: 'e' | 'd'; wrist: string | null }) {
   const left = side === 'e' ? 136 : 416;
   return (
     <div className={`davi-arm davi-arm-${side}`} style={place(left, 455, 148)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`/davi/braco-${side}.png`} alt="" draggable={false} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`/davi/munheq-${side}.png`} alt="" draggable={false} className="davi-wrist"
+      <img src={wrist ? `/davi/${wrist}-${side}.png` : `/davi/munheq-${side}.png`} alt="" draggable={false} className="davi-wrist"
         style={{ left: side === 'e' ? '14%' : '29%', top: '53%', width: '57%', rotate: side === 'e' ? '18deg' : '-18deg' }} />
     </div>
   );
 }
 
 /** O Davi em si: pequeno, animado, com entrada suave. */
-export function DaviSprite({ mood }: { mood: DaviMood }) {
+export function DaviSprite({ mood, look }: { mood: DaviMood; look?: MascotLook }) {
+  const ctx = useMascotLook();
+  const worn = look ?? ctx;
+  const head = partFile('daviHead', worn.daviHead);
+  const tunic = partFile('daviTunic', worn.daviTunic);
+  const boots = partFile('daviBoots', worn.daviBoots);
+  const wrist = partFile('daviWrists', worn.daviWrists);
+  const headFit = head ? HEAD_FIT[head] : null;
+  const tunicFit = tunic ? TUNIC_FIT(tunic) : null;
   const [blink, setBlink] = useState(false);
   useEffect(() => {
     if (mood !== 'feliz') return;
@@ -39,21 +50,34 @@ export function DaviSprite({ mood }: { mood: DaviMood }) {
   return (
     <div className={`davi davi-in relative block w-full ${mood === 'comemorando' ? 'davi-cheer' : ''}`} style={{ aspectRatio: '700 / 960' }} data-testid="davi-guide" aria-hidden>
       <span className="davi-bob absolute inset-0">
-        {BODY.slice(0, 4).map(([n, x, y, w]) => (
+        {BODY.slice(0, 2).map(([n, x, y, w]) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img key={n} src={`/davi/${n}.png`} alt="" draggable={false} className="absolute h-auto" style={place(x, y, w)} />
         ))}
-        <Arm side="e" />
-        <Arm side="d" />
-        {BODY.slice(4).map(([n, x, y, w]) => (
+        {boots ? (['e', 'd'] as const).map((k) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={`b${k}`} src={`/davi/${boots}-${k}.png`} alt="" draggable={false} className="absolute h-auto" style={place(k === 'e' ? 236 : 364, 792, 150)} />
+        )) : BODY.slice(2, 4).map(([n, x, y, w]) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img key={n} src={`/davi/${n}.png`} alt="" draggable={false} className="absolute h-auto" style={place(x, y, w)} />
+        ))}
+        <Arm side="e" wrist={wrist} />
+        <Arm side="d" wrist={wrist} />
+        {BODY.slice(4).map(([n, x, y, w]) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={n} src={n === 'tronco' && tunic && tunicFit ? `/davi/${tunic}.png` : `/davi/${n}.png`} alt="" draggable={false} className="absolute h-auto"
+            style={n === 'tronco' && tunicFit ? place(tunicFit.x, tunicFit.y, tunicFit.w) : place(x, y, w)} />
         ))}
         <span className="davi-head absolute" style={{ left: pct(99, 700), top: pct(40, 960), width: pct(502, 700) }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`/davi/rosto-${face}.png`} alt="" draggable={false} className="block h-auto w-full" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/davi/faixa.png" alt="" draggable={false} className="absolute h-auto" style={{ left: '17.5%', top: '22.8%', width: '64.7%' }} />
+          {headFit && head ? (
+            <img src={`/davi/${head}.png`} alt="" draggable={false} className="absolute h-auto"
+              style={{ left: `${((502 - headFit.natW * headFit.scale) / 2 / 502) * 100}%`, top: `${(headFit.top / 415) * 100}%`, width: `${(headFit.natW * headFit.scale / 502) * 100}%` }} />
+          ) : (
+            <img src="/davi/faixa.png" alt="" draggable={false} className="absolute h-auto" style={{ left: '17.5%', top: '22.8%', width: '64.7%' }} />
+          )}
         </span>
       </span>
     </div>

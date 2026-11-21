@@ -6,11 +6,12 @@ import {
 } from '../../lib/chests';
 
 describe('catálogo inicial', () => {
-  test('16 itens originais, códigos únicos, 5/5/3/3 por tipo', () => {
-    expect(COSMETICS.length).toBe(16);
-    expect(new Set(COSMETICS.map((c) => c.code)).size).toBe(16);
+  test('39 itens originais (16 do Lofi + 23 do Davi), códigos únicos, contagem por tipo', () => {
+    expect(COSMETICS.length).toBe(39);
+    expect(new Set(COSMETICS.map((c) => c.code)).size).toBe(39);
     const n = (slot: string) => COSMETICS.filter((c) => c.slot === slot).length;
     expect([n('COLOR'), n('ACCESSORY'), n('BACKGROUND'), n('FRAME')]).toEqual([5, 5, 3, 3]);
+    expect([n('DAVI_HEAD'), n('DAVI_TUNIC'), n('DAVI_BOOTS'), n('DAVI_WRISTS')]).toEqual([8, 6, 5, 4]);
   });
   test('toda raridade tem pelo menos um item (o sorteio nunca fica sem saída)', () => {
     for (const r of RARITIES) expect(COSMETICS.some((c) => c.rarity === r)).toBe(true);
@@ -101,5 +102,19 @@ describe('sequência de dias (Recife)', () => {
     expect([2, 3, 4, 7, 14, 30, 31].map(milestoneHit)).toEqual([null, 3, null, 7, 14, 30, null]);
     expect(streakStartDay('2026-11-16', 3)).toBe('2026-11-14');
     expect(streakStartDay('2026-11-16', 1)).toBe('2026-11-16');
+  });
+});
+
+describe('itens do Davi', () => {
+  test('todo item do Davi tem imagem mapeada e o encaixe certo', async () => {
+    const { DAVI_PARTS, partFile } = await import('../../lib/davi-parts');
+    const slotOf = { daviHead: 'DAVI_HEAD', daviTunic: 'DAVI_TUNIC', daviBoots: 'DAVI_BOOTS', daviWrists: 'DAVI_WRISTS' } as const;
+    for (const key of Object.keys(DAVI_PARTS) as Array<keyof typeof DAVI_PARTS>) {
+      for (const p of DAVI_PARTS[key]) {
+        expect(COSMETICS.find((c) => c.code === p.code)?.slot).toBe(slotOf[key]);
+        expect(partFile(key, p.code)).toBe(p.file);
+      }
+    }
+    expect(partFile('daviHead', 'davi-tunic-azul')).toBeNull();
   });
 });
