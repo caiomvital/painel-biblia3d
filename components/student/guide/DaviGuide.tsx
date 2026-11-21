@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { daviMessage, type DaviContext } from '@/lib/davi-guide';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { daviMessage, type DaviContext, type DaviMood } from '@/lib/davi-guide';
 import { setDaviGuide, useDaviGuide } from './useDaviGuide';
 import './davi.css';
 
@@ -26,64 +26,96 @@ function Arm({ side }: { side: 'e' | 'd' }) {
   );
 }
 
-/** Davi: guia pequeno no canto da tela inicial. Fala poucas frases, nunca interrompe o aluno e pode ser silenciado. */
-export function DaviGuide(ctx: DaviContext) {
-  const enabled = useDaviGuide();
-  const { text, mood } = daviMessage(ctx);
-  const [hiddenText, setHiddenText] = useState<string | null>(null);
-  const [blink, setBlink] = useState(false);
+const SHOW_MS = 8000;
+const SEEN_KEY = 'b3d-davi-visto';
 
-  // a fala aparece quando muda e some sozinha depois de alguns segundos
+/** Quando o Davi aparece: ao entrar (uma vez por fala, por sessão), ao ganhar pontos, e quando o aluno chama tocando no Lofi. Fora disso, não existe na tela. */
+export function useDaviMoments(ctx: DaviContext) {
+  const enabled = useDaviGuide();
+  const [shown, setShown] = useState<{ text: string; mood: DaviMood; id: number } | null>(null);
+  const idRef = useRef(0);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const message = daviMessage(ctx);
+  const msgRef = useRef(message);
+  useEffect(() => { msgRef.current = message; });
+
+  const show = useCallback((m: { text: string; mood: DaviMood }, ms = SHOW_MS) => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    idRef.current += 1;
+    setShown({ ...m, id: idRef.current });
+    hideTimer.current = setTimeout(() => setShown(null), ms);
+  }, []);
+  useEffect(() => () => { if (hideTimer.current) clearTimeout(hideTimer.current); }, []);
+
+  // ao abrir a Home: só se há algo útil a dizer e ainda não disse nesta sessão
   useEffect(() => {
-    const t = setTimeout(() => setHiddenText(text), 9000);
+    if (!enabled) return;
+    const m = msgRef.current;
+    if (m.mood === 'feliz' && !ctx.lessonOpen && !ctx.quizPending) return;
+    let seen = '';
+    try { seen = window.sessionStorage.getItem(SEEN_KEY) ?? ''; } catch { /* sem armazenamento: fala de novo */ }
+    if (seen === m.text) return;
+    try { window.sessionStorage.setItem(SEEN_KEY, m.text); } catch { /* ignora */ }
+    const t = setTimeout(() => show(m), 600);
     return () => clearTimeout(t);
-  }, [text]);
-  const bubble = hiddenText !== text;
-  // pisca de tempos em tempos
+    // só na abertura
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled]);
+
+  // ao ganhar pontos
+  useEffect(() => {
+    if (!enabled || !ctx.celebrate) return;
+    const t = setTimeout(() => show(msgRef.current, 5000), 0);
+    return () => clearTimeout(t);
+  }, [ctx.celebrate, enabled, show]);
+
+  const call = useCallback(() => { if (enabled) show(msgRef.current); }, [enabled, show]);
+  return { visible: enabled && !!shown, text: shown?.text ?? '', mood: shown?.mood ?? 'feliz', call, enabled };
+}
+
+/** O Davi em si: pequeno, animado, com entrada suave. */
+export function DaviSprite({ mood }: { mood: DaviMood }) {
+  const [blink, setBlink] = useState(false);
   useEffect(() => {
     if (mood !== 'feliz') return;
     let off: ReturnType<typeof setTimeout>;
     const loop = setInterval(() => { setBlink(true); off = setTimeout(() => setBlink(false), 130); }, 3600);
     return () => { clearInterval(loop); clearTimeout(off); };
   }, [mood]);
-
-  if (!enabled) return null;
   const face = blink ? 'dormindo' : mood;
-
   return (
-    <div className="flex items-end justify-center gap-2" data-testid="davi-guide">
-      <button type="button" onClick={() => setHiddenText(bubble ? text : null)} aria-label="Davi, seu guia. Toque para ouvir de novo"
-        className={`davi relative block w-[4.75rem] shrink-0 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${mood === 'comemorando' ? 'davi-cheer' : ''}`}
-        style={{ aspectRatio: '700 / 960' }}>
-        <span className="davi-bob absolute inset-0">
-          {BODY.slice(0, 4).map(([n, x, y, w]) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={n} src={`/davi/${n}.png`} alt="" draggable={false} className="absolute h-auto" style={place(x, y, w)} />
-          ))}
-          <Arm side="e" />
-          {BODY.slice(4).map(([n, x, y, w]) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={n} src={`/davi/${n}.png`} alt="" draggable={false} className="absolute h-auto" style={place(x, y, w)} />
-          ))}
-          <Arm side="d" />
-          <span className="davi-head absolute" style={{ left: pct(99, 700), top: pct(40, 960), width: pct(502, 700) }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/davi/rosto-${face}.png`} alt="" draggable={false} className="block h-auto w-full" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/davi/faixa.png" alt="" draggable={false} className="absolute h-auto" style={{ left: '17.5%', top: '22.8%', width: '64.7%' }} />
-          </span>
+    <div className={`davi davi-in relative block w-full ${mood === 'comemorando' ? 'davi-cheer' : ''}`} style={{ aspectRatio: '700 / 960' }} data-testid="davi-guide" aria-hidden>
+      <span className="davi-bob absolute inset-0">
+        {BODY.slice(0, 4).map(([n, x, y, w]) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={n} src={`/davi/${n}.png`} alt="" draggable={false} className="absolute h-auto" style={place(x, y, w)} />
+        ))}
+        <Arm side="e" />
+        {BODY.slice(4).map(([n, x, y, w]) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={n} src={`/davi/${n}.png`} alt="" draggable={false} className="absolute h-auto" style={place(x, y, w)} />
+        ))}
+        <Arm side="d" />
+        <span className="davi-head absolute" style={{ left: pct(99, 700), top: pct(40, 960), width: pct(502, 700) }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/davi/rosto-${face}.png`} alt="" draggable={false} className="block h-auto w-full" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/davi/faixa.png" alt="" draggable={false} className="absolute h-auto" style={{ left: '17.5%', top: '22.8%', width: '64.7%' }} />
         </span>
+      </span>
+    </div>
+  );
+}
+
+/** A fala, no lugar da frase fixa abaixo da saudação. */
+export function DaviBubble({ text }: { text: string }) {
+  return (
+    <div role="status" className="davi-in-fade flex flex-col items-center rounded-2xl border-2 border-b-4 border-game-line bg-game-surface px-3 py-1.5 text-center text-base font-semibold leading-snug text-game-ink">
+      <span><span className="text-game-primary">Davi: </span>{text}</span>
+      <button type="button" onClick={() => setDaviGuide(false)} data-testid="davi-silence"
+        className="text-xs font-normal text-game-ink-dim underline focus-visible:outline-2 focus-visible:outline-white">
+        Silenciar o Davi
       </button>
-      {bubble && (
-        <div role="status" className="relative mb-8 max-w-[14rem] rounded-2xl border-2 border-b-4 border-game-line bg-game-surface px-3 py-2 text-sm font-semibold leading-snug text-game-ink">
-          {text}
-          <button type="button" onClick={() => setDaviGuide(false)} data-testid="davi-silence"
-            className="mt-1 block text-xs font-normal text-game-ink-dim underline focus-visible:outline-2 focus-visible:outline-white">
-            Silenciar o Davi
-          </button>
-          <span aria-hidden className="absolute -left-1.5 bottom-3 size-3 rotate-45 border-b-2 border-l-2 border-game-line bg-game-surface" />
-        </div>
-      )}
     </div>
   );
 }

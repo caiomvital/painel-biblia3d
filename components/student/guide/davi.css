@@ -19,3 +19,9 @@
 @media (prefers-reduced-motion: reduce) {
   .davi-bob, .davi-head, .davi-arm-e, .davi-arm-d, .davi-cheer .davi-bob, .davi-cheer .davi-arm-e, .davi-cheer .davi-arm-d { animation: none; }
 }
+
+.davi-in { animation: davi-in 0.35s ease-out both; }
+.davi-in-fade { animation: davi-fade 0.35s ease-out both; }
+@keyframes davi-in { from { opacity: 0; transform: translateX(-30%) scale(0.85); } to { opacity: 1; transform: none; } }
+@keyframes davi-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .davi-in, .davi-in-fade { animation: none; } }

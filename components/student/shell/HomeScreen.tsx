@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { BookIcon, Button, GamepadIcon, GavelIcon, LiveMascot, MASCOT_NAME, MoreIcon, SunIcon, TargetIcon } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import { ChestCard } from '../chests/ChestCard';
-import { DaviGuide } from '../guide/DaviGuide';
+import { DaviBubble, DaviSprite, useDaviMoments } from '../guide/DaviGuide';
 import { ProfileForm } from '../quests/ProfileForm';
 import { MyDataSheet } from './MyDataSheet';
 import type { View } from './views';
@@ -61,6 +61,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
   const [profileOpen, setProfileOpen] = useState(false);
   const quizPending = home.quiz.available && !home.quiz.completedToday;
   const lessonOpen = !!home.lesson && !home.lesson.done;
+  const davi = useDaviMoments({ firstName: home.firstName, celebrate, lessonOpen, quizPending });
 
   return (
     <div className="space-y-4">
@@ -70,12 +71,15 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
           <MoreIcon />
           {unread ? <span className="absolute -right-1 -top-1 size-4 rounded-full bg-game-danger" aria-hidden /> : null}
         </button>
-        <LiveMascot size={7} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
+        {davi.visible && <div className="absolute left-0 top-3 w-[4.25rem]"><DaviSprite mood={davi.mood} /></div>}
+        <button type="button" onClick={davi.call} aria-label={`Chamar o Davi. ${MASCOT_NAME}, o robô`} className="rounded-3xl focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white">
+          <LiveMascot size={7} cheering={celebrate} label="" />
+        </button>
         <h1 className="mt-1 font-[family-name:var(--font-game-title)] text-3xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
-        <p className="text-game-ink-dim">{MASCOT_NAME} está com você!</p>
+        <div className="flex min-h-[3.5rem] w-full items-center justify-center">
+          {davi.visible ? <DaviBubble text={davi.text} /> : <p className="text-game-ink-dim">{MASCOT_NAME} está com você!</p>}
+        </div>
       </div>
-
-      <DaviGuide firstName={home.firstName} celebrate={celebrate} lessonOpen={lessonOpen} quizPending={quizPending} />
 
       <div className="space-y-3">
         <BigAction testId="home-day" icon={<SunIcon />} title="Dia" hint="Veja o que tem para hoje" onClick={() => onGo('day')} />
