@@ -1,20 +1,18 @@
 import { describe, expect, test } from 'bun:test';
-import { daviMessage } from '../../lib/davi-guide';
+import { daviResultMessage } from '../../lib/davi-guide';
 
-const base = { firstName: 'Ana', lessonOpen: false, quizPending: false, celebrate: false };
-
-describe('falas do Davi', () => {
-  test('comemorar vem primeiro', () => {
-    expect(daviMessage({ ...base, celebrate: true, lessonOpen: true, quizPending: true })).toEqual({ text: 'Muito bem, Ana!', mood: 'comemorando' });
+describe('falas do Davi no resultado', () => {
+  test('acertar tudo comemora', () => {
+    expect(daviResultMessage(5, 5).mood).toBe('comemorando');
   });
-  test('aula para contar vem antes do desafio', () => {
-    expect(daviMessage({ ...base, lessonOpen: true, quizPending: true }).mood).toBe('pensando');
+  test('metade ou mais é elogio, menos que isso incentiva', () => {
+    expect(daviResultMessage(3, 5).mood).toBe('feliz');
+    expect(daviResultMessage(1, 5).mood).toBe('pensando');
   });
-  test('desafio pendente e fala padrão', () => {
-    expect(daviMessage({ ...base, quizPending: true }).text).toBe('Bora fazer o desafio de hoje?');
-    expect(daviMessage(base).text).toBe('Vamos aprender juntos, Ana?');
+  test('nenhuma fala revela o total de perguntas', () => {
+    for (const [s, t] of [[5, 5], [3, 5], [0, 5], [2, 7]]) expect(daviResultMessage(s, t).text).not.toMatch(/\d/);
   });
-  test('sem nome não quebra', () => {
-    expect(daviMessage({ ...base, firstName: '' }).text).toBe('Vamos aprender juntos?');
+  test('total zero não quebra', () => {
+    expect(daviResultMessage(0, 0).mood).toBe('pensando');
   });
 });

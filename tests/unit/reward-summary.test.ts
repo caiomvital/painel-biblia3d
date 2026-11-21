@@ -12,7 +12,7 @@ describe('quizRewardSummary', () => {
   test('acerto parcial não é "missão cumprida"', () => {
     const s = quizRewardSummary({ score: 3, total: 5, pointsAwarded: 15, coinsAwarded: 15 });
     expect(s?.title).toBe('BOA!');
-    expect(s?.subtitle).toBe('Você acertou 3 de 5');
+    expect(s?.subtitle).toBe('Você acertou 3 perguntas');
   });
   test('se o servidor não creditou fichas (já recebido), mostra 0 e não inventa', () => {
     const s = quizRewardSummary({ score: 3, total: 5, pointsAwarded: 15, coinsAwarded: 0 });
