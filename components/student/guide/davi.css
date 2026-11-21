@@ -1,0 +1,21 @@
+.davi img { user-select: none; -webkit-user-drag: none; }
+.davi-bob { animation: davi-bob 2.4s ease-in-out infinite; }
+.davi-head { transform-origin: 50% 95%; animation: davi-tilt 3.2s ease-in-out infinite; }
+.davi-arm { position: absolute; aspect-ratio: 148 / 202; }
+.davi-arm > img:first-child { display: block; width: 100%; height: auto; }
+.davi-wrist { position: absolute; height: auto; }
+.davi-arm-e { transform-origin: 70% 6%; animation: davi-swl 2.4s ease-in-out infinite; }
+.davi-arm-d { transform-origin: 30% 6%; animation: davi-swr 2.4s ease-in-out infinite; }
+.davi-cheer .davi-bob { animation: davi-jump 0.5s ease-in-out infinite; }
+.davi-cheer .davi-arm-e { animation: davi-upl 0.5s ease-in-out infinite alternate; }
+.davi-cheer .davi-arm-d { animation: davi-upr 0.5s ease-in-out infinite alternate; }
+@keyframes davi-bob { 50% { transform: translateY(-3%); } }
+@keyframes davi-tilt { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes davi-swl { 50% { transform: rotate(6deg); } }
+@keyframes davi-swr { 50% { transform: rotate(-6deg); } }
+@keyframes davi-jump { 50% { transform: translateY(-9%); } }
+@keyframes davi-upl { from { transform: rotate(-150deg); } to { transform: rotate(-165deg); } }
+@keyframes davi-upr { from { transform: rotate(150deg); } to { transform: rotate(165deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .davi-bob, .davi-head, .davi-arm-e, .davi-arm-d, .davi-cheer .davi-bob, .davi-cheer .davi-arm-e, .davi-cheer .davi-arm-d { animation: none; }
+}
