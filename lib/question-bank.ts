@@ -17,7 +17,7 @@ export function parseQuestion(b: Record<string, unknown>): QuestionInput {
 export interface QuestionFilter { search?: string; topic?: string; classId?: string; status?: string }
 interface Filterable { text: string; options: string[]; topic?: string | null; classId?: string | null; status: string }
 
-const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+export const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 /** Filtro da tela do banco (busca sem acento nem maiúsculas, por texto, respostas e tema). */
 export function matchesQuestion(q: Filterable, f: QuestionFilter): boolean {
