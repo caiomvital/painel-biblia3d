@@ -16,3 +16,15 @@ describe('falas do Davi no resultado', () => {
     expect(daviResultMessage(0, 0).mood).toBe('pensando');
   });
 });
+
+describe('Davi no quiz ao vivo', () => {
+  test('comemora quem acerta ou chega ao pódio e acolhe quem erra', async () => {
+    const { daviLiveFinal, daviLiveResult } = await import('../../lib/davi-guide');
+    expect(daviLiveResult(true, true).mood).toBe('comemorando');
+    expect(daviLiveResult(true, false).mood).toBe('pensando');
+    expect(daviLiveResult(false, false).text).toContain('tempo');
+    expect(daviLiveFinal(2).mood).toBe('comemorando');
+    expect(daviLiveFinal(5).mood).toBe('feliz');
+    expect(daviLiveFinal(null).mood).toBe('feliz');
+  });
+});

@@ -22,6 +22,7 @@ import { useKidsHome, type PointsGain } from './useKidsHome';
 import type { StudentTab } from './student-types';
 import { AuctionScreen } from './shell/AuctionScreen';
 import { HomeScreen } from './shell/HomeScreen';
+import { LiveQuizScreen } from './live/LiveQuizScreen';
 import { LegacyArea, type LegacyView } from './shell/LegacyArea';
 import { NoticesDialog, useUnreadNotices } from './shell/NoticesDialog';
 import { ProfileScreen } from './shell/ProfileScreen';
@@ -138,6 +139,8 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     screen = <LearnedScreen home={home} onNotice={setNotice} onError={setError} onRefresh={reload} />;
   } else if (view === 'auction') {
     screen = <AuctionScreen home={home} onRefresh={reload} />;
+  } else if (view === 'live') {
+    screen = <LiveQuizScreen onBack={() => go('home')} />;
   } else if (view === 'games') {
     screen = <GamesScreen />;
   } else if (view === 'ranking') {
