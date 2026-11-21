@@ -9,6 +9,7 @@ import { Button, Card, MASCOT_NAME, Mascot, SoundOffIcon, SoundOnIcon, useGameSo
 import type { KidsHomeData } from '../kids-api';
 import type { View } from './views';
 import { InstallAppCard } from './InstallAppCard';
+import { setDaviGuide, useDaviGuide } from '../guide/useDaviGuide';
 
 const SIZE_LABEL: Record<(typeof textSizes)[number], string> = { normal: 'Normal', large: 'Grande', larger: 'Enorme' };
 
@@ -17,6 +18,7 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
   const { preferences, ready, saving, save } = useUserPreferences();
   const [account, setAccount] = useState(false);
   const [more, setMore] = useState(false);
+  const daviOn = useDaviGuide();
 
   return (
     <div className="space-y-4" data-testid="profile-screen">
@@ -57,6 +59,9 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
               ))}
             </div>
           </div>
+          <Button variant="ghost" aria-pressed={daviOn} onClick={() => setDaviGuide(!daviOn)} data-testid="profile-davi">
+            {daviOn ? 'Davi ligado' : 'Davi desligado'}
+          </Button>
           <Button variant="ghost" onClick={() => setAccount(true)}>Minha conta</Button>
         </div>
       </Card>
