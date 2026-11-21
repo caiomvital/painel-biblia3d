@@ -16,6 +16,7 @@ import { levelProgress } from '@/lib/level';
 import type { PanelTarget } from '@/lib/panel-navigation';
 import { attitudeRewardSummary, shouldShowSummary, type RewardSummaryData } from '@/lib/reward-summary';
 import { GamesScreen } from './games/GamesScreen';
+import { DaviTutor } from './guide/DaviGuide';
 import { kidsCall } from './kids-api';
 import { useKidsHome, type PointsGain } from './useKidsHome';
 import type { StudentTab } from './student-types';
@@ -172,6 +173,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
         {summary && (
           <RewardSummary title={summary.title} subtitle={summary.subtitle} xp={summary.xp} totalCoins={summary.totalCoins}
             items={summary.items.map((it) => ({ ...it, icon: ICONS[it.icon] }))} levelUp={summary.levelUp}
+            tutorSlot={summary.tutor ? <DaviTutor text={summary.tutor.text} mood={summary.tutor.mood} /> : undefined}
             progress={home ? (() => { const p = levelProgress(home.points); return { value: p.xpIntoLevel, max: p.xpForLevel }; })() : undefined}
             onContinue={closeSummary} />
         )}

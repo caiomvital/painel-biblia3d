@@ -1,20 +1,12 @@
-/** Falas do Davi, o guia da tela inicial. Curtas, em linguagem de criança. Só decide o texto e o humor; não mexe em dados. */
+/** Davi é o tutor da Fuctura: aparece nos momentos de ação (desafio e resultado), nunca na tela inicial. Falas curtas, em linguagem de criança. */
 export type DaviMood = 'feliz' | 'pensando' | 'comemorando';
 
-export interface DaviContext {
-  firstName: string;
-  /** Há uma aula registrada que o aluno ainda não contou ("O que aprendi"). */
-  lessonOpen: boolean;
-  /** O desafio de hoje está disponível e ainda não foi feito. */
-  quizPending: boolean;
-  /** O aluno acabou de ganhar pontos/moedas. */
-  celebrate: boolean;
-}
+/** Falas do tutor nos momentos de ação do desafio. */
+export const DAVI_QUIZ_INTRO = 'Vamos ver o que você sabe?';
 
-export function daviMessage(c: DaviContext): { text: string; mood: DaviMood } {
-  const nome = c.firstName.trim();
-  if (c.celebrate) return { text: nome ? `Muito bem, ${nome}!` : 'Muito bem!', mood: 'comemorando' };
-  if (c.lessonOpen) return { text: 'Me conta o que você aprendeu na aula!', mood: 'pensando' };
-  if (c.quizPending) return { text: 'Bora fazer o desafio de hoje?', mood: 'feliz' };
-  return { text: nome ? `Vamos aprender juntos, ${nome}?` : 'Vamos aprender juntos?', mood: 'feliz' };
+/** Fala do Davi no resultado do desafio, conforme os acertos. Nunca mostra o total de perguntas. */
+export function daviResultMessage(score: number, total: number): { text: string; mood: DaviMood } {
+  if (total > 0 && score >= total) return { text: 'Você arrasou! Acertou tudo!', mood: 'comemorando' };
+  if (total > 0 && score * 2 >= total) return { text: 'Muito bem! Cada acerto conta!', mood: 'feliz' };
+  return { text: 'Quase lá! Na próxima você vai melhor.', mood: 'pensando' };
 }

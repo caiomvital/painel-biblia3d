@@ -33,6 +33,8 @@ export interface RewardSummaryProps {
   hideTotal?: boolean;
   /** Nível novo, quando o aluno subiu de nível. */
   levelUp?: number | null;
+  /** Tutor (Davi) com a fala deste momento; opcional. */
+  tutorSlot?: React.ReactNode;
 }
 
 /** Número que conta de 0 até o valor depois de `delay` segundos (direto com movimento reduzido). */
@@ -58,7 +60,7 @@ const OUTLINE = '[-webkit-text-stroke:7px_#15123a] [paint-order:stroke_fill] dro
  * Tela de resultado em tela cheia (missão cumprida, vitória...). Só EXIBE valores já calculados pelo servidor.
  * Foco no CONTINUAR; Esc também continua. Movimento reduzido: sem animação, só o conteúdo.
  */
-export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContinue, progress, levelUp, hideTotal = false }: RewardSummaryProps) {
+export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContinue, progress, levelUp, tutorSlot, hideTotal = false }: RewardSummaryProps) {
   const reduce = useReducedMotion() ?? false;
   const { play } = useGameSound();
   const continueRef = useRef<HTMLButtonElement>(null);
@@ -111,7 +113,7 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
 
       <div className="absolute right-3 top-3 z-10"><SoundToggle /></div>
 
-      <div className="relative mx-auto flex min-h-full w-full max-w-md flex-col items-center gap-4 px-4 pt-14 [@media(max-height:760px)]:gap-2 [@media(max-height:760px)]:pt-10">
+      <div className="relative mx-auto flex min-h-full w-full max-w-md flex-col items-center gap-4 px-4 pt-14 [@media(max-height:760px)]:gap-2">
         <motion.h1
           id="reward-summary-title"
           initial={reduce ? false : { scale: 0.3, opacity: 0, rotate: -6 }}
@@ -150,6 +152,8 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
           </p>
         ) : null}
         {progress && <XPBar value={progress.value} max={progress.max} className="w-full max-w-xs" />}
+
+        {tutorSlot && <div className="w-full [@media(max-height:620px)]:hidden">{tutorSlot}</div>}
 
         <ul className="w-full space-y-2">
           {items.map((it, i) => (

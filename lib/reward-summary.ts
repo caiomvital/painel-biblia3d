@@ -1,3 +1,5 @@
+import { daviResultMessage } from './davi-guide';
+
 /**
  * Monta os dados da Tela de Resultado a partir do que o SERVIDOR devolveu.
  * Função pura: não calcula pontos nem moedas, só escolhe textos e copia os valores recebidos.
@@ -23,6 +25,8 @@ export interface RewardItemData {
 export interface RewardSummaryData {
   title: string;
   subtitle?: string;
+  /** Fala do Davi (tutor) nesta tela. */
+  tutor?: { text: string; mood: 'feliz' | 'pensando' | 'comemorando' };
   xp?: number;
   items: RewardItemData[];
   totalCoins: number;
@@ -47,7 +51,9 @@ export function quizRewardSummary(r: QuizServerResult): RewardSummaryData | null
   items.push({ label: 'Fichas ganhas', icon: 'coin', value: coins, unit: 'coins' });
   return {
     title: perfect ? 'MISSÃO CUMPRIDA' : 'BOA!',
-    subtitle: `Você acertou ${safe(r.score)} de ${safe(r.total)}`,
+    // o aluno não sabe quantas perguntas tem o desafio: nunca mostramos o total
+    subtitle: safe(r.score) === 0 ? 'Você deu o seu melhor!' : safe(r.score) === 1 ? 'Você acertou 1 pergunta' : `Você acertou ${safe(r.score)} perguntas`,
+    tutor: daviResultMessage(safe(r.score), safe(r.total)),
     xp: points,
     items,
     totalCoins: coins,
@@ -70,6 +76,7 @@ export function attitudeRewardSummary(r: AttitudeServerResult): RewardSummaryDat
   return {
     title: 'BOA ATITUDE!',
     subtitle: count === 1 ? 'Reconheceram uma atitude sua' : `Reconheceram ${count} atitudes suas`,
+    tutor: { text: 'Seu professor reparou em você!', mood: 'comemorando' },
     xp,
     items: [
       { label: 'Pontos', icon: 'star', value: xp, unit: 'xp' },

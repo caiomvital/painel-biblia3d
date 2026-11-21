@@ -6,6 +6,8 @@ import { quizBreakdown, POINTS_COMPLETE, POINTS_CORRECT, POINTS_WRONG } from '@/
 import { quizRewardSummary, type RewardSummaryData } from '@/lib/reward-summary';
 import { kidsCall } from '../kids-api';
 import { OptionTile } from './OptionTile';
+import { DaviTutor } from '../guide/DaviGuide';
+import { DAVI_QUIZ_INTRO } from '@/lib/davi-guide';
 
 type Review = { id: string; text: string; options: string[]; correctIndex: number; chosen: number | null };
 type Question = { id: string; text: string; options: string[] };
@@ -110,7 +112,7 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
     return (
       <Card title={kind === 'daily' ? 'Desafio do dia' : 'Desafio da semana'} tone="success" data-testid={`quiz-${kind}`}>
         <p className="text-xl font-semibold text-game-primary">
-          Você acertou {done.score} de {done.total}! {done.pointsAwarded > 0 ? `+${done.pointsAwarded} pontos` : ''}
+          {done.score === 0 ? 'Você deu o seu melhor!' : done.score === 1 ? 'Você acertou 1 pergunta!' : `Você acertou ${done.score} perguntas!`} {done.pointsAwarded > 0 ? `+${done.pointsAwarded} pontos` : ''}
         </p>
         <p className="mt-1 text-game-ink-dim">{kind === 'daily' ? 'Volte amanhã para um novo desafio!' : 'Volte na próxima semana!'}</p>
         <div className="mt-4 space-y-4">
@@ -134,17 +136,14 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
     const last = step === quiz.total - 1;
     return (
       <Card title={kind === 'daily' ? 'Desafio do dia' : 'Desafio da semana'} data-testid={`quiz-${kind}`}>
-        <div className="mb-3 h-3 overflow-hidden rounded-full border-2 border-game-line bg-game-xp-track" role="progressbar"
-          aria-label="Progresso do desafio" aria-valuenow={step + 1} aria-valuemin={1} aria-valuemax={quiz.total}>
-          <div className="h-full rounded-full bg-game-primary transition-[width]" style={{ width: `${((step + 1) / quiz.total) * 100}%` }} />
-        </div>
+        {step === 0 && <DaviTutor text={DAVI_QUIZ_INTRO} mood="feliz" className="mb-3" />}
         {step === 0 && (
           <p className="mb-3 text-sm text-game-ink-dim">
             Ganhe moedas: {POINTS_WRONG} ponto por responder, {POINTS_CORRECT} por acertar e {POINTS_COMPLETE} por concluir!
           </p>
         )}
         <fieldset key={q.id} className="space-y-2">
-          <legend className="mb-2 text-lg font-semibold"><span className="text-game-ink-dim">{step + 1} de {quiz.total} · </span>{q.text}</legend>
+          <legend className="mb-2 text-lg font-semibold">{q.text}</legend>
           {q.options.map((opt, oi) => (
             <OptionTile key={oi} type="radio" name={`${kind}-q${step}`} checked={answers[step] === oi}
               onChange={() => setAnswers((a) => a.map((v, i) => (i === step ? oi : v)))}>{opt}</OptionTile>
@@ -153,7 +152,7 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
         <div className="mt-4 flex gap-2">
           {step > 0 && <Button variant="ghost" onClick={() => setStep(step - 1)}>Voltar</Button>}
           <Button size="lg" className="flex-1" disabled={sending || answers[step] < 0}
-            onClick={() => (last ? void send() : setStep(step + 1))}>{last ? 'Concluir' : 'Próxima'}</Button>
+            onClick={() => (last ? void send() : setStep(step + 1))}>{sending ? 'Enviando…' : 'Próxima'}</Button>
         </div>
       </Card>
     );
