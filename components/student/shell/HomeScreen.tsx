@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { BookIcon, Button, GamepadIcon, GavelIcon, LiveMascot, MASCOT_NAME, MoreIcon, SunIcon, TargetIcon } from '@/components/ui/game';
+import { BookIcon, Button, GamepadIcon, GavelIcon, LiveMascot, MASCOT_NAME, MoreIcon, SunIcon, TargetIcon, TrophyIcon } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import { ChestCard } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
@@ -87,6 +87,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
       <div className="grid grid-cols-2 gap-3">
         <Tile testId="home-games" icon={<GamepadIcon />} title="Jogos" onClick={() => onGo('games')} />
         <Tile testId="home-auction" icon={<GavelIcon />} title="Leilão" onClick={() => onGo('auction')} />
+        <div className="col-span-2"><BigAction testId="home-live" icon={<TrophyIcon />} title="Quiz ao vivo" hint="Entre com o PIN do professor" onClick={() => onGo('live')} /></div>
       </div>
 
       <ChestCard refreshKey={home.points + home.level} onOpened={onRefresh} />
