@@ -12,9 +12,9 @@ describe('falas do Davi', () => {
   });
   test('desafio pendente e fala padrão', () => {
     expect(daviMessage({ ...base, quizPending: true }).text).toBe('Bora fazer o desafio de hoje?');
-    expect(daviMessage(base).text).toBe('Estou com você, Ana!');
+    expect(daviMessage(base).text).toBe('Vamos aprender juntos, Ana?');
   });
   test('sem nome não quebra', () => {
-    expect(daviMessage({ ...base, firstName: '' }).text).toBe('Estou com você!');
+    expect(daviMessage({ ...base, firstName: '' }).text).toBe('Vamos aprender juntos?');
   });
 });

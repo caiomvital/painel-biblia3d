@@ -16,7 +16,6 @@ import { levelProgress } from '@/lib/level';
 import type { PanelTarget } from '@/lib/panel-navigation';
 import { attitudeRewardSummary, shouldShowSummary, type RewardSummaryData } from '@/lib/reward-summary';
 import { GamesScreen } from './games/GamesScreen';
-import { DaviGuide } from './guide/DaviGuide';
 import { kidsCall } from './kids-api';
 import { useKidsHome, type PointsGain } from './useKidsHome';
 import type { StudentTab } from './student-types';
@@ -169,10 +168,6 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
           {notice && <div role="status" className="rounded-game border-2 border-game-success bg-game-surface p-3 font-semibold">{notice}</div>}
           {screen}
         </main>
-        {home && view === 'home' && !summary && (
-          <DaviGuide firstName={home.firstName} celebrate={celebrate}
-            lessonOpen={!!home.lesson && !home.lesson.done} quizPending={home.quiz.available && !home.quiz.completedToday} />
-        )}
         <TabBar items={TABS} activeId={parentTab(view)} onChange={(id) => go(id as View)} />
         {summary && (
           <RewardSummary title={summary.title} subtitle={summary.subtitle} xp={summary.xp} totalCoins={summary.totalCoins}

@@ -51,19 +51,9 @@ export function DaviGuide(ctx: DaviContext) {
   const face = blink ? 'dormindo' : mood;
 
   return (
-    <div className="pointer-events-none fixed bottom-[5.25rem] right-2 z-20 flex items-end gap-1" data-testid="davi-guide">
-      {bubble && (
-        <div role="status" className="pointer-events-auto relative mb-10 max-w-[11rem] rounded-2xl border-2 border-b-4 border-game-line bg-game-surface px-3 py-2 text-sm font-semibold leading-snug text-game-ink">
-          {text}
-          <button type="button" onClick={() => setDaviGuide(false)} data-testid="davi-silence"
-            className="mt-1 block text-xs font-normal text-game-ink-dim underline focus-visible:outline-2 focus-visible:outline-white">
-            Silenciar o Davi
-          </button>
-          <span aria-hidden className="absolute -right-1.5 bottom-3 size-3 rotate-45 border-r-2 border-t-2 border-game-line bg-game-surface" />
-        </div>
-      )}
+    <div className="flex items-end justify-center gap-2" data-testid="davi-guide">
       <button type="button" onClick={() => setHiddenText(bubble ? text : null)} aria-label="Davi, seu guia. Toque para ouvir de novo"
-        className={`davi pointer-events-auto relative block w-[5.5rem] shrink-0 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${mood === 'comemorando' ? 'davi-cheer' : ''}`}
+        className={`davi relative block w-[4.75rem] shrink-0 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${mood === 'comemorando' ? 'davi-cheer' : ''}`}
         style={{ aspectRatio: '700 / 960' }}>
         <span className="davi-bob absolute inset-0">
           {BODY.slice(0, 4).map(([n, x, y, w]) => (
@@ -84,6 +74,16 @@ export function DaviGuide(ctx: DaviContext) {
           </span>
         </span>
       </button>
+      {bubble && (
+        <div role="status" className="relative mb-8 max-w-[14rem] rounded-2xl border-2 border-b-4 border-game-line bg-game-surface px-3 py-2 text-sm font-semibold leading-snug text-game-ink">
+          {text}
+          <button type="button" onClick={() => setDaviGuide(false)} data-testid="davi-silence"
+            className="mt-1 block text-xs font-normal text-game-ink-dim underline focus-visible:outline-2 focus-visible:outline-white">
+            Silenciar o Davi
+          </button>
+          <span aria-hidden className="absolute -left-1.5 bottom-3 size-3 rotate-45 border-b-2 border-l-2 border-game-line bg-game-surface" />
+        </div>
+      )}
     </div>
   );
 }
