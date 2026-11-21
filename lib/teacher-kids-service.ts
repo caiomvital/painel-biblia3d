@@ -1,6 +1,8 @@
 // Serviço do professor no painel infantil: registro da aula, perguntas da turma e pontos.
 import { prisma } from '@/lib/prisma';
 import { brazilDay } from '@/lib/kids-service';
+import { parseQuestion } from '@/lib/question-bank';
+import { removeQuestion } from '@/lib/question-removal';
 
 export const TEACHER_POINTS_REPORT = 1;
 export const TEACHER_POINTS_QUESTION = 10;
@@ -37,7 +39,7 @@ export async function getTeacherKids(userId: string) {
       where: { teacherId: teacher.id }, orderBy: { day: 'desc' }, take: 10,
       include: { class: { select: { name: true } }, _count: { select: { checks: true } } },
     }),
-    prisma.quizQuestion.findMany({ where: { teacherId: teacher.id }, orderBy: { createdAt: 'desc' }, take: 50 }),
+    prisma.quizQuestion.findMany({ where: { teacherId: teacher.id }, orderBy: { createdAt: 'desc' }, take: 300 }),
   ]);
   const [ratingAgg, ratingList] = await Promise.all([
     prisma.teacherRating.aggregate({ where: { teacherId: teacher.id }, _avg: { score: true }, _count: true }),
@@ -60,7 +62,7 @@ export async function getTeacherKids(userId: string) {
     },
     reports: reports.map((r) => ({ id: r.id, className: r.class.name, day: r.day, topics: r.topics, answered: r._count.checks })),
     questions: questions.map((q) => ({
-      id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, status: q.status,
+      id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, status: q.status, topic: q.topic, classId: q.classId,
       className: q.classId ? classNames.get(q.classId) ?? null : null,
     })),
   };
@@ -90,27 +92,28 @@ export async function saveLessonReport(userId: string, input: { classId?: unknow
 export async function saveTeacherQuestion(userId: string, b: Record<string, unknown>) {
   const teacher = await teacherOf(userId);
   const cls = await ownClass(teacher.id, b.classId);
-  const text = typeof b.text === 'string' ? b.text.trim() : '';
-  const options = Array.isArray(b.options) ? b.options.map((o) => String(o ?? '').trim()) : [];
-  const correctIndex = Number(b.correctIndex);
-  if (text.length < 5 || text.length > 300) throw new Error('A pergunta precisa ter entre 5 e 300 caracteres.');
-  if (options.length !== 4 || options.some((o) => !o || o.length > 150)) throw new Error('Informe exatamente 4 respostas.');
-  if (new Set(options.map((o) => o.toLowerCase())).size !== 4) throw new Error('As 4 respostas precisam ser diferentes.');
-  if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex > 3) throw new Error('Marque qual resposta é a certa.');
+  const data = parseQuestion(b);
   const q = await prisma.quizQuestion.create({
-    data: {
-      text, options, correctIndex, topic: typeof b.topic === 'string' ? b.topic.trim().slice(0, 60) || null : null,
-      status: 'PENDING', source: 'TEACHER', kind: 'WEEKLY', classId: cls.id, teacherId: teacher.id, createdById: userId,
-    },
+    data: { ...data, status: 'PENDING', source: 'TEACHER', kind: 'WEEKLY', classId: cls.id, teacherId: teacher.id, createdById: userId },
   });
   await awardTeacher(teacher.id, TEACHER_POINTS_QUESTION, `Pergunta cadastrada (${cls.name})`, `QUESTION_${q.id}`);
   return { id: q.id, awarded: TEACHER_POINTS_QUESTION };
 }
 
+/** Edita uma pergunta própria. Volta para a revisão da direção (a versão aprovada já foi vista pelos alunos). */
+export async function updateTeacherQuestion(userId: string, b: Record<string, unknown>) {
+  const teacher = await teacherOf(userId);
+  const q = await prisma.quizQuestion.findFirst({ where: { id: String(b.id ?? ''), teacherId: teacher.id } });
+  if (!q) throw new Error('Pergunta não encontrada.');
+  const cls = await ownClass(teacher.id, b.classId ?? q.classId);
+  await prisma.quizQuestion.update({ where: { id: q.id }, data: { ...parseQuestion(b), classId: cls.id, status: 'PENDING' } });
+  return { id: q.id, backToReview: q.status === 'APPROVED' };
+}
+
+/** Remove uma pergunta própria, em qualquer status. Se já foi usada em desafios, fica arquivada em vez de apagada. */
 export async function deleteTeacherQuestion(userId: string, id: string) {
   const teacher = await teacherOf(userId);
   const q = await prisma.quizQuestion.findFirst({ where: { id, teacherId: teacher.id } });
   if (!q) throw new Error('Pergunta não encontrada.');
-  if (q.status !== 'PENDING') throw new Error('Só dá para apagar perguntas que ainda não foram revisadas.');
-  await prisma.quizQuestion.delete({ where: { id } });
+  return removeQuestion(id);
 }

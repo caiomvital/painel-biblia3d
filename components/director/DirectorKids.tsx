@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { api, buttonClass, fieldClass } from "./director-ui";
+import { matchesQuestion } from "@/lib/question-bank";
 
 type KStudent = {
   id: string; name: string; guardianName: string | null; guardianPhone: string | null;
@@ -9,7 +10,7 @@ type KStudent = {
 type Question = {
   id: string; text: string; options: string[]; correctIndex: number; topic: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED"; source: string;
-  kind?: "DAILY" | "WEEKLY"; className?: string | null;
+  kind?: "DAILY" | "WEEKLY"; className?: string | null; classId?: string | null;
 };
 type Prize = { title: string; description: string | null; pointsGoal: number } | null;
 type Ratings = {
@@ -35,6 +36,9 @@ export function DirectorKids() {
   const [editing, setEditing] = useState<KStudent | null>(null);
   const [editingQ, setEditingQ] = useState<Question | null>(null);
   const [filter, setFilter] = useState("PENDING");
+  const [search, setSearch] = useState("");
+  const [topicFilter, setTopicFilter] = useState("");
+  const [classFilter, setClassFilter] = useState("");
 
   const reload = useCallback(async () => {
     try {
@@ -86,7 +90,9 @@ export function DirectorKids() {
     }), "Prêmio atualizado.");
   };
 
-  const shown = questions.filter((q) => (filter === "ALL" ? true : q.status === filter));
+  const topics = Array.from(new Set(questions.map((q) => q.topic).filter(Boolean) as string[])).sort();
+  const classOptions = Array.from(new Map(questions.filter((q) => q.classId && q.className).map((q) => [q.classId as string, q.className as string])).entries());
+  const shown = questions.filter((q) => matchesQuestion(q, { search, status: filter, topic: topicFilter, classId: classFilter }));
   const pending = questions.filter((q) => q.status === "PENDING").length;
 
   return (
@@ -231,7 +237,7 @@ export function DirectorKids() {
 
       <section className={panel}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-lg font-bold text-white">Perguntas do desafio ({questions.length})</h3>
+          <h3 className="text-lg font-bold text-white">Banco de perguntas ({shown.length} de {questions.length})</h3>
           <div className="flex flex-wrap gap-2">
             {pending > 0 && <button className={buttonClass} onClick={() => run(() => api("/api/director/kids/questions", "POST", { action: "approveAll" }), "Todas as perguntas pendentes foram aprovadas.")}>Aprovar todas pendentes ({pending})</button>}
             <button className={buttonClass} onClick={() => setEditingQ({ id: "", text: "", options: ["", "", "", ""], correctIndex: 0, topic: "", status: "APPROVED", source: "DIRECTOR" })}>Nova pergunta</button>
@@ -241,6 +247,17 @@ export function DirectorKids() {
           {["PENDING", "APPROVED", "REJECTED", "ALL"].map((f) => (
             <button key={f} onClick={() => setFilter(f)} className={`${buttonClass} ${filter === f ? "bg-amber-500/30" : ""}`}>{f === "ALL" ? "Todas" : statusText[f]}</button>
           ))}
+        </div>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <label className="text-xs text-slate-300">Buscar<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Palavra da pergunta ou resposta" className={fieldClass} /></label>
+          <label className="text-xs text-slate-300">Tema
+            <select value={topicFilter} onChange={(e) => setTopicFilter(e.target.value)} className={fieldClass}>
+              <option value="">Todos</option>{topics.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select></label>
+          <label className="text-xs text-slate-300">Turma
+            <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} className={fieldClass}>
+              <option value="">Todas</option>{classOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+            </select></label>
         </div>
         {editingQ && (
           <form key={editingQ.id || "nova"} onSubmit={saveQuestion} className="space-y-2 rounded-xl border border-amber-500/30 p-3">
@@ -265,7 +282,13 @@ export function DirectorKids() {
                 {q.status !== "APPROVED" && <button className={buttonClass} onClick={() => run(() => api("/api/director/kids/questions", "PATCH", { id: q.id, status: "APPROVED" }), "Pergunta aprovada.")}>Aprovar</button>}
                 {q.status !== "REJECTED" && <button className={buttonClass} onClick={() => run(() => api("/api/director/kids/questions", "PATCH", { id: q.id, status: "REJECTED" }), "Pergunta rejeitada.")}>Rejeitar</button>}
                 <button className={buttonClass} onClick={() => setEditingQ(q)}>Editar</button>
-                <button className={buttonClass} onClick={() => run(() => api(`/api/director/kids/questions?id=${q.id}`, "DELETE"), "Pergunta apagada.")}>Apagar</button>
+                <button className={buttonClass} onClick={async () => {
+                  try {
+                    const r = await api(`/api/director/kids/questions?id=${q.id}`, "DELETE");
+                    setNotice(r?.result === "archived" ? "Pergunta arquivada: ela já foi usada em desafios, então não aparece mais nos próximos." : "Pergunta apagada.");
+                    setError(""); await reload();
+                  } catch (e: any) { setError(e.message); setNotice(""); }
+                }}>Apagar</button>
               </div>
             </li>
           ))}
