@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Button, MedalIcon, TrophyIcon, BellIcon } from '@/components/ui/game';
+import { Button, TrophyIcon, BellIcon } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import type { View } from './views';
 
@@ -36,9 +36,8 @@ export function MyDataSheet({ home, unread, onGo, onOpenNotices, onClose }: {
           {home.guardianName && row('Responsável', home.guardianName)}
         </dl>
         <Button variant="ghost" className="mt-4 w-full" onClick={() => go('profile')} data-testid="sheet-profile">Perfil e ajustes</Button>
-        <div className="mt-2 grid grid-cols-3 gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-2">
           <Button variant="ghost" className="flex-col gap-1 py-2" onClick={() => go('ranking')}><TrophyIcon />Ranking</Button>
-          <Button variant="ghost" className="flex-col gap-1 py-2" onClick={() => go('badges')}><MedalIcon />Conquistas</Button>
           <Button variant="ghost" className="relative flex-col gap-1 py-2" onClick={() => { onClose(); onOpenNotices(); }}><BellIcon />Avisos{unread ? <span className="absolute right-1 top-1 min-w-5 rounded-full bg-game-danger px-1 text-xs font-bold leading-5 text-white">{unread > 9 ? '9+' : unread}</span> : null}</Button>
         </div>
       </div>

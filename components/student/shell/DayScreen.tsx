@@ -25,7 +25,7 @@ export function DayScreen({ home, onGo, onNotice, onError, onRefresh }: {
     <div className="space-y-4" data-testid="day-screen">
       <div>
         <h1 className="font-[family-name:var(--font-game-title)] text-3xl tracking-wide">Dia</h1>
-        <p className="capitalize text-game-ink-dim">{today}</p>
+        <p className="text-game-ink-dim">{today.charAt(0).toUpperCase() + today.slice(1)}</p>
       </div>
 
       <Card title="Hoje" tone={left === 0 ? 'success' : 'highlight'}>

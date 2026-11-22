@@ -33,7 +33,7 @@ export function AuctionBidHistory({ itemId }: { itemId: string }) {
           : <>
             {result.bids.length === 0 ? <p className="text-slate-400">Nenhum lance nesta página.</p> : <ol className="space-y-2">
               {result.bids.map((bid) => <li key={bid.id} className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-                <div className="flex justify-between gap-2"><span className="break-words min-w-0 text-slate-200">{bid.bidderName}</span><strong className="shrink-0 text-amber-400">{bid.amount.toLocaleString('pt-BR')} Coins</strong></div>
+                <div className="flex justify-between gap-2"><span className="break-words min-w-0 text-slate-200">{bid.bidderName}</span><strong className="shrink-0 text-amber-400">{bid.amount.toLocaleString('pt-BR')} fichas</strong></div>
                 <time dateTime={bid.createdAt} className="text-slate-400">{new Date(bid.createdAt).toLocaleString('pt-BR')}</time>
               </li>)}
             </ol>}

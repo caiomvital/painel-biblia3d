@@ -45,251 +45,37 @@ async function saveForm(page: Page) {
 test.afterAll(async () => {
   await db.$disconnect();
 });
-test("Marco 9: gestão administrativa real, seis áreas, busca, matrícula, diário e presenças", async ({
+test("Direção: áreas atuais do painel, sem vestígios do sistema antigo", async ({
   page,
 }, info) => {
-  const f = ids(info.project.name);
   await login(page, info.project.name);
   const nav = page.getByRole("navigation", { name: "Áreas do diretor" });
   for (const name of [
     "Visão Geral",
+    "Cursos",
     "Turmas",
     "Professores",
-    "Alunos",
-    "Aulas e Presenças",
     "Gamificação e Leilões",
+    "Alunos",
+    "Atitudes",
   ])
     await expect(nav.getByRole("button", { name, exact: true })).toBeVisible();
+  for (const name of ["Aulas e Presenças", "Currículos", "Crianças", "Matrículas"])
+    await expect(nav.getByRole("button", { name, exact: true })).toHaveCount(0);
   const initial = await (
     await page.request.get("/api/director/dashboard")
   ).json();
-  expect(
-    initial.pendingDiaries.some((l: { id: string }) => l.id === f.m9Lesson),
-  ).toBe(true);
   expect(JSON.stringify(initial)).not.toContain("passwordHash");
-  await page.screenshot({
-    path: info.outputPath("director-overview.png"),
-    fullPage: true,
-  });
+  await expect(page.getByText("Presenças pendentes")).toHaveCount(0);
+  await expect(page.getByText("Diários pendentes")).toHaveCount(0);
   await nav.getByRole("button", { name: "Turmas", exact: true }).click();
-  await page.getByRole("button", { name: "Nova Turma", exact: true }).click();
-  let dialog = page.getByRole("dialog");
-  const className = `Turma Marco 9 ${info.project.name}`;
-  await dialog.getByLabel("Nome", { exact: true }).fill(className);
-  await dialog.getByLabel("Código", { exact: true }).fill(`${f.prefix}_M9`);
-  await dialog.getByLabel("Curso", { exact: true }).selectOption(f.course);
-  await dialog.getByLabel("Dias da semana").fill("SEG");
-  await dialog.getByLabel("Horário", { exact: true }).fill("09:00 - 10:30");
-  await dialog.getByLabel("Data inicial").fill("2026-01-01");
-  await saveForm(page);
-  let created = await db.class.findUniqueOrThrow({
-    where: { code: `${f.prefix}_M9`.toUpperCase() },
-  });
-  let card = page.getByTestId(`class-${created.id}`);
-  await card.getByRole("button", { name: "Editar turma" }).click();
-  await page
-    .getByRole("dialog")
-    .getByLabel("Nome", { exact: true })
-    .fill(`${className} editada`);
-  await saveForm(page);
   await expect(
-    card.getByRole("button", { name: `${className} editada`, exact: true }),
-  ).toBeVisible();
-  await nav.getByRole("button", { name: "Professores", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Cadastrar professor", exact: true })
-    .click();
-  dialog = page.getByRole("dialog");
-  const teacherName = `Professor Marco 9 ${info.project.name}`;
-  await dialog.getByLabel("Nome", { exact: true }).fill(teacherName);
-  await dialog
-    .getByLabel("E-mail", { exact: true })
-    .fill(`${f.prefix}_newteacher@example.test`);
-  await dialog.getByLabel("Especialidade").fill("Java");
-  await saveForm(page);
-  await page.getByLabel("Buscar professor").fill(teacherName);
-  await page.getByRole("button", { name: teacherName, exact: true }).click();
-  await page.getByLabel("Atribuir turma").selectOption(created.id);
-  await page
-    .getByRole("button", { name: "Atribuir professor", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", {
-      name: `Remover responsabilidade de ${className} editada`,
-    }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Editar professor", exact: true })
-    .click();
-  await page
-    .getByRole("dialog")
-    .getByLabel("Especialidade")
-    .fill("Java e PostgreSQL");
-  await saveForm(page);
-  await expect(page.getByText(/Java e PostgreSQL/)).toBeVisible();
-  await page
-    .getByRole("button", { name: "Consultar cronograma do professor" })
-    .click();
-  await expect(page.getByLabel("Filtrar por professor")).not.toHaveValue("");
-  await expect(page.getByText("Nenhuma aula neste filtro.")).toBeVisible();
-  await nav.getByRole("button", { name: "Alunos", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Cadastrar aluno", exact: true })
-    .click();
-  dialog = page.getByRole("dialog");
-  const studentName = `Aluno Marco 9 ${info.project.name}`;
-  await dialog.getByLabel("Nome", { exact: true }).fill(studentName);
-  await dialog
-    .getByLabel("E-mail", { exact: true })
-    .fill(`${f.prefix}_newstudent@example.test`);
-  await dialog.getByLabel("Número da matrícula").fill(`${f.prefix}_newstudent`);
-  await saveForm(page);
-  await page.getByLabel("Buscar aluno por nome").fill(studentName);
-  await page.getByRole("button", { name: studentName, exact: true }).click();
-  await page.getByLabel("Turma para matrícula").selectOption(created.id);
-  await page
-    .getByRole("button", { name: "Matricular aluno", exact: true })
-    .click();
-  await expect(page.getByLabel(`Situação em ${className} editada`)).toHaveValue(
-    "ACTIVE",
-  );
-  const newStudent = await db.student.findUniqueOrThrow({
-    where: { registrationNumber: `${f.prefix}_newstudent` },
-  });
-  const before = await db.student.findUniqueOrThrow({
-    where: { id: newStudent.id },
-  });
-  const duplicate = await page.request.post("/api/director/enrollments", {
-    data: { studentId: newStudent.id, classId: created.id },
-  });
-  expect(duplicate.status()).toBe(409);
-  await page.getByRole("button", { name: "Editar aluno", exact: true }).click();
-  await page
-    .getByRole("dialog")
-    .getByLabel("Nome", { exact: true })
-    .fill(`${studentName} editado`);
-  await saveForm(page);
-  await page.getByLabel("Filtrar por turma").selectOption(created.id);
-  await page
-    .getByLabel("Situação da matrícula", { exact: true })
-    .selectOption("ACTIVE");
-  await expect(page.getByTestId(`student-${newStudent.id}`)).toBeVisible();
-  expect(
-    (await db.student.findUniqueOrThrow({ where: { id: newStudent.id } }))
-      .currentXp,
-  ).toBe(before.currentXp);
-  expect(
-    await db.coinTransaction.count({ where: { studentId: newStudent.id } }),
-  ).toBe(0);
-  await nav.getByRole("button", { name: "Turmas", exact: true }).click();
-  await page
-    .getByTestId(`class-${created.id}`)
-    .getByRole("button", { name: /Diário de Aulas/ })
-    .click();
-  await expect(page.getByText("Turma sem aulas cadastradas.")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: `${studentName} editado • Ativa` }),
-  ).toBeVisible();
-  await nav
-    .getByRole("button", { name: "Aulas e Presenças", exact: true })
-    .click();
-  await page.getByLabel("Filtrar por turma").selectOption(f.otherClass);
-  await page.getByLabel("Aula", { exact: true }).selectOption(f.m9Lesson);
-  await page
-    .getByTestId(`lesson-${f.m9Lesson}`)
-    .getByRole("button", { name: "Inspecionar / Editar Diário" })
-    .click();
-  dialog = page.getByRole("dialog");
-  await dialog
-    .getByLabel("Novo tópico planejado")
-    .fill("Planejamento da direção");
-  await dialog.getByRole("button", { name: "Adicionar", exact: true }).click();
-  await dialog.getByRole("button", { name: /Tópicos Ministrados/ }).click();
-  await dialog.getByLabel("Novo tópico ministrado").fill("Conteúdo da direção");
-  await dialog.getByRole("button", { name: "Adicionar", exact: true }).click();
-  await dialog
-    .getByRole("button", { name: "Salvar Alterações do Diário" })
-    .click();
-  await expect(
-    dialog.getByText(/Diário de aula salvo com sucesso/),
-  ).toBeVisible();
-  await dialog.getByRole("button", { name: "Fechar diário" }).click();
-  const pending = page.getByTestId(`attendance-${f.m9Attendance}`);
-  await pending.getByRole("button", { name: "Confirmar presença" }).click();
-  await expect(pending).toHaveCount(0);
-  await page.getByLabel("Aula", { exact: true }).selectOption(f.m9RejectLesson);
-  const rejected = page.getByTestId(`attendance-${f.m9Rejection}`);
-  await rejected.getByRole("button", { name: "Rejeitar presença" }).click();
-  await expect(rejected).toHaveCount(0);
-  await page.getByLabel("Solicitações de presença").selectOption("RESOLVED");
-  await expect(page.getByTestId(`attendance-${f.m9Rejection}`)).toContainText(
-    "Falta registrada",
-  );
-  await page.getByLabel("Período inicial").fill("2026-01-01");
-  await page.getByLabel("Período final").fill("2026-01-31");
-  await page.getByLabel("Aula", { exact: true }).selectOption("");
-  await page.getByLabel("Situação do diário").selectOption("FILLED");
-  await expect(page.getByTestId(`lesson-${f.m9Lesson}`)).toBeVisible();
-  await expect(page.getByTestId(`lesson-${f.m9RejectLesson}`)).toHaveCount(0);
-  await nav.getByRole("button", { name: "Visão Geral", exact: true }).click();
-  const after = await (
-    await page.request.get("/api/director/dashboard")
-  ).json();
-  expect(after.metrics.pendingAttendances).toBe(
-    initial.metrics.pendingAttendances - 2,
-  );
-  expect(
-    after.pendingDiaries.some((l: { id: string }) => l.id === f.m9Lesson),
-  ).toBe(false);
-  const points = await db.pointTransaction.findMany({
-    where: { studentId: `${f.outsider}_profile`, originReference: f.m9Lesson },
-  });
-  const coins = await db.coinTransaction.findMany({
-    where: { studentId: `${f.outsider}_profile`, originReference: f.m9Lesson },
-  });
-  expect(points).toHaveLength(1);
-  expect(coins).toHaveLength(1);
-  expect(points[0].amount).toBe(coins[0].amount);
-  expect(
-    await db.coinTransaction.count({
-      where: { originReference: f.m9RejectLesson },
-    }),
-  ).toBe(0);
-  await nav
-    .getByRole("button", { name: "Gamificação e Leilões", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Ajustes manuais de XP e Coins" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Item E2E", { exact: true }).first(),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Regras de XP", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Valores de Recompensa em XP" }),
+    page.getByRole("button", { name: "Nova Turma", exact: true }),
   ).toBeVisible();
   await page.screenshot({
-    path: info.outputPath("director-finance.png"),
+    path: info.outputPath("director-turmas.png"),
     fullPage: true,
   });
-  await page.reload();
-  await expect(
-    page.getByRole("navigation", { name: "Áreas do diretor" }),
-  ).toBeVisible();
-  expect(
-    (
-      await db.enrollment.findUniqueOrThrow({
-        where: {
-          studentId_classId: { studentId: newStudent.id, classId: created.id },
-        },
-      })
-    ).status,
-  ).toBe("ACTIVE");
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    ),
-  ).toBe(true);
 });
 test("Marco 9: endpoints administrativos bloqueiam professor, aluno e sessão ausente", async ({
   page,
@@ -355,7 +141,7 @@ test("Marco 9: controles existentes de XP, Coins e lotes persistem e mantêm led
     where: { id: studentId },
   });
   await page.getByLabel("Aluno para ajuste").selectOption(studentId);
-  await page.getByLabel("Novo total de XP").fill(String(before.currentXp + 7));
+  await page.getByLabel("Novo total de pontos").fill(String(before.currentXp + 7));
   await page
     .getByRole("button", { name: "Registrar ajuste", exact: true })
     .click();
@@ -373,7 +159,7 @@ test("Marco 9: controles existentes de XP, Coins e lotes persistem e mantêm led
     }),
   ).toBe(1);
   await page.getByLabel("Tipo de ajuste").selectOption("Coins");
-  await page.getByLabel("Variação de Coins").fill("11");
+  await page.getByLabel("Variação de fichas").fill("11");
   await page.getByLabel("Descrição do ajuste").fill("Ajuste E2E Marco 9");
   const coinsResponse = page.waitForResponse(
     (r) =>
@@ -417,7 +203,7 @@ test("Marco 9: controles existentes de XP, Coins e lotes persistem e mantêm led
     .getByLabel("Descrição Detalhada do Item")
     .fill("Descrição revisada pela direção");
   await expect(
-    dialog.getByLabel("Lance Mínimo Inicial (Coins)"),
+    dialog.getByLabel("Lance Mínimo Inicial (fichas)"),
   ).toBeDisabled();
   await dialog
     .getByRole("button", { name: "Salvar Alterações", exact: true })

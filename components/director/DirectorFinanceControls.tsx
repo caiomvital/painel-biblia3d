@@ -298,7 +298,7 @@ export default function DirectorFinanceControls({
           <h2 className="font-bold">Últimos lances</h2>
           {bids.map((b) => (
             <p className="text-sm" key={b.id}>
-              {b.bidderName} • {b.item.title} • {b.amount} Coins •{" "}
+              {b.bidderName} • {b.item.title} • {b.amount} fichas •{" "}
               {new Date(b.createdAt).toLocaleString("pt-BR")}
             </p>
           ))}
@@ -313,11 +313,11 @@ export default function DirectorFinanceControls({
           className={buttonClass}
           onClick={() => setActiveTab("gamification")}
         >
-          Regras de XP
+          Regras de pontos
         </button>
       </div>
       <section className="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
-        <h2 className="font-bold">Ajustes manuais de XP e Coins</h2>
+        <h2 className="font-bold">Ajustes manuais de pontos e fichas</h2>
         <form onSubmit={adjustBalance} className="grid gap-3 sm:grid-cols-2">
           <label>
             Aluno para ajuste
@@ -330,7 +330,7 @@ export default function DirectorFinanceControls({
               <option value="">Selecione</option>
               {data.students.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} — {s.currentXp} XP / {s.coinBalance} Coins (
+                  {s.name} — {s.currentXp} pontos / {s.coinBalance} fichas (
                   {s.reservedCoins} reservados)
                 </option>
               ))}
@@ -343,12 +343,12 @@ export default function DirectorFinanceControls({
               value={balanceKind}
               onChange={(e) => setBalanceKind(e.target.value)}
             >
-              <option>XP</option>
-              <option>Coins</option>
+              <option value="XP">Pontos</option>
+              <option value="Coins">Fichas</option>
             </select>
           </label>
           <label>
-            {balanceKind === "XP" ? "Novo total de XP" : "Variação de Coins"}
+            {balanceKind === "XP" ? "Novo total de pontos" : "Variação de fichas"}
             <input
               className={fieldClass}
               type="number"
@@ -406,7 +406,7 @@ export default function DirectorFinanceControls({
                 <span>
                   Incremento Mínimo por Lance:{" "}
                   <strong>
-                    {auctionSettings?.minBidIncrement ?? "—"} Coins
+                    {auctionSettings?.minBidIncrement ?? "—"} fichas
                   </strong>
                 </span>
               </div>
@@ -532,7 +532,7 @@ export default function DirectorFinanceControls({
                         </span>
                         <div className="flex items-center gap-1 text-amber-400 font-mono font-bold text-sm">
                           <Zap className="w-3.5 h-3.5 fill-amber-400" />
-                          <span>{item.currentBid} Coins</span>
+                          <span>{item.currentBid} fichas</span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -602,7 +602,7 @@ export default function DirectorFinanceControls({
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
-              <span>Valores de Recompensa em XP</span>
+              <span>Valores de recompensa em pontos</span>
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Consulte as regras de recompensa atualmente cadastradas.
@@ -623,9 +623,9 @@ export default function DirectorFinanceControls({
                   {rule.description}
                 </p>
                 <div className="pt-2 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">XP Concedido:</span>
+                  <span className="text-slate-400">Pontos concedidos:</span>
                   <span className="font-mono font-bold text-amber-400 text-sm">
-                    +{rule.xpValue} XP
+                    +{rule.xpValue} pontos
                   </span>
                 </div>
               </div>
@@ -729,10 +729,10 @@ export default function DirectorFinanceControls({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
-                    Lance Mínimo Inicial (Coins)
+                    Lance Mínimo Inicial (fichas)
                   </label>
                   <input
-                    aria-label="Lance Mínimo Inicial (Coins)"
+                    aria-label="Lance Mínimo Inicial (fichas)"
                     disabled={Boolean(editingItem)}
                     type="number"
                     required
@@ -934,10 +934,10 @@ export default function DirectorFinanceControls({
 
               <div>
                 <label className="block text-slate-300 font-semibold mb-1">
-                  Incremento Mínimo por Lance (Coins)
+                  Incremento Mínimo por Lance (fichas)
                 </label>
                 <input
-                  aria-label="Incremento Mínimo por Lance (Coins)"
+                  aria-label="Incremento Mínimo por Lance (fichas)"
                   type="number"
                   required
                   min={10}

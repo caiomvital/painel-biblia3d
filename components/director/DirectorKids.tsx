@@ -24,7 +24,7 @@ const enjoyText: Record<string, string> = { YES: "gostando", SO_SO: "mais ou men
 const panel = "rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-3";
 const statusText: Record<string, string> = { PENDING: "Aguardando revisão", APPROVED: "Aprovada", REJECTED: "Rejeitada" };
 
-export function DirectorKids() {
+export function DirectorKids({ onCreateStudent }: { onCreateStudent?: () => void }) {
   const [students, setStudents] = useState<KStudent[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [prize, setPrize] = useState<Prize>(null);
@@ -203,7 +203,10 @@ export function DirectorKids() {
       )}
 
       <section className={panel}>
-        <h3 className="text-lg font-bold text-white">Crianças ({students.length})</h3>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-lg font-bold text-white">Alunos ({students.length})</h3>
+          {onCreateStudent && <button className={buttonClass} onClick={onCreateStudent}>Cadastrar aluno</button>}
+        </div>
         <p className="text-xs text-slate-400">O telefone do responsável é o usuário de login da criança (DDD + número, ex.: 81995474295). Senha inicial: 123.</p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">

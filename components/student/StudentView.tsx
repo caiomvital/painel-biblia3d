@@ -19,18 +19,16 @@ import { GamesScreen } from './games/GamesScreen';
 import { DaviTutor } from './guide/DaviGuide';
 import { kidsCall } from './kids-api';
 import { useKidsHome, type PointsGain } from './useKidsHome';
-import type { StudentTab } from './student-types';
 import { AuctionScreen } from './shell/AuctionScreen';
 import { HomeScreen } from './shell/HomeScreen';
 import { LiveQuizScreen } from './live/LiveQuizScreen';
-import { LegacyArea, type LegacyView } from './shell/LegacyArea';
 import { NoticesDialog, useUnreadNotices } from './shell/NoticesDialog';
 import { ProfileScreen } from './shell/ProfileScreen';
 import { ChallengeScreen } from './shell/ChallengeScreen';
 import { DayScreen } from './shell/DayScreen';
 import { LearnedScreen } from './shell/LearnedScreen';
 import { RankingScreen } from './shell/RankingScreen';
-import { parentTab, viewFromLegacyTab, viewFromPanelTarget, type View } from './shell/views';
+import { parentTab, viewFromPanelTarget, type View } from './shell/views';
 
 const TABS = [
   { id: 'home', label: 'Início', icon: <HomeIcon /> },
@@ -43,7 +41,6 @@ const ICONS = { star: <StarIcon />, coin: <CoinIcon />, check: <CheckIcon />, tr
 
 export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) => {
   const [view, setView] = useState<View>('home');
-  const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
   const [reward, setReward] = useState<{ id: number; amount: number } | null>(null);
   const [celebrate, setCelebrate] = useState(false);
   const [notice, setNotice] = useState('');
@@ -102,19 +99,17 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
 
   const { home, error: loadError, reload } = useKidsHome(onGain);
 
-  // Contrato antigo preservado: evento global panel:navigate com detail.target (e id da aula).
+  // Evento global panel:navigate com detail.target (avisos e atalhos).
   useEffect(() => {
     function onNavigate(event: Event) {
       const detail = (event as CustomEvent<PanelTarget>).detail;
       setView(viewFromPanelTarget(detail.target));
-      if (detail.target === 'lessons' && detail.id) setExpandedLessonId(detail.id);
     }
     window.addEventListener('panel:navigate', onNavigate);
     return () => window.removeEventListener('panel:navigate', onNavigate);
   }, []);
 
   const go = useCallback((next: View) => { setView(next); setNotice(''); setError(''); window.scrollTo?.({ top: 0 }); }, []);
-  const goLegacyTab = useCallback((tab: StudentTab) => go(viewFromLegacyTab(tab)), [go]);
 
   let screen: React.ReactNode = null;
   if (!home) {
@@ -151,10 +146,6 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     screen = <WardrobeScreen onBack={() => go('profile')} onSaved={reload} />;
   } else if (view === 'profile') {
     screen = <ProfileScreen home={home} onGo={go} onLogout={onLogout} />;
-  } else {
-    const legacy = view as LegacyView;
-    screen = <LegacyArea view={legacy} expandedLessonId={expandedLessonId} onExpandLesson={setExpandedLessonId}
-      onGo={goLegacyTab} onBack={() => go(legacy === 'badges' ? 'home' : 'profile')} coinsAvailable={home.coins.available} />;
   }
 
   return (

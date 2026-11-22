@@ -139,7 +139,7 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
         {step === 0 && <DaviTutor text={DAVI_QUIZ_INTRO} mood="feliz" className="mb-3" />}
         {step === 0 && (
           <p className="mb-3 text-sm text-game-ink-dim">
-            Ganhe moedas: {POINTS_WRONG} ponto por responder, {POINTS_CORRECT} por acertar e {POINTS_COMPLETE} por concluir!
+            Ganhe pontos e fichas: {POINTS_WRONG} ponto por responder, {POINTS_CORRECT} por acertar e {POINTS_COMPLETE} por concluir!
           </p>
         )}
         <fieldset key={q.id} className="space-y-2">

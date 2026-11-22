@@ -17,7 +17,6 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
   const { enabled, toggle } = useGameSound();
   const { preferences, ready, saving, save } = useUserPreferences();
   const [account, setAccount] = useState(false);
-  const [more, setMore] = useState(false);
   const daviOn = useDaviGuide();
 
   return (
@@ -64,19 +63,6 @@ export function ProfileScreen({ home, onGo, onLogout }: { home: KidsHomeData; on
           </Button>
           <Button variant="ghost" onClick={() => setAccount(true)}>Minha conta</Button>
         </div>
-      </Card>
-
-      <Card as="div">
-        <Button variant="ghost" aria-expanded={more} aria-controls="profile-more" onClick={() => setMore((v) => !v)}>Mais</Button>
-        {more && (
-          <div id="profile-more" className="mt-3 flex flex-col gap-2">
-            <Button variant="ghost" onClick={() => onGo('overview')}>Visão geral</Button>
-            <Button variant="ghost" onClick={() => onGo('lessons')}>Aulas &amp; Cronograma</Button>
-            <Button variant="ghost" onClick={() => onGo('exercises')}>Exercícios</Button>
-            <Button variant="ghost" onClick={() => onGo('curriculum')}>Currículo</Button>
-            <Button variant="ghost" onClick={() => onGo('badges')}>Conquistas</Button>
-          </div>
-        )}
       </Card>
 
       {onLogout && <Button variant="danger" onClick={onLogout}>Sair</Button>}
