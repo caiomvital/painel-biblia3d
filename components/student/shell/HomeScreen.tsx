@@ -114,7 +114,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
           onClick={() => onGo('learned')} disabled={!home.lesson} highlight={lessonOpen} />
         <GridButton testId="home-daily" icon={<TargetIcon />} title="Desafio"
-          hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe moedas!' : 'Feito hoje. Volte amanhã!'}
+          hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
           onClick={() => onGo('quests')} highlight={quizPending} />
         <GridButton testId="home-live" icon={<TrophyIcon />} title="Quiz ao vivo" hint="Entre com o PIN" onClick={() => onGo('live')} />
       </div>
@@ -138,7 +138,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
           hint={lessonOpen ? 'Novo! Conte o que você aprendeu' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando o professor registrar a aula'}
           onClick={() => onGo('learned')} disabled={!home.lesson} highlight={lessonOpen} />
         <BigAction testId="home-daily" icon={<TargetIcon />} title="Desafio"
-          hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe moedas!' : 'Feito hoje. Volte amanhã!'}
+          hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
           onClick={() => onGo('quests')} highlight={quizPending} />
       </div>
 
