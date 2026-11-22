@@ -20,7 +20,6 @@ const tabs = [
   "Cursos",
   "Turmas",
   "Professores",
-  "Matrículas",
   "Gamificação e Leilões",
   "Alunos",
   "Atitudes",
@@ -39,23 +38,19 @@ export function DirectorView() {
   const [tab, setTab] = useState<Tab>("Visão Geral");
   const [classId, setClassId] = useState("");
   const [teacherId, setTeacherId] = useState("");
-  const [studentId, setStudentId] = useState("");
   const [search, setSearch] = useState("");
-  const [enrollmentStatus, setEnrollmentStatus] = useState("");
   const [editor, setEditor] = useState<AcademicEditor | null>(null);
-  const [enrollClass, setEnrollClass] = useState("");
+  const [kidsKey, setKidsKey] = useState(0);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     function onNavigate(event: Event) {
       const detail = (event as CustomEvent<import('@/lib/panel-navigation').PanelTarget>).detail;
-      setClassId(''); setTeacherId(''); setStudentId(''); setSearch('');
-      setEnrollmentStatus('');
-      const mapping: Record<string, Tab> = { overview: 'Visão Geral', registrations: 'Matrículas', students: 'Matrículas', teachers: 'Professores', classes: 'Turmas', courses: 'Cursos', auction: 'Gamificação e Leilões' };
+      setClassId(''); setTeacherId(''); setSearch('');
+      const mapping: Record<string, Tab> = { overview: 'Visão Geral', registrations: 'Alunos', students: 'Alunos', teachers: 'Professores', classes: 'Turmas', courses: 'Cursos', auction: 'Gamificação e Leilões' };
       setTab(mapping[detail.target] ?? 'Visão Geral');
       if (detail.classId) setClassId(detail.classId);
       if (detail.target === 'classes' && detail.id) setClassId(detail.id);
       if (detail.target === 'teachers' && detail.id) setTeacherId(detail.id);
-      if (detail.target === 'students' && detail.id) setStudentId(detail.id);
       if (detail.target === 'auction' && detail.id) window.setTimeout(() => document.querySelector(`[data-testid="auction-${CSS.escape(detail.id!)}"]`)?.scrollIntoView({ block: 'center' }), 500);
     }
     window.addEventListener('panel:navigate', onNavigate);
@@ -107,9 +102,7 @@ export function DirectorView() {
     setTab(next);
     setClassId("");
     setTeacherId("");
-    setStudentId("");
     setSearch("");
-    setEnrollmentStatus("");
   }
   function openClass(id: string) {
     navigate("Turmas");
@@ -190,46 +183,7 @@ export function DirectorView() {
     );
   const cls = data.classes.find((c) => c.id === classId);
   const teacher = data.teachers.find((t) => t.id === teacherId);
-  const student = data.students.find((s) => s.id === studentId);
   const query = search.toLocaleLowerCase("pt-BR");
-  const filteredStudents = data.students.filter(
-    (s) =>
-      s.name.toLocaleLowerCase("pt-BR").includes(query) &&
-      (!studentId || s.id === studentId) &&
-      (!classId ||
-        s.enrollments.some(
-          (e) =>
-            e.classId === classId &&
-            (!enrollmentStatus || e.status === enrollmentStatus),
-        )) &&
-      (!enrollmentStatus ||
-        s.enrollments.some(
-          (e) =>
-            e.status === enrollmentStatus &&
-            (!classId || e.classId === classId),
-        )),
-  );
-  const classSelect = (
-    <label>
-      Filtrar por turma
-      <select
-        aria-label="Filtrar por turma"
-        className={fieldClass}
-        value={classId}
-        onChange={(e) => {
-          setClassId(e.target.value);
-          setStudentId('');
-        }}
-      >
-        <option value="">Todas as turmas</option>
-        {data.classes.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
   return (
     <div className="mx-auto max-w-7xl space-y-5 px-3 py-6 text-white sm:px-6">
       <header className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 to-[#0b1329] p-6">
@@ -349,15 +303,7 @@ export function DirectorView() {
                 {cls.enrollments.length ? (
                   cls.enrollments.map((e) => (
                     <div key={e.id} className="flex flex-wrap items-center justify-between gap-2">
-                      <button
-                        className={`${buttonClass} text-left`}
-                        onClick={() => {
-                          navigate("Matrículas");
-                          setStudentId(e.studentId);
-                        }}
-                      >
-                        {e.name} • {statusLabel[e.status]}
-                      </button>
+                      <span>{e.name} • {statusLabel[e.status]}</span>
                       {e.status === "ACTIVE" && <button className={buttonClass} disabled={busy} onClick={() => {
                         if (window.confirm(`Remover ${e.name} desta turma? O histórico será preservado.`)) {
                           void mutate("/api/director/enrollments", "PUT", { id: e.id, status: "DROPPED", reason: "Removido desta turma pela direção." });
@@ -527,173 +473,10 @@ export function DirectorView() {
           )}
         </>
       )}
-      {tab === "Matrículas" && (
-        <>
-          <div className="flex flex-wrap justify-between gap-3">
-            <h2 className="font-bold text-lg">Matrículas</h2>
-            <button
-              className={buttonClass}
-              onClick={() => editPerson("students")}
-            >
-              Cadastrar aluno
-            </button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label>
-              Buscar aluno por nome
-              <input
-                className={fieldClass}
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setStudentId(''); }}
-              />
-            </label>
-            {classSelect}
-            <label>
-              Situação da matrícula
-              <select
-                aria-label="Situação da matrícula"
-                className={fieldClass}
-                value={enrollmentStatus}
-                onChange={(e) => { setEnrollmentStatus(e.target.value); setStudentId(''); }}
-              >
-                <option value="">Todas</option>
-                {["ACTIVE", "COMPLETED", "DROPPED"].map((s) => (
-                  <option key={s} value={s}>
-                    {statusLabel[s]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {student && <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span>Aluno selecionado: {student.name}</span>
-            <button className={buttonClass} onClick={() => { setStudentId(''); setSearch(''); setClassId(''); setEnrollmentStatus(''); }}>Ver todos os alunos</button>
-          </div>}
-          {filteredStudents.length ? (
-            filteredStudents.map((s) => (
-              <article
-                key={s.id}
-                data-testid={`student-${s.id}`}
-                className={panel}
-              >
-                <button
-                  className="font-bold text-amber-200"
-                  onClick={() => {
-                    setStudentId(s.id);
-                    setEnrollClass("");
-                  }}
-                >
-                  {s.name}
-                </button>
-                <p className="text-sm">
-                  {s.registrationNumber} •{" "}
-                  {s.enrollments
-                    .map((e) => `${e.className} (${statusLabel[e.status]})`)
-                    .join(", ") || "Aluno sem matrícula"}
-                </p>
-                <p className="text-sm">
-                  {s.currentXp} pontos • {s.coinBalance} fichas
-                </p>
-                <button
-                  className={buttonClass}
-                  onClick={() => editPerson("students", s.id)}
-                >
-                  Editar aluno
-                </button>
-              </article>
-            ))
-          ) : (
-            <Empty>Nenhum aluno neste filtro.</Empty>
-          )}
-          {student && (
-            <section className={panel} data-testid="student-details">
-              <h3 className="font-bold">Dados acadêmicos de {student.name}</h3>
-              <p className="text-sm">
-                {student.email} • {student.currentXp} pontos • {student.coinBalance}{" "}
-                fichas ({student.reservedCoins} reservadas)
-              </p>
-              {student.enrollments.map((e) => (
-                <div key={e.id} className="grid gap-2 sm:grid-cols-2">
-                  <button
-                    className={buttonClass}
-                    onClick={() => openClass(e.classId)}
-                  >
-                    {e.className}
-                  </button>
-                  <div>
-                    <p className="text-xs text-slate-400">
-                      Frequência na turma:{" "}
-                      {e.attendanceRate === null
-                        ? "Sem registros resolvidos"
-                        : `${e.attendanceRate}%`}{" "}
-                      • {e.pendingCount} pendentes
-                    </p>
-                    <label>
-                      Situação em {e.className}
-                      <select
-                        aria-label={`Situação em ${e.className}`}
-                        className={fieldClass}
-                        disabled={busy}
-                        value={e.status}
-                        onChange={(event) =>
-                          mutate("/api/director/enrollments", "PUT", {
-                            id: e.id,
-                            status: event.target.value,
-                          })
-                        }
-                      >
-                        {["ACTIVE", "COMPLETED", "DROPPED"].map((s) => (
-                          <option key={s} value={s}>
-                            {statusLabel[s]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                </div>
-              ))}
-              {!student.enrollments.length && (
-                <Empty>Aluno sem matrícula.</Empty>
-              )}
-              <form
-                className="flex flex-wrap items-end gap-3"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  mutate("/api/director/enrollments", "POST", {
-                    studentId: student.id,
-                    classId: enrollClass,
-                  });
-                }}
-              >
-                <label className="flex-1">
-                  Turma para matrícula
-                  <select
-                    aria-label="Turma para matrícula"
-                    className={fieldClass}
-                    required
-                    value={enrollClass}
-                    onChange={(e) => setEnrollClass(e.target.value)}
-                  >
-                    <option value="">Selecione</option>
-                    {data.classes.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button className={buttonClass} disabled={busy}>
-                  Matricular aluno
-                </button>
-              </form>
-            </section>
-          )}
-        </>
-      )}
       {tab === "Gamificação e Leilões" && (
         <DirectorFinanceControls data={data} onChanged={reload} />
       )}
-      {tab === "Alunos" && <DirectorKids />}
+      {tab === "Alunos" && <DirectorKids key={kidsKey} onCreateStudent={() => editPerson("students")} />}
       {tab === "Atitudes" && <AttitudesPanel />}
       {editor && (
         <DirectorAcademicForm
@@ -703,6 +486,7 @@ export function DirectorView() {
           onClose={() => setEditor(null)}
           onSaved={async () => {
             await reload();
+            setKidsKey((k) => k + 1);
             setNotice("Cadastro salvo.");
           }}
         />
