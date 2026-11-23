@@ -14,8 +14,9 @@ export function ItemCard({ item, balance, withdrawing, onBid, onWithdraw }: {
   return (
     <article data-testid={`auction-item-${item.id}`}
       className={`flex flex-col gap-3 rounded-game-lg border-2 border-b-4 p-4 ${item.isMyHighestBid ? 'border-game-success bg-game-surface-2' : 'border-game-line bg-game-surface'}`}>
+      <div aria-hidden="true" className="hidden h-28 items-center justify-center rounded-game bg-gradient-to-br from-[#5b3fd0] to-[#2a1f7a] text-6xl lg:flex">{itemEmoji(item.iconType)}</div>
       <div className="flex items-start gap-3">
-        <span aria-hidden="true" className="flex size-14 shrink-0 items-center justify-center rounded-game bg-game-bg text-3xl">{itemEmoji(item.iconType)}</span>
+        <span aria-hidden="true" className="flex size-14 shrink-0 lg:hidden items-center justify-center rounded-game bg-game-bg text-3xl">{itemEmoji(item.iconType)}</span>
         <div className="min-w-0 flex-1">
           <h3 className="font-[family-name:var(--font-game-title)] text-xl leading-tight tracking-wide">{item.title}</h3>
           <p className="text-sm text-game-ink-dim">{item.description}</p>
@@ -23,7 +24,7 @@ export function ItemCard({ item, balance, withdrawing, onBid, onWithdraw }: {
       </div>
 
       <p className={`inline-flex w-fit items-center gap-1.5 rounded-full border-2 px-3 py-1 text-sm font-semibold ${soon ? 'border-game-primary text-game-primary' : 'border-game-line text-game-ink-dim'}`}>
-        <span aria-hidden="true">⏰</span> {soon ? 'Acaba em ' : 'Faltam '}{countdownText(item.endsInSeconds)}
+        <span aria-hidden="true">⏰</span> {item.endsInSeconds <= 0 ? '' : soon ? 'Acaba em ' : 'Faltam '}{countdownText(item.endsInSeconds)}
       </p>
 
       <dl className="grid grid-cols-2 gap-2 rounded-game bg-game-bg p-3 text-sm">
