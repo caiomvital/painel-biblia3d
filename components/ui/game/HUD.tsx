@@ -36,7 +36,7 @@ export function HUD({ coins, points, actions, onProfile, profileActive = false, 
           </>);
           return onProfile ? (
             <button type="button" onClick={onProfile} aria-label="Perfil" aria-current={profileActive ? 'page' : undefined} data-testid="hud-profile"
-              className={`${cls} transition-transform active:translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${profileActive ? 'ring-4 ring-white/70' : ''}`}>{inner}</button>
+              className={`${cls} game-press focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${profileActive ? 'ring-4 ring-white/70' : ''}`}>{inner}</button>
           ) : (
             <div className={cls} aria-label={`Nível ${level}`}>{inner}</div>
           );

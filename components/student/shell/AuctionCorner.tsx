@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { CoinIcon } from '@/components/ui/game';
+import { playSound } from '@/components/ui/game/sound-store';
 import type { AuctionItem } from '@/components/auction/AuctionSection';
 import { countdownText, itemEmoji } from '../auction/copy';
 
@@ -29,8 +30,8 @@ export function AuctionCorner({ onOpen }: { onOpen: () => void }) {
 
   const item = count ? items![i % count] : null;
   return (
-    <button type="button" onClick={onOpen} data-testid="home-auction-corner" aria-label={item ? `Leilão: ${item.title}, lance atual ${item.currentBid} fichas` : 'Leilão'}
-      className="flex min-h-28 w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-game-lg border-2 border-b-4 border-game-line bg-game-surface p-2 text-center text-game-ink transition-transform active:translate-y-0.5 active:border-b-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none">
+    <button type="button" onClick={() => { playSound('tap'); onOpen(); }} data-testid="home-auction-corner" aria-label={item ? `Leilão: ${item.title}, lance atual ${item.currentBid} fichas` : 'Leilão'}
+      className="game-btn game-press flex min-h-28 w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-game-lg border-2 border-game-line bg-game-surface-2 p-2 text-center text-game-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white">
       {!item ? (
         <>
           <span aria-hidden="true" className="text-4xl">🔨</span>

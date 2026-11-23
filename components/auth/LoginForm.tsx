@@ -52,9 +52,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             </div>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Painel Bíblia 3D</h1>
-          <p className="mt-1 text-xs text-slate-400">
-            Acesse com seu e-mail institucional para entrar no seu ambiente
-          </p>
         </div>
 
         {error && (
@@ -135,9 +132,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           </button>
         </form>
 
-        <div className="mt-4 text-center text-[10px] text-slate-500">
-          O sistema identifica automaticamente o perfil de <span className="text-slate-400 font-medium">Aluno</span>, <span className="text-slate-400 font-medium">Professor</span> ou <span className="text-slate-400 font-medium">Diretor</span>.
-        </div>
       </div>
     </div>
   );

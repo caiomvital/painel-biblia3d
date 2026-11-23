@@ -1,51 +1,22 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { BookIcon, Button, GamepadIcon, GavelIcon, LiveMascot, MASCOT_NAME, MoreIcon, SunIcon, TargetIcon, TrophyIcon } from '@/components/ui/game';
+import { Button, GamepadIcon, GavelIcon, LiveMascot, MASCOT_NAME, MoreIcon } from '@/components/ui/game';
+import { playSound } from '@/components/ui/game/sound-store';
 import type { KidsHomeData } from '../kids-api';
 import { AuctionCorner } from './AuctionCorner';
 import { ChestCard } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
 import { MyDataSheet } from './MyDataSheet';
+import { JourneyButton } from './JourneyButton';
 import type { View } from './views';
-
-function BigAction({ icon, title, hint, onClick, disabled, highlight, testId }: {
-  icon: React.ReactNode; title: string; hint: string; onClick: () => void; disabled?: boolean; highlight?: boolean; testId: string;
-}) {
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} data-testid={testId}
-      className={`flex w-full items-center gap-4 rounded-game-lg border-2 border-b-4 p-4 text-left font-[family-name:var(--font-game-body)] transition-transform active:translate-y-0.5 active:border-b-2 disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none ${
-        highlight ? 'border-game-primary-deep bg-game-primary text-game-ink-on-light' : 'border-game-line bg-game-surface text-game-ink'}`}>
-      <span className={`flex size-16 shrink-0 items-center justify-center rounded-full border-b-4 text-4xl ${highlight ? 'border-game-primary-deep bg-white/30' : 'border-game-line bg-game-surface-2 text-game-primary'}`}>{icon}</span>
-      <span className="min-w-0">
-        <span className="block font-[family-name:var(--font-game-title)] text-3xl leading-tight tracking-wide">{title}</span>
-        <span className={`block text-base ${highlight ? 'text-game-ink-on-light/80' : 'text-game-ink-dim'}`}>{hint}</span>
-      </span>
-    </button>
-  );
-}
 
 function Tile({ icon, title, onClick, testId }: { icon: React.ReactNode; title: string; onClick: () => void; testId: string }) {
   return (
-    <button type="button" onClick={onClick} data-testid={testId}
-      className="flex min-h-28 flex-col items-center justify-center gap-1 rounded-game-lg border-2 border-b-4 border-game-line bg-game-surface p-3 text-game-ink transition-transform active:translate-y-0.5 active:border-b-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none">
+    <button type="button" onClick={() => { playSound('tap'); onClick(); }} data-testid={testId}
+      className="game-btn game-press flex min-h-28 flex-col items-center justify-center gap-1 rounded-game-lg border-2 border-game-line bg-game-surface-2 p-3 text-game-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white">
       <span className="text-5xl text-game-primary">{icon}</span>
       <span className="font-[family-name:var(--font-game-title)] text-2xl tracking-wide">{title}</span>
-    </button>
-  );
-}
-
-/** Botão grande da grade da tela inicial: ícone em cima, nome e uma dica curta. */
-function GridButton({ icon, title, hint, onClick, disabled, highlight, testId }: {
-  icon: React.ReactNode; title: string; hint: string; onClick: () => void; disabled?: boolean; highlight?: boolean; testId: string;
-}) {
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} data-testid={testId}
-      className={`flex min-h-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-game-lg border-4 border-b-[7px] p-3 text-center font-[family-name:var(--font-game-body)] transition-transform active:translate-y-0.5 active:border-b-4 disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none ${
-        highlight ? 'border-game-primary-deep bg-game-primary text-game-ink-on-light' : 'border-game-line bg-game-surface text-game-ink'}`}>
-      <span className={`text-5xl [@media(max-height:700px)]:text-4xl ${highlight ? '' : 'text-game-primary'}`}>{icon}</span>
-      <span className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide [@media(max-height:700px)]:text-xl">{title}</span>
-      <span className={`text-sm leading-tight [@media(max-height:700px)]:hidden ${highlight ? 'text-game-ink-on-light/80' : 'text-game-ink-dim'}`}>{hint}</span>
     </button>
   );
 }
@@ -108,15 +79,15 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
         </button>
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 pt-2">
-        <GridButton testId="home-day" icon={<SunIcon />} title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
-        <GridButton testId="home-learned" icon={<BookIcon />} title="O que aprendi"
+      <div className="flex min-h-0 flex-1 flex-col gap-3 pb-2 pt-1">
+        <JourneyButton testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} className="flex-1" />
+        <JourneyButton testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
-          onClick={() => onGo('learned')} disabled={!home.lesson} highlight={lessonOpen} />
-        <GridButton testId="home-daily" icon={<TargetIcon />} title="Desafio"
+          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="flex-1" />
+        <JourneyButton testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
           hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-          onClick={() => onGo('quests')} highlight={quizPending} />
-        <GridButton testId="home-live" icon={<TrophyIcon />} title="Quiz ao vivo" hint="Entre com o PIN" onClick={() => onGo('live')} />
+          onClick={() => onGo('quests')} glow={quizPending} className="flex-[1.35]" />
+        <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN" onClick={() => onGo('live')} live className="flex-1" />
       </div>
         </div>
       ) : (
@@ -132,20 +103,20 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
         <p className="text-game-ink-dim">{MASCOT_NAME} está com você!</p>
       </div>
 
-      <div className="space-y-3">
-        <BigAction testId="home-day" icon={<SunIcon />} title="Dia" hint="Veja o que tem para hoje" onClick={() => onGo('day')} />
-        <BigAction testId="home-learned" icon={<BookIcon />} title="O que aprendi"
+      <div className="space-y-3 pb-1">
+        <JourneyButton testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="Veja o que tem para hoje" onClick={() => onGo('day')} className="h-24" />
+        <JourneyButton testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte o que você aprendeu' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando o professor registrar a aula'}
-          onClick={() => onGo('learned')} disabled={!home.lesson} highlight={lessonOpen} />
-        <BigAction testId="home-daily" icon={<TargetIcon />} title="Desafio"
+          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="h-24" />
+        <JourneyButton testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
           hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-          onClick={() => onGo('quests')} highlight={quizPending} />
+          onClick={() => onGo('quests')} glow={quizPending} className="h-28" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <Tile testId="home-games" icon={<GamepadIcon />} title="Jogos" onClick={() => onGo('games')} />
         <Tile testId="home-auction" icon={<GavelIcon />} title="Leilão" onClick={() => onGo('auction')} />
-        <div className="col-span-2"><BigAction testId="home-live" icon={<TrophyIcon />} title="Quiz ao vivo" hint="Entre com o PIN do professor" onClick={() => onGo('live')} /></div>
+        <div className="col-span-2"><JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN do professor" onClick={() => onGo('live')} live className="h-24" /></div>
       </div>
         </>
       )}
