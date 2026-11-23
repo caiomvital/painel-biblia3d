@@ -10,7 +10,7 @@ import { ThemeBackdrop } from './themes/ThemeBackdrop';
 import { hasScene } from './themes/scenes';
 import { ThemesScreen } from './themes/ThemesScreen';
 import {
-  Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, MascotLookProvider, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, useGameSound,
+  Button, Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, MoreIcon, MascotLookProvider, RewardPop, RewardSummary, SoundToggle, StarIcon, TrophyIcon, TabBar, TargetIcon, useGameSound,
 } from '@/components/ui/game';
 import { levelProgress } from '@/lib/level';
 import type { PanelTarget } from '@/lib/panel-navigation';
@@ -21,6 +21,7 @@ import { kidsCall } from './kids-api';
 import { useKidsHome, type PointsGain } from './useKidsHome';
 import { AuctionScreen } from './shell/AuctionScreen';
 import { HomeScreen } from './shell/HomeScreen';
+import { MyDataSheet } from './shell/MyDataSheet';
 import { LiveQuizScreen } from './live/LiveQuizScreen';
 import { NoticesDialog, useUnreadNotices } from './shell/NoticesDialog';
 import { ProfileScreen } from './shell/ProfileScreen';
@@ -46,6 +47,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [noticesOpen, setNoticesOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [noticeVersion, setNoticeVersion] = useState(0);
   const unread = useUnreadNotices(noticeVersion);
   const { play } = useGameSound();
@@ -124,7 +126,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
       </div>
     );
   } else if (view === 'home') {
-    screen = <HomeScreen home={home} celebrate={celebrate} unread={unread} onGo={go} onOpenNotices={() => setNoticesOpen(true)}
+    screen = <HomeScreen home={home} celebrate={celebrate} onGo={go}
       onNotice={setNotice} onError={setError} onRefresh={reload} />;
   } else if (view === 'quests') {
     screen = <ChallengeScreen home={home} onError={setError} onRefresh={reload} onReward={onReward} />;
@@ -155,7 +157,15 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
         <ThemeBackdrop themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <ThemeApplier themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <LevelEffect effect={preferences.levelEffect} burst={burst} />
-        <HUD coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<SoundToggle />}
+        <HUD coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<>
+          <SoundToggle className="size-10!" />
+          {home && (
+            <Button variant="ghost" size="icon" onClick={() => setMenuOpen(true)} aria-label="Meus dados e mais" data-testid="home-menu" className="relative size-10!">
+              <MoreIcon />
+              {unread ? <span className="absolute -right-1 -top-1 size-4 rounded-full bg-game-danger" aria-hidden /> : null}
+            </Button>
+          )}
+        </>}
           onProfile={home ? () => go('profile') : undefined} profileActive={parentTab(view) === 'profile'} />
         <RewardPop reward={reward} onDone={() => setReward(null)} />
         <main className="mx-auto max-w-3xl space-y-4 px-4 py-4">
@@ -171,6 +181,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
             progress={home ? (() => { const p = levelProgress(home.points); return { value: p.xpIntoLevel, max: p.xpForLevel }; })() : undefined}
             onContinue={closeSummary} />
         )}
+        {menuOpen && home && <MyDataSheet home={home} unread={unread} onGo={go} onOpenNotices={() => setNoticesOpen(true)} onLogout={onLogout} onClose={() => setMenuOpen(false)} />}
         {noticesOpen && <NoticesDialog onClose={() => setNoticesOpen(false)} onRead={() => setNoticeVersion((v) => v + 1)} />}
       </div>
       </MascotLookProvider>
