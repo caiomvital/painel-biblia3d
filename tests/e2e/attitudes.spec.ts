@@ -120,7 +120,7 @@ test("aluno vê a Tela de Resultado ao entrar, só com os totais dele, e não re
   const dialog = page.getByRole("dialog", { name: "BOA ATITUDE!" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByTestId("reward-total")).toContainText("+20", { timeout: 15_000 });
-  await expect(dialog).not.toContainText(/professor|colega/i);
+  await expect(dialog).not.toContainText(/colega/i); // só a frase genérica do Davi cita "professor", nunca quem deu a atitude
   if (process.env.B3D_SHOTS_DIR) {
     await page.setViewportSize({ width: 360, height: 740 });
     await page.waitForTimeout(3500);

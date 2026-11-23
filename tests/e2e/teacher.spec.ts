@@ -1,3 +1,4 @@
+import { dismissTour } from "./tour";
 import { test as base, expect, type Page } from "@playwright/test";
 import { db, ids, password } from "./data";
 const test = base.extend<{ health: void }>({
@@ -12,7 +13,9 @@ const test = base.extend<{ health: void }>({
       page.on("response", (r) => {
         if (
           r.status() >= 400 &&
-          !(new URL(r.url()).pathname === "/api/auth/me" && r.status() === 401)
+          !(new URL(r.url()).pathname === "/api/auth/me" && r.status() === 401)
+          // o painel de contas de teste desligado responde 404 de propósito
+          && !(new URL(r.url()).pathname === "/api/test-accounts" && r.status() === 404)
         )
           errors.push(`${new URL(r.url()).pathname}: ${r.status()}`);
       });
@@ -32,7 +35,8 @@ async function login(page: Page, project: string, role = "teacher") {
       r.url().endsWith("/api/auth/login") && r.request().method() === "POST",
   );
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  expect((await response).status()).toBe(200);
+  expect((await response).status()).toBe(200);
+  await dismissTour(page);
   await expect(
     page.getByRole("heading", { name: "Painel do Professor" }),
   ).toBeVisible();
