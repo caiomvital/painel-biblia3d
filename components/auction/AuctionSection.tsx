@@ -290,22 +290,40 @@ export const AuctionSection: React.FC<AuctionSectionProps> = ({
 
   return (
     <div className="space-y-4" data-testid="auction-screen">
-      <div>
-        <h1 className="font-[family-name:var(--font-game-title)] text-3xl tracking-wide">{T.title}</h1>
+      {/* No computador o saldo vai para uma coluna ao lado e os números do leilão preenchem a faixa de cima. */}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-x-5">
+      <div className="lg:col-start-1">
+        <h1 className="font-[family-name:var(--font-game-title)] text-3xl tracking-wide lg:text-4xl">{T.title}</h1>
         <p className="text-game-ink-dim">{T.intro}</p>
       </div>
 
-      <WindowNotice window={bidWindow} />
+      <div className="lg:col-start-1"><WindowNotice window={bidWindow} /></div>
 
-      <BalanceBar available={studentCoins.availableCoins} reserved={studentCoins.reservedCoins} total={studentCoins.coinBalance} />
+      <div className="lg:col-start-2 lg:row-span-4 lg:row-start-1">
+        <BalanceBar available={studentCoins.availableCoins} reserved={studentCoins.reservedCoins} total={studentCoins.coinBalance} />
+      </div>
 
-      <div>
+      <div className="hidden grid-cols-3 gap-3 lg:col-start-1 lg:grid" data-testid="auction-stats">
+        {[
+          ['Prêmios abertos', items.filter((i) => i.endsInSeconds > 0).length],
+          ['Você está liderando', items.filter((i) => i.isMyHighestBid).length],
+          ['Meus lances', myBids.length],
+        ].map(([label, value]) => (
+          <div key={label as string} className="rounded-game-lg border-2 border-game-line bg-game-surface px-4 py-3">
+            <p className="text-sm text-game-ink-dim">{label}</p>
+            <p className="font-[family-name:var(--font-game-title)] text-3xl leading-tight">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="lg:col-start-1">
         <Button variant="ghost" aria-expanded={showHow} aria-controls="auction-how" onClick={() => setShowHow((v) => !v)}>{T.howTitle}</Button>
         {showHow && (
           <ul id="auction-how" className="mt-2 list-disc space-y-1 rounded-game-lg bg-game-surface p-4 pl-8 text-game-ink-dim">
             {howLines(bidWindow).map((line) => <li key={line}>{line}</li>)}
           </ul>
         )}
+      </div>
       </div>
 
       {notice && (
@@ -328,7 +346,7 @@ export const AuctionSection: React.FC<AuctionSectionProps> = ({
         items.length === 0 ? (
           <p className="py-8 text-center text-game-ink-dim">{T.noItems}</p>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {items.map((item) => (
               <ItemCard key={item.id} item={item} balance={currentBalance} withdrawing={withdrawing === item.id}
                 onBid={handleOpenBidModal} onWithdraw={handleWithdraw} />
