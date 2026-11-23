@@ -50,6 +50,8 @@ export interface MascotProps {
   className?: string;
   /** Texto para leitores de tela. Vazio = decorativo. */
   label?: string;
+  /** Sem o quadrado de fundo e a moldura escolhidos no guarda-roupa (o robô fica solto na tela). */
+  bare?: boolean;
 }
 
 function Eyes({ pose }: { pose: MascotPose }) {
@@ -80,14 +82,14 @@ function Eyes({ pose }: { pose: MascotPose }) {
 }
 
 /** Robô parado, piscando ou comemorando. Componente só de desenho (sem animação própria). */
-export function Mascot({ pose = 'idle', size = 10, className, label = '', look: lookProp }: MascotProps) {
+export function Mascot({ pose = 'idle', size = 10, className, label = '', look: lookProp, bare = false }: MascotProps) {
   const ctxLook = useContext(MascotLookContext);
   const look = lookProp ?? ctxLook;
   const gid = useId();
   const colorTint = tintOf(look.color);
   const pal = { head: colorTint?.[0] ?? C.head, headShade: colorTint?.[1] ?? C.headShade };
-  const bg = tintOf(look.background);
-  const frame = tintOf(look.frame);
+  const bg = bare ? null : tintOf(look.background);
+  const frame = bare ? null : tintOf(look.frame);
   const acc = look.accessory ? tintOf(look.accessory) : null;
   const cheer = pose === 'cheer';
   const decorative = label === '';

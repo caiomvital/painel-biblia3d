@@ -85,13 +85,13 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
 
       {/* O mascote fica sozinho embaixo, chamando a atenção (pula enquanto o Desafio de hoje não foi feito). */}
       <div className={`flex shrink-0 justify-center ${quizPending ? 'game-bounce' : ''}`}>
-        <LiveMascot size={3.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
+        <LiveMascot bare size={4.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
       </div>
         </div>
       ) : (
         <>
       <div className="relative flex flex-col items-center text-center">
-        <LiveMascot size={7} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
+        <LiveMascot bare size={7} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
         <h1 className="mt-1 font-[family-name:var(--font-game-title)] text-3xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
         <p className="text-game-ink-dim">{MASCOT_NAME} está com você!</p>
       </div>
