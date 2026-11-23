@@ -22,6 +22,7 @@ import { useKidsHome, type PointsGain } from './useKidsHome';
 import { AuctionScreen } from './shell/AuctionScreen';
 import { HomeScreen } from './shell/HomeScreen';
 import { MyDataSheet } from './shell/MyDataSheet';
+import { SideNav } from './shell/SideNav';
 import { LiveQuizScreen } from './live/LiveQuizScreen';
 import { NoticesDialog, useUnreadNotices } from './shell/NoticesDialog';
 import { ProfileScreen } from './shell/ProfileScreen';
@@ -157,7 +158,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
         <ThemeBackdrop themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <ThemeApplier themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <LevelEffect effect={preferences.levelEffect} burst={burst} />
-        <HUD coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<>
+        <HUD wide className="lg:pl-64" coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<>
           <SoundToggle className="size-10!" />
           {home && (
             <Button variant="ghost" size="icon" onClick={() => setMenuOpen(true)} aria-label="Meus dados e mais" data-testid="home-menu" className="relative size-10!">
@@ -168,12 +169,13 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
         </>}
           onProfile={home ? () => go('profile') : undefined} profileActive={parentTab(view) === 'profile'} />
         <RewardPop reward={reward} onDone={() => setReward(null)} />
-        <main className="mx-auto max-w-3xl space-y-4 px-4 py-4">
+        <main className="mx-auto max-w-3xl space-y-4 px-4 py-4 lg:ml-64 lg:max-w-none lg:px-8 lg:py-6"><div className={`mx-auto w-full space-y-4 ${view === 'home' || view === 'games' || view === 'auction' ? 'max-w-7xl' : 'max-w-4xl'}`}>
           {error && <div role="alert" className="rounded-game border-2 border-game-danger bg-game-surface p-3 font-semibold">{error}</div>}
           {notice && <div role="status" className="rounded-game border-2 border-game-success bg-game-surface p-3 font-semibold">{notice}</div>}
           {screen}
-        </main>
-        <TabBar items={TABS} activeId={parentTab(view)} onChange={(id) => go(id as View)} />
+        </div></main>
+        <SideNav active={view === 'day' || view === 'learned' || view === 'wardrobe' || view === 'themes' ? parentTab(view) : view} onChange={go} unread={unread} onNotices={() => setNoticesOpen(true)} onLogout={onLogout} />
+        <TabBar className="lg:hidden" items={TABS} activeId={parentTab(view)} onChange={(id) => go(id as View)} />
         {summary && (
           <RewardSummary title={summary.title} subtitle={summary.subtitle} xp={summary.xp} totalCoins={summary.totalCoins}
             items={summary.items.map((it) => ({ ...it, icon: ICONS[it.icon] }))} levelUp={summary.levelUp}
