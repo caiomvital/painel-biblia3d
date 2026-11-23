@@ -5,7 +5,7 @@ import { matchesQuestion } from "@/lib/question-bank";
 
 type KStudent = {
   id: string; name: string; guardianName: string | null; guardianPhone: string | null;
-  birthDate: string | null; points: number; profileCompleted: boolean; accessPending: boolean; className: string | null;
+  birthDate: string | null; classId?: string | null; points: number; profileCompleted: boolean; accessPending: boolean; className: string | null;
 };
 type Question = {
   id: string; text: string; options: string[]; correctIndex: number; topic: string | null;
@@ -26,6 +26,7 @@ const statusText: Record<string, string> = { PENDING: "Aguardando revisão", APP
 
 export function DirectorKids({ onCreateStudent }: { onCreateStudent?: () => void }) {
   const [students, setStudents] = useState<KStudent[]>([]);
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [prize, setPrize] = useState<Prize>(null);
   const [ratings, setRatings] = useState<Ratings | null>(null);
@@ -46,7 +47,7 @@ export function DirectorKids({ onCreateStudent }: { onCreateStudent?: () => void
         api("/api/director/kids/students"), api("/api/director/kids/questions"), api("/api/director/kids/prize"),
         api("/api/director/kids/ratings"), api("/api/director/kids/games"),
       ]);
-      setStudents(s.students); setQuestions(q.questions); setPrize(p.prize); setRatings(r); setGames(g.games); setError("");
+      setStudents(s.students); setClasses(s.classes ?? []); setQuestions(q.questions); setPrize(p.prize); setRatings(r); setGames(g.games); setError("");
     } catch (e: any) { setError(e.message); }
   }, []);
   useEffect(() => { const t = setTimeout(reload, 0); return () => clearTimeout(t); }, [reload]);
@@ -62,7 +63,7 @@ export function DirectorKids({ onCreateStudent }: { onCreateStudent?: () => void
     run(async () => {
       await api("/api/director/kids/students", "PATCH", {
         id: editing!.id, name: f.get("name"), guardianName: f.get("guardianName"),
-        guardianPhone: f.get("guardianPhone"), birthDate: f.get("birthDate"),
+        guardianPhone: f.get("guardianPhone"), birthDate: f.get("birthDate"), classId: f.get("classId"),
       });
       setEditing(null);
     }, "Aluno atualizado.");
@@ -228,6 +229,11 @@ export function DirectorKids({ onCreateStudent }: { onCreateStudent?: () => void
             <label className="text-xs text-slate-300">Nome do responsável<input name="guardianName" defaultValue={editing.guardianName ?? ""} className={fieldClass} /></label>
             <label className="text-xs text-slate-300">Telefone do responsável<input name="guardianPhone" inputMode="numeric" required defaultValue={editing.guardianPhone ?? ""} className={fieldClass} /></label>
             <label className="text-xs text-slate-300">Nascimento<input name="birthDate" type="date" defaultValue={editing.birthDate ?? ""} className={fieldClass} /></label>
+            <label className="text-xs text-slate-300 sm:col-span-2">Turma (trocar passa a criança para outra turma; o histórico fica guardado)
+              <select name="classId" data-testid="student-class" defaultValue={editing.classId ?? ""} className={fieldClass}>
+                {!editing.classId && <option value="">Sem turma</option>}
+                {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select></label>
             <div className="flex flex-wrap gap-2 sm:col-span-2">
               <button className={buttonClass} type="submit">Salvar</button>
               <button className={buttonClass} type="button" onClick={() => setEditing(null)}>Cancelar</button>

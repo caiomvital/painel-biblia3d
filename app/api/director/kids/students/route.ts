@@ -3,6 +3,8 @@ import { getSession, hashPassword } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { parseBirthDate } from '@/lib/kids-service';
 import { DEFAULT_KID_PASSWORD, directorResetData } from '@/lib/password-rules';
+import { moveStudentToClassByDirector } from '@/lib/academic-service';
+import { trackedChange } from '@/lib/panel-events';
 
 async function director() {
   const s = await getSession();
@@ -17,9 +19,11 @@ export async function GET() {
     include: { user: { select: { name: true } }, enrollments: { where: { status: 'ACTIVE' }, include: { class: { select: { name: true } } } } },
     orderBy: { user: { name: 'asc' } },
   });
+  const classes = await prisma.class.findMany({ where: { status: 'ACTIVE' }, select: { id: true, name: true }, orderBy: { name: 'asc' } });
   return NextResponse.json({
+    classes,
     students: rows.map((s) => ({
-      id: s.id, name: s.user.name, guardianName: s.guardianName, guardianPhone: s.guardianPhone,
+      id: s.id, classId: s.enrollments[0]?.classId ?? null, name: s.user.name, guardianName: s.guardianName, guardianPhone: s.guardianPhone,
       birthDate: s.birthDate ? s.birthDate.toISOString().slice(0, 10) : null,
       points: s.currentXp, profileCompleted: s.profileCompleted, accessPending: s.accessPending,
       className: s.enrollments[0]?.class.name ?? null,
@@ -50,6 +54,12 @@ export async function PATCH(req: NextRequest) {
     if (Object.keys(data).length) await prisma.student.update({ where: { id: student.id }, data });
     if (typeof b.name === 'string' && b.name.trim().length >= 2) {
       await prisma.user.update({ where: { id: student.userId }, data: { name: b.name.trim().slice(0, 120) } });
+    }
+    if (typeof b.classId === 'string' && b.classId) {
+      const current = await prisma.enrollment.findFirst({ where: { studentId: student.id, status: 'ACTIVE' }, select: { classId: true } });
+      if (current?.classId !== b.classId) {
+        await trackedChange(session, 'Aluno trocado de turma', student.id, b.reason, () => moveStudentToClassByDirector(student.id, b.classId));
+      }
     }
     if (b.resetPassword === true) {
       await prisma.user.update({
