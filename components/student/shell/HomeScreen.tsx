@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Button, GamepadIcon, GavelIcon, LiveMascot, MASCOT_NAME, MoreIcon } from '@/components/ui/game';
 import { playSound } from '@/components/ui/game/sound-store';
 import type { KidsHomeData } from '../kids-api';
-import { AuctionCorner } from './AuctionCorner';
 import { ChestCard } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
 import { MyDataSheet } from './MyDataSheet';
@@ -24,6 +23,7 @@ function Tile({ icon, title, onClick, testId }: { icon: React.ReactNode; title: 
 /**
  * No app instalado (celular) a tela inicial usa a grade com Dia, O que aprendi e Desafio (em destaque, largo).
  * O Quiz ao vivo é da sala de aula, então só aparece no navegador comum, que é a versão em lista.
+ * No celular o Desafio fica em cima e o mascote sozinho embaixo.
  */
 function subscribeStandalone(cb: () => void) {
   const mq = window.matchMedia('(display-mode: standalone)');
@@ -68,28 +68,31 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
   return (
     <div className="space-y-4">
       {pwa ? (
-        <div className="flex h-[calc(100dvh-var(--home-chrome,15rem))] min-h-72 flex-col gap-4">
-      <div className="relative grid shrink-0 grid-cols-2 items-center gap-3">
-        <div className="flex min-w-0 flex-col items-center text-center">
-          <LiveMascot size={5.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
-          <h1 className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
-        </div>
-        <AuctionCorner onOpen={() => onGo('auction')} />
+        <div className="flex h-[calc(100dvh-var(--home-chrome,15rem))] min-h-72 flex-col gap-3">
+      <div className="relative flex shrink-0 items-center justify-center">
         <button type="button" onClick={() => setMenu(true)} aria-label="Meus dados e mais" data-testid="home-menu"
-          className="absolute left-0 top-0 flex size-10 items-center justify-center rounded-full border-b-4 border-game-line bg-game-surface-2 text-xl text-game-ink focus-visible:outline-3 focus-visible:outline-white">
+          className="game-btn game-press absolute left-0 top-0 flex size-10 items-center justify-center rounded-full border-2 border-game-line bg-game-surface-2 text-xl text-game-ink focus-visible:outline-3 focus-visible:outline-white">
           <MoreIcon />
           {unread ? <span className="absolute -right-1 -top-1 size-4 rounded-full bg-game-danger" aria-hidden /> : null}
         </button>
+        <h1 className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 pb-2 pt-1">
+      {/* O Desafio é a atração principal: vai na frente, em cima e largo. */}
+      <JourneyButton grid testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
+        hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
+        onClick={() => onGo('quests')} glow={quizPending} className="flex-[1.3]" />
+
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 pt-1">
         <JourneyButton grid testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
         <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
           onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} />
-        <JourneyButton grid testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
-          hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-          onClick={() => onGo('quests')} glow={quizPending} className="col-span-2" />
+      </div>
+
+      {/* O mascote fica sozinho embaixo, chamando a atenção (pula enquanto o Desafio de hoje não foi feito). */}
+      <div className={`flex shrink-0 justify-center ${quizPending ? 'game-bounce' : ''}`}>
+        <LiveMascot size={5.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
       </div>
         </div>
       ) : (

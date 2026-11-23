@@ -93,7 +93,16 @@
   50% { filter: drop-shadow(0 0 0.9rem rgb(255 210 63 / 0.75)); }
 }
 .game-glow { animation: b3d-glow 1.8s ease-in-out infinite; }
+/* Pulinho para chamar a atenção (mascote da tela inicial). */
+@keyframes b3d-bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  70% { transform: translateY(-0.6rem); }
+  80% { transform: translateY(0); }
+  90% { transform: translateY(-0.25rem); }
+}
+.game-bounce { animation: b3d-bounce 2.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
+  .game-bounce { animation: none; }
   .game-press, .game-press:active:not(:disabled) { transition: none; transform: none; }
   .game-glow { animation: none; }
 }
