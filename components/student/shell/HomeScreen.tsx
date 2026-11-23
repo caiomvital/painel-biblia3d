@@ -21,7 +21,10 @@ function Tile({ icon, title, onClick, testId }: { icon: React.ReactNode; title: 
   );
 }
 
-/** No app instalado (PWA) a tela inicial usa a grade; no navegador comum, a versão em lista. */
+/**
+ * No app instalado (celular) a tela inicial usa a grade com Dia, O que aprendi e Desafio (em destaque, largo).
+ * O Quiz ao vivo é da sala de aula, então só aparece no navegador comum, que é a versão em lista.
+ */
 function subscribeStandalone(cb: () => void) {
   const mq = window.matchMedia('(display-mode: standalone)');
   mq.addEventListener('change', cb);
@@ -86,8 +89,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
           onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} />
         <JourneyButton grid testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
           hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-          onClick={() => onGo('quests')} glow={quizPending} />
-        <JourneyButton grid testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN" onClick={() => onGo('live')} live />
+          onClick={() => onGo('quests')} glow={quizPending} className="col-span-2" />
       </div>
         </div>
       ) : (
