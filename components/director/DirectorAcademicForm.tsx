@@ -144,7 +144,7 @@ export default function DirectorAcademicForm({
           ) : (
             <>
               {input("email", "E-mail", "email")}
-              {!editor.id && input("initialPassword", "Senha inicial (6 a 8 caracteres)", "password", process.env.NODE_ENV === "production")}
+              {!editor.id && input("initialPassword", editor.kind === "students" ? "Senha inicial (opcional: em branco, usa \"tecnologia\")" : "Senha inicial (6 a 8 caracteres)", "password", editor.kind !== "students" && process.env.NODE_ENV === "production")}
               {editor.kind === "students" && !editor.id &&
                 select("classId", "Turma", data.classes.map((c) => ({ id: c.id, name: c.name })), false, "Sem turma")}
               {editor.kind === "teachers"

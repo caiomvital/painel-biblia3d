@@ -273,10 +273,48 @@ export async function getQuiz(studentId: string, kind: QuizKindName) {
       pointsAwarded: qd.pointsAwarded, review: review(questions, (qd.answers as number[]) ?? []),
     };
   }
+  // Respostas já dadas (e conferidas na hora): a criança retoma de onde parou e não troca uma resposta já vista.
+  const stored = storedAnswers(qd.answers, questions.length);
   return {
     available: true as const, completed: false as const, total: questions.length,
     questions: questions.map((q) => ({ id: q.id, text: q.text, options: q.options })),
+    checked: questions.flatMap((q, i) => (stored[i] >= 0 ? [{ index: i, chosen: stored[i], correctIndex: q.correctIndex }] : [])),
   };
+}
+
+/** Respostas parciais guardadas em QuizDay.answers (-1 = ainda não respondida). */
+function storedAnswers(raw: unknown, total: number): number[] {
+  const arr = Array.isArray(raw) ? raw : [];
+  return Array.from({ length: total }, (_, i) => (Number.isInteger(arr[i]) && (arr[i] as number) >= 0 && (arr[i] as number) < 4 ? (arr[i] as number) : -1));
+}
+
+/**
+ * Confere uma pergunta na hora (certo ou errado) e trava a resposta: depois de vista, não dá para trocar.
+ * Só se responde na ordem, uma de cada vez. O desafio é concluído (pontos e fichas) em submitQuiz.
+ */
+export async function checkQuizAnswer(studentId: string, kind: QuizKindName, rawIndex: unknown, rawChoice: unknown) {
+  const key = kind === 'daily' ? brazilDay() : brazilWeekKey();
+  const qd = await prisma.quizDay.findUnique({ where: { studentId_day: { studentId, day: key } } });
+  if (!qd) throw new Error('Abra o desafio antes de responder.');
+  if (qd.completedAt) throw new Error('Você já respondeu este desafio.');
+  const questions = await questionsByIds(qd.questionIds);
+  if (!Number.isInteger(rawIndex) || (rawIndex as number) < 0 || (rawIndex as number) >= questions.length) throw new Error('Pergunta inválida.');
+  const index = rawIndex as number;
+  const q = questions[index];
+  const stored = storedAnswers(qd.answers, questions.length);
+  if (stored[index] >= 0) return { chosen: stored[index], correct: stored[index] === q.correctIndex, correctIndex: q.correctIndex };
+  if (stored.slice(0, index).some((a) => a < 0)) throw new Error('Responda na ordem, uma pergunta de cada vez.');
+  if (!Number.isInteger(rawChoice) || (rawChoice as number) < 0 || (rawChoice as number) >= q.options.length) throw new Error('Escolha uma resposta.');
+  const choice = rawChoice as number;
+  stored[index] = choice;
+  const saved = await prisma.quizDay.updateMany({ where: { id: qd.id, completedAt: null, answers: { equals: qd.answers as any } }, data: { answers: stored } });
+  if (saved.count === 0) { // outra aba respondeu ao mesmo tempo: devolve o que ficou valendo
+    const fresh = await prisma.quizDay.findUnique({ where: { id: qd.id } });
+    const now = storedAnswers(fresh?.answers, questions.length)[index];
+    if (now >= 0) return { chosen: now, correct: now === q.correctIndex, correctIndex: q.correctIndex };
+    throw new Error('Não deu certo. Tente de novo.');
+  }
+  return { chosen: choice, correct: choice === q.correctIndex, correctIndex: q.correctIndex };
 }
 
 export async function submitQuiz(studentId: string, kind: QuizKindName, rawAnswers: unknown) {
@@ -289,7 +327,9 @@ export async function submitQuiz(studentId: string, kind: QuizKindName, rawAnswe
       !rawAnswers.every((a) => Number.isInteger(a) && a >= 0 && a < 4)) {
     throw new Error('Responda todas as perguntas.');
   }
-  const answers = rawAnswers as number[];
+  // o que a criança já viu corrigido vale como está (travado); o resto vem do envio
+  const locked = storedAnswers(qd.answers, questions.length);
+  const answers = (rawAnswers as number[]).map((a, i) => (locked[i] >= 0 ? locked[i] : a));
   const score = questions.filter((q, i) => q.correctIndex === answers[i]).length;
   const points = quizBreakdown(questions.map((q, i) => q.correctIndex === answers[i])).total;
   const done = await prisma.quizDay.updateMany({

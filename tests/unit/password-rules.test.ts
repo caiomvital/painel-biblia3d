@@ -57,3 +57,8 @@ describe("redefinição pelo diretor", () => {
     expect(data.sessionVersion).toEqual({ increment: 1 });
   });
 });
+
+test("a senha padrão nova (tecnologia) não é aceita como senha da criança", () => {
+  expect(DEFAULT_KID_PASSWORD).toBe("tecnologia");
+  expect(firstPasswordProblem("tecnologia")).toBe(MSG.easy);
+});

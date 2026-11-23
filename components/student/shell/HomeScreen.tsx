@@ -81,9 +81,9 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
       {/* O Desafio é a atração principal: vai na frente, em cima e largo. */}
       <JourneyButton grid testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
         hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-        onClick={() => onGo('quests')} glow={quizPending} className="flex-[1.3]" />
+        onClick={() => onGo('quests')} glow={quizPending} className="flex-1" />
 
-      <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 pt-1">
+      <div className="grid min-h-0 flex-[1.5] grid-cols-2 gap-3 pt-1">
         <JourneyButton grid testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
         <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
@@ -92,7 +92,7 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
 
       {/* O mascote fica sozinho embaixo, chamando a atenção (pula enquanto o Desafio de hoje não foi feito). */}
       <div className={`flex shrink-0 justify-center ${quizPending ? 'game-bounce' : ''}`}>
-        <LiveMascot size={5.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
+        <LiveMascot size={3.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
       </div>
         </div>
       ) : (

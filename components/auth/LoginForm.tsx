@@ -69,7 +69,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             ))}
           </div>
           <Button size="lg" className="mt-5 w-full" onClick={() => setStep('form')} data-testid="login-continuar">Entrar</Button>
-          <p className="mt-3 text-sm text-game-ink-dim">Professor também vale para a direção.</p>
         </div>
         <div className="mt-4 flex justify-center"><PWAInstallButton /></div>
       </div>

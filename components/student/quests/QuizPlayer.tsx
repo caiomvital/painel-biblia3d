@@ -13,7 +13,7 @@ type Review = { id: string; text: string; options: string[]; correctIndex: numbe
 type Question = { id: string; text: string; options: string[] };
 type QuizState =
   | { available: false }
-  | { available: true; completed: false; total: number; questions: Question[] }
+  | { available: true; completed: false; total: number; questions: Question[]; checked?: { index: number; chosen: number; correctIndex: number }[] }
   | { available: true; completed: true; score: number; total: number; pointsAwarded: number; review: Review[] };
 type Result = { score: number; total: number; pointsAwarded: number; coinsAwarded: number; review: Review[] };
 
@@ -29,6 +29,9 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [sending, setSending] = useState(false);
+  // resposta já conferida na hora, por pergunta: a criança vê certo ou errado antes de seguir
+  const [feedback, setFeedback] = useState<Record<number, { chosen: number; correctIndex: number }>>({});
+  const [checking, setChecking] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [shown, setShown] = useState(0);
   const [phase, setPhase] = useState<'play' | 'reveal' | 'review'>('play');
@@ -45,11 +48,27 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
     kidsCall(`/api/kids/quiz?kind=${kind}`).then((q: QuizState) => {
       if (!alive) return;
       setQuiz(q);
-      if (q.available && !q.completed) setAnswers(new Array(q.total).fill(-1));
+      if (q.available && !q.completed) {
+        const fb: Record<number, { chosen: number; correctIndex: number }> = {};
+        const ans: number[] = new Array(q.total).fill(-1);
+        for (const c of q.checked ?? []) { fb[c.index] = { chosen: c.chosen, correctIndex: c.correctIndex }; ans[c.index] = c.chosen; }
+        setAnswers(ans); setFeedback(fb);
+        setStep(Math.min(q.total - 1, (q.checked ?? []).length)); // retoma na primeira pergunta ainda sem resposta
+      }
       if (q.available && q.completed) setPhase('review');
     }).catch((e) => { if (alive) onError(e instanceof Error ? e.message : 'Erro.'); });
     return () => { alive = false; };
   }, [kind, onError]);
+
+  const check = async () => {
+    setChecking(true); onError('');
+    try {
+      const r: { chosen: number; correct: boolean; correctIndex: number } = await kidsCall('/api/kids/quiz', 'POST', { kind, check: true, index: step, choice: answers[step] });
+      setFeedback((f) => ({ ...f, [step]: { chosen: r.chosen, correctIndex: r.correctIndex } }));
+      setAnswers((a) => a.map((v, i) => (i === step ? r.chosen : v)));
+      play(r.correct ? 'success' : 'tap');
+    } catch (e) { onError(e instanceof Error ? e.message : 'Erro.'); } finally { setChecking(false); }
+  };
 
   const send = async () => {
     setSending(true); onError('');
@@ -134,25 +153,41 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
   if (quiz.available && !quiz.completed) {
     const q = quiz.questions[step];
     const last = step === quiz.total - 1;
+    const fb = feedback[step];
+    const right = !!fb && fb.chosen === fb.correctIndex;
     return (
       <Card title={kind === 'daily' ? 'Desafio do dia' : 'Desafio da semana'} data-testid={`quiz-${kind}`}>
-        {step === 0 && <DaviTutor text={DAVI_QUIZ_INTRO} mood="feliz" className="mb-3" />}
-        {step === 0 && (
+        {step === 0 && !fb && <DaviTutor text={DAVI_QUIZ_INTRO} mood="feliz" className="mb-3" />}
+        {step === 0 && !fb && (
           <p className="mb-3 text-sm text-game-ink-dim">
             Ganhe pontos e fichas: {POINTS_WRONG} ponto por responder, {POINTS_CORRECT} por acertar e {POINTS_COMPLETE} por concluir!
           </p>
         )}
-        <fieldset key={q.id} className="space-y-2">
+        <p className="mb-1 text-sm font-semibold text-game-ink-dim">Pergunta {step + 1} de {quiz.total}</p>
+        <fieldset key={q.id} className="space-y-2" disabled={!!fb}>
           <legend className="mb-2 text-lg font-semibold">{q.text}</legend>
-          {q.options.map((opt, oi) => (
-            <OptionTile key={oi} type="radio" name={`${kind}-q${step}`} checked={answers[step] === oi}
-              onChange={() => setAnswers((a) => a.map((v, i) => (i === step ? oi : v)))}>{opt}</OptionTile>
-          ))}
+          {q.options.map((opt, oi) => {
+            const state = !fb ? undefined : oi === fb.correctIndex ? 'right' : oi === fb.chosen ? 'wrong' : 'other';
+            return (
+              <OptionTile key={oi} type="radio" name={`${kind}-q${step}`} checked={answers[step] === oi} state={state}
+                onChange={() => setAnswers((a) => a.map((v, i) => (i === step ? oi : v)))}>{opt}</OptionTile>
+            );
+          })}
         </fieldset>
+        {fb && (
+          <p role="status" data-testid="quiz-feedback" className={`mt-3 rounded-game border-2 px-4 py-3 text-lg font-semibold ${right ? 'border-game-success text-game-success' : 'border-game-danger text-game-ink'}`}>
+            {right ? '✔ Acertou! Muito bem!' : `✘ Quase! A resposta certa é: ${q.options[fb.correctIndex]}`}
+          </p>
+        )}
         <div className="mt-4 flex gap-2">
           {step > 0 && <Button variant="ghost" onClick={() => setStep(step - 1)}>Voltar</Button>}
-          <Button size="lg" className="flex-1" disabled={sending || answers[step] < 0}
-            onClick={() => (last ? void send() : setStep(step + 1))}>{sending ? 'Enviando…' : 'Próxima'}</Button>
+          {!fb ? (
+            <Button size="lg" className="flex-1" disabled={checking || answers[step] < 0} onClick={() => void check()}>{checking ? 'Conferindo…' : 'Responder'}</Button>
+          ) : (
+            <Button size="lg" className="flex-1" disabled={sending} onClick={() => (last ? void send() : setStep(step + 1))}>
+              {sending ? 'Enviando…' : last ? 'Ver meus pontos' : 'Próxima'}
+            </Button>
+          )}
         </div>
       </Card>
     );

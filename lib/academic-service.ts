@@ -1,5 +1,6 @@
 import { notifyUsers, notifyClass } from './panel-events';
 import { initialPasswordHash } from "./account-password";
+import { DEFAULT_KID_PASSWORD } from "./password-rules";
 import {lessonTiming} from "./teacher-metrics";
 // lib/academic-service.ts
 import { prisma } from '@/lib/prisma';
@@ -956,7 +957,9 @@ export async function createStudentByDirector(data: {
   if (data.classId && !await prisma.class.findUnique({ where: { id: data.classId } })) throw new Error("Turma inválida.");
   const regNumber = data.registrationNumber || `MAT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-  const defaultPasswordHash = await initialPasswordHash(data.initialPassword);
+  // Sem senha informada, o aluno entra com a senha padrão e é obrigado a criar a própria no primeiro acesso.
+  const useDefaultPassword = !data.initialPassword;
+  const defaultPasswordHash = useDefaultPassword ? await bcrypt.hash(DEFAULT_KID_PASSWORD, 10) : await initialPasswordHash(data.initialPassword);
 
   return await prisma.$transaction(async (tx) => {
     // 1. Criar User
@@ -966,6 +969,7 @@ export async function createStudentByDirector(data: {
         email: normalizedEmail,
         passwordHash: defaultPasswordHash,
         role: 'ALUNO',
+        ...(useDefaultPassword ? { mustChangePassword: true } : {}),
       },
     });
 

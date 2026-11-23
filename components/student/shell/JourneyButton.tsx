@@ -40,9 +40,9 @@ export function JourneyButton({ tone, img, title, hint, onClick, disabled, glow,
           </span>
         )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={img} alt="" draggable={false} className="min-h-0 w-auto max-w-[70%] flex-1 object-contain drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]" />
-        <span className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35),0_0_6px_rgb(0_0_0/0.25)] [@media(max-height:700px)]:text-xl">{title}</span>
-        <span className="text-sm font-semibold leading-tight [text-shadow:0_1px_2px_rgb(0_0_0/0.55)] [@media(max-height:700px)]:hidden">{hint}</span>
+        <img src={img} alt="" draggable={false} className="min-h-10 w-auto max-w-[60%] flex-1 object-contain drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]" />
+        <span className="font-[family-name:var(--font-game-title)] text-xl leading-tight tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35),0_0_6px_rgb(0_0_0/0.25)]">{title}</span>
+        <span className="text-xs font-semibold leading-tight [text-shadow:0_1px_2px_rgb(0_0_0/0.55)] [@media(max-height:640px)]:hidden">{hint}</span>
       </button>
     );
   }

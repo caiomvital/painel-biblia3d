@@ -5,7 +5,7 @@ import { panelButton } from './panel-ui';
 const account = ['Como altero minha senha ou aparência?', 'Em Meu painel → Minha conta, informe a senha atual para definir uma nova; nessa tela também é possível ajustar cor, tamanho do texto e avisos.'] as const;
 const help = {
   DIRETOR: [
-    ['Como cadastro turmas e alunos?', 'Abra Turmas para criar a turma. Em Alunos, toque em Cadastrar aluno, escolha a turma e defina o telefone do responsável: ele é o login da criança, com senha inicial 123.'],
+    ['Como cadastro turmas e alunos?', 'Abra Turmas para criar a turma. Em Alunos, toque em Cadastrar aluno, escolha a turma e defina o telefone do responsável: ele é o login da criança, com senha inicial tecnologia (ela troca no primeiro acesso).'],
     ['Como encontro uma pessoa ou turma?', 'Use Meu painel → Busca para procurar alunos, professores e turmas. A busca respeita as permissões da direção.'],
     ['Como aprovo perguntas e jogos?', 'Em Alunos ficam o banco de perguntas, os jogos enviados pelas crianças e a avaliação dos professores. Aprove ou rejeite por lá.'],
     account,

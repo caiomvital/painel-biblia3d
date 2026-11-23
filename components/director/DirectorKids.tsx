@@ -207,7 +207,7 @@ export function DirectorKids({ onCreateStudent }: { onCreateStudent?: () => void
           <h3 className="text-lg font-bold text-white">Alunos ({students.length})</h3>
           {onCreateStudent && <button className={buttonClass} onClick={onCreateStudent}>Cadastrar aluno</button>}
         </div>
-        <p className="text-xs text-slate-400">O telefone do responsável é o usuário de login da criança (DDD + número, ex.: 81995474295). Senha inicial: 123.</p>
+        <p className="text-xs text-slate-400">O telefone do responsável é o usuário de login da criança (DDD + número, ex.: 81995474295). Senha inicial: tecnologia (a criança troca no primeiro acesso).</p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="text-xs text-slate-400"><tr><th className="py-2">Aluno</th><th>Turma</th><th>Responsável</th><th>Telefone (login)</th><th>Pontos</th><th /></tr></thead>
@@ -232,7 +232,7 @@ export function DirectorKids({ onCreateStudent }: { onCreateStudent?: () => void
               <button className={buttonClass} type="submit">Salvar</button>
               <button className={buttonClass} type="button" onClick={() => setEditing(null)}>Cancelar</button>
               {editing.accessPending && <button className={buttonClass} type="button" onClick={() => run(async () => { await api("/api/director/kids/students", "PATCH", { id: editing.id, release: true }); setEditing(null); }, "Acesso liberado.")}>Liberar acesso</button>}
-              <button className={buttonClass} type="button" onClick={() => run(() => api("/api/director/kids/students", "PATCH", { id: editing.id, resetPassword: true }), "Senha redefinida para 123.")}>Redefinir senha para 123</button>
+              <button className={buttonClass} type="button" onClick={() => run(() => api("/api/director/kids/students", "PATCH", { id: editing.id, resetPassword: true }), "Senha redefinida para tecnologia.")}>Redefinir senha para tecnologia</button>
             </div>
           </form>
         )}

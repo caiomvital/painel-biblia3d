@@ -8,7 +8,7 @@ export const MSG = {
   same: "Escolha uma senha diferente da antiga.",
 } as const;
 
-const BLOCKED = new Set(["123", "123456", "111111", "000000", "654321", "12345678", "1234567", "senha", "senha1", "123abc", "abc123"]);
+const BLOCKED = new Set(["123", "123456", "111111", "000000", "654321", "12345678", "1234567", "senha", "senha1", "123abc", "abc123", "tecnologia"]);
 
 function isRun(text: string): boolean {
   if (text.length < 4) return false;
@@ -50,7 +50,7 @@ export function firstPasswordProblem(password: string, ctx: PasswordContext = {}
 }
 
 /** Senha padrão de aluno (cadastro pelo diretor e redefinição). Nunca é aceita como senha nova. */
-export const DEFAULT_KID_PASSWORD = "123";
+export const DEFAULT_KID_PASSWORD = "tecnologia";
 
 /** Dados gravados quando o diretor redefine a senha de um aluno: volta ao padrão E exige nova troca. */
 export function directorResetData(passwordHash: string) {
