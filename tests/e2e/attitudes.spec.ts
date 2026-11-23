@@ -106,10 +106,11 @@ test("diretor registra em qualquer turma", async ({}, info) => {
 async function loginUi(page: Page, email: string) {
   await page.request.post("/api/auth/logout", { headers: H });
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(email);
-  await page.getByLabel("Senha de Acesso").fill(password);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(email);
+  await page.locator("#login-password").fill(password);
   const response = page.waitForResponse((r) => r.url().endsWith("/api/auth/login") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await response).status()).toBe(200);
 }
 

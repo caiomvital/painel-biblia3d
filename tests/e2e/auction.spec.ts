@@ -11,10 +11,11 @@ const origin = `http://127.0.0.1:${process.env.TEST_APP_PORT ?? 3100}`;
 async function login(page: Page, project: string) {
   await page.request.post("/api/auth/logout", { headers: { Origin: origin } });
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(ids(project).email("student"));
-  await page.getByLabel("Senha de Acesso").fill(password);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(ids(project).email("student"));
+  await page.locator("#login-password").fill(password);
   const response = page.waitForResponse((r) => r.url().endsWith("/api/auth/login") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await response).status()).toBe(200);
 }
 

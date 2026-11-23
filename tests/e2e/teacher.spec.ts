@@ -24,13 +24,14 @@ const test = base.extend<{ health: void }>({
 });
 async function login(page: Page, project: string, role = "teacher") {
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(ids(project).email(role));
-  await page.getByLabel("Senha de Acesso").fill(password);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(ids(project).email(role));
+  await page.locator("#login-password").fill(password);
   const response = page.waitForResponse(
     (r) =>
       r.url().endsWith("/api/auth/login") && r.request().method() === "POST",
   );
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await response).status()).toBe(200);
   await expect(
     page.getByRole("heading", { name: "Painel do Professor" }),
@@ -94,10 +95,11 @@ test("Marco 8: API docente recusa aluno e professor de outra turma", async ({
     ).toBe(403);
   await page.request.post("/api/auth/logout");
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(f.email("student"));
-  await page.getByLabel("Senha de Acesso").fill(password);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(f.email("student"));
+  await page.locator("#login-password").fill(password);
   const auth = page.waitForResponse((r) => r.url().endsWith("/api/auth/login"));
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await auth).status()).toBe(200);
   expect((await page.request.get("/api/teacher/dashboard")).status()).toBe(403);
   for (const action of ["confirm", "reject"])
