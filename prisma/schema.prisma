@@ -294,6 +294,7 @@ model Class {
   exercises     ClassExercise[]
   lessonReports LessonReport[]
   attitudes     Attitude[]
+  events        SchoolEvent[]
 
   @@index([courseId])
   @@index([teacherId])
@@ -854,6 +855,8 @@ model Game {
   description     String?
   authorName      String
   authorStudentId String?
+  /// Quando o jogo foi enviado por um professor ou pela direção: o id do usuário (para ele ver e apagar os seus).
+  authorUserId    String?
   html            String
   status          GameStatus @default(PENDING)
   /// O autor quer o jogo visível para os colegas. Só aparece para todos quando também está APPROVED (revisão da equipe).
@@ -863,6 +866,7 @@ model Game {
   updatedAt       DateTime   @updatedAt
 
   @@index([status])
+  @@index([authorUserId])
 }
 
 enum LiveQuizStatus {
@@ -937,4 +941,23 @@ model LiveQuizAnswer {
 
   @@unique([playerId, questionIndex])
   @@index([quizId, questionIndex])
+}
+
+/// Evento da escola (culto, gincana, aula especial). classId vazio = vale para a escola toda.
+model SchoolEvent {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  location      String?
+  startsAt      DateTime
+  classId       String?
+  createdById   String
+  createdByName String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  class Class? @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([startsAt])
+  @@index([classId])
 }

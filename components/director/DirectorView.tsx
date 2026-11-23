@@ -1,4 +1,5 @@
 "use client";
+import { EventsManager } from "@/components/common/EventsManager";
 import { useEffect, useState } from "react";
 import type { DirectorDashboardData } from "@/lib/academic-service";
 import DirectorAcademicForm, {
@@ -22,6 +23,7 @@ const tabs = [
   "Professores",
   "Gamificação e Leilões",
   "Alunos",
+  "Eventos",
   "Atitudes",
 ] as const;
 type Tab = (typeof tabs)[number];
@@ -477,6 +479,7 @@ export function DirectorView() {
         <DirectorFinanceControls data={data} onChanged={reload} />
       )}
       {tab === "Alunos" && <DirectorKids key={kidsKey} onCreateStudent={() => editPerson("students")} />}
+      {tab === "Eventos" && <EventsManager />}
       {tab === "Atitudes" && <AttitudesPanel />}
       {editor && (
         <DirectorAcademicForm
