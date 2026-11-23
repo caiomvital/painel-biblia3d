@@ -62,9 +62,10 @@ describe('attitudeRewardSummary (só totais do aluno)', () => {
     expect(s?.totalCoins).toBe(20);
     expect(s?.items.length).toBe(2);
   });
-  test('sem ganho não há tela, e o texto não cita professor nem colegas', () => {
+  test('sem ganho não há tela, e o texto não cita colegas, turma nem quem deu a atitude (só o aviso genérico do Davi)', () => {
     expect(attitudeRewardSummary({ count: 0, xp: 0, coins: 0 })).toBeNull();
     const s = attitudeRewardSummary({ count: 1, xp: 5, coins: 5 });
-    expect(JSON.stringify(s).toLowerCase()).not.toMatch(/professor|colega|turma/);
+    expect(s?.tutor?.text).toBe('Seu professor reparou em você!');
+    expect(JSON.stringify({ ...s, tutor: undefined }).toLowerCase()).not.toMatch(/professor|colega|turma/);
   });
 });
