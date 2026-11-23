@@ -59,7 +59,9 @@ test("resultado do desafio: tela aparece, mostra o total do servidor e CONTINUAR
   for (const [i, id] of drawn.questionIds.entries()) {
     const q = byId.get(id)!;
     await quizCard.getByText(q.options[q.correctIndex], { exact: true }).click();
-    await quizCard.getByRole("button", { name: "Próxima" }).click();
+    await quizCard.getByRole("button", { name: "Responder" }).click();
+    await expect(quizCard.getByTestId("quiz-feedback")).toContainText("Acertou");
+    await quizCard.getByRole("button", { name: /Próxima|Ver meus pontos/ }).click();
   }
   // as moedas sobem pergunta por pergunta antes da Tela de Resultado
   await expect(quizCard.getByTestId("coin-rise").first()).toBeAttached();

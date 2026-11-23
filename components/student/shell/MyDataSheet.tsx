@@ -8,8 +8,8 @@ import type { View } from './views';
 const ord = (n: number) => `${n}º`;
 
 /** Menu de três pontinhos: os dados do aluno e os atalhos que saíram da tela inicial. */
-export function MyDataSheet({ home, unread, onGo, onOpenNotices, onClose }: {
-  home: KidsHomeData; unread: number; onGo: (v: View) => void; onOpenNotices: () => void; onClose: () => void;
+export function MyDataSheet({ home, unread, onGo, onOpenNotices, onLogout, onClose }: {
+  home: KidsHomeData; unread: number; onGo: (v: View) => void; onOpenNotices: () => void; onLogout?: () => void; onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; d?.showModal(); return () => d?.close(); }, []);
@@ -40,6 +40,7 @@ export function MyDataSheet({ home, unread, onGo, onOpenNotices, onClose }: {
           <Button variant="ghost" className="flex-col gap-1 py-2" onClick={() => go('ranking')}><TrophyIcon />Ranking</Button>
           <Button variant="ghost" className="relative flex-col gap-1 py-2" onClick={() => { onClose(); onOpenNotices(); }}><BellIcon />Avisos{unread ? <span className="absolute right-1 top-1 min-w-5 rounded-full bg-game-danger px-1 text-xs font-bold leading-5 text-white">{unread > 9 ? '9+' : unread}</span> : null}</Button>
         </div>
+        {onLogout && <Button variant="danger" className="mt-4 w-full" onClick={() => { onClose(); onLogout(); }} data-testid="sheet-logout">Sair</Button>}
       </div>
     </dialog>
   );

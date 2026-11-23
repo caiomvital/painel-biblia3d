@@ -27,7 +27,7 @@ export function HUD({ coins, points, actions, onProfile, profileActive = false, 
     <header
       className={`sticky top-0 z-30 border-b-2 border-game-line bg-game-bg/95 px-3 py-2 backdrop-blur ${className}`}
     >
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 sm:flex-nowrap">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-2 gap-y-2 sm:flex-nowrap sm:gap-x-3">
         {(() => {
           const cls = 'flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-b-4 border-game-primary-deep bg-game-primary text-game-ink-on-light';
           const inner = (<>
@@ -47,7 +47,7 @@ export function HUD({ coins, points, actions, onProfile, profileActive = false, 
         </div>
 
         <div
-          className="flex shrink-0 items-center gap-1 rounded-full bg-game-surface px-3 py-1.5 text-game-ink"
+          className="flex shrink-0 items-center gap-1 rounded-full bg-game-surface px-2.5 py-1.5 text-game-ink"
           aria-label={`${points} pontos`}
         >
           <StarIcon className="text-game-primary" width="1.1em" height="1.1em" />
@@ -55,7 +55,7 @@ export function HUD({ coins, points, actions, onProfile, profileActive = false, 
         </div>
 
         <div
-          className="flex shrink-0 items-center gap-1 rounded-full bg-game-surface px-3 py-1.5 text-game-ink"
+          className="flex shrink-0 items-center gap-1 rounded-full bg-game-surface px-2.5 py-1.5 text-game-ink"
           aria-label={`${coins} fichas`}
         >
           <CoinIcon className="text-game-coin" width="1.1em" height="1.1em" />
