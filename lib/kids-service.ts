@@ -124,34 +124,35 @@ async function quizSummary(studentId: string, kind: QuizKindName, classId: strin
 }
 
 export async function getKidsHome(studentId: string) {
+  // O banco fica longe (cada ida e volta custa ~0,6 s): o que não depende do aluno ou da turma já sai junto com a leitura do aluno.
+  const early = Promise.all([
+    prisma.teacherRating.findUnique({ where: { studentId_week: { studentId, week: brazilWeekKey() } } }),
+    prisma.appSetting.findUnique({ where: { key: 'googleReviewUrl' } }),
+    prisma.prize.findFirst({ where: { active: true }, orderBy: { createdAt: 'desc' } }),
+    quizSummary(studentId, 'daily', null), // o desafio do dia não depende da turma
+    prisma.coinReservation.aggregate({ where: { studentId, status: 'ACTIVE' }, _sum: { amount: true } }),
+  ]);
+  early.catch(() => {}); // se o aluno não existir, não deixa essa promessa solta virar erro não tratado
   const student = await prisma.student.findUnique({
     where: { id: studentId },
     include: {
       user: { select: { name: true } },
-      enrollments: { where: { status: 'ACTIVE' }, include: { class: { select: { id: true, name: true } } } },
+      enrollments: { where: { status: 'ACTIVE' }, include: { class: { select: { id: true, name: true, teacher: { select: { user: { select: { name: true } } } } } } } },
     },
   });
   if (!student) throw new Error('Aluno não encontrado.');
   const classInfo = student.enrollments[0]?.class ?? null;
   const classId = classInfo?.id ?? null;
-  const [teacherInfo, myRating, reviewSetting] = await Promise.all([
-    classId
-      ? prisma.class.findUnique({ where: { id: classId }, select: { teacher: { select: { user: { select: { name: true } } } } } })
-      : Promise.resolve(null),
-    prisma.teacherRating.findUnique({ where: { studentId_week: { studentId, week: brazilWeekKey() } } }),
-    prisma.appSetting.findUnique({ where: { key: 'googleReviewUrl' } }),
-  ]);
-  const [prize, daily, weekly, lesson, academy, turma, reserved] = await Promise.all([
-    prisma.prize.findFirst({ where: { active: true }, orderBy: { createdAt: 'desc' } }),
-    quizSummary(studentId, 'daily', classId),
+  const teacherInfo = classInfo;
+  const [weekly, lesson, academy, turma] = await Promise.all([
     quizSummary(studentId, 'weekly', classId),
     lessonForStudent(studentId, classId),
     rankOf(student.currentXp, {}),
     classInfo
       ? rankOf(student.currentXp, { enrollments: { some: { classId: classInfo.id, status: 'ACTIVE' } } })
       : Promise.resolve(null),
-    prisma.coinReservation.aggregate({ where: { studentId, status: 'ACTIVE' }, _sum: { amount: true } }),
   ]);
+  const [myRating, reviewSetting, prize, daily, reserved] = await early;
   const reservedCoins = reserved._sum.amount ?? 0;
   return {
     name: student.user.name,

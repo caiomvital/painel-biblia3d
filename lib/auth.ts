@@ -16,6 +16,44 @@ export async function hashPassword(password: string) {
 export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
+const SESSION_CACHE_MS = process.env.NODE_ENV === 'test' ? 0 : Number(process.env.SESSION_CACHE_MS ?? 15000);
+const sessionCache = new Map<string, { at: number; row: SessionRow }>();
+
+function loadSessionUser(id: string) {
+  return prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      sessionVersion: true,
+      mustChangePassword: true,
+      student: { select: { id: true, accessPending: true, profileCompleted: true } },
+      teacher: { select: { id: true } },
+      director: { select: { id: true } },
+      registration: { select: { status: true } },
+    },
+  });
+}
+type SessionRow = NonNullable<Awaited<ReturnType<typeof loadSessionUser>>>;
+
+function readSessionCache(id: string): SessionRow | null {
+  const hit = sessionCache.get(id);
+  if (!hit) return null;
+  if (Date.now() - hit.at > SESSION_CACHE_MS) { sessionCache.delete(id); return null; }
+  return hit.row;
+}
+/** Só guarda usuário com acesso normal (sem senha padrão, sem cadastro pendente), para nunca atrasar uma liberação. */
+function writeSessionCache(row: SessionRow) {
+  if (SESSION_CACHE_MS <= 0) return;
+  if (row.mustChangePassword || row.student?.accessPending || (row.registration && row.registration.status !== 'APPROVED')) { sessionCache.delete(row.id); return; }
+  if (sessionCache.size > 5000) sessionCache.clear();
+  sessionCache.set(row.id, { at: Date.now(), row });
+}
+/** Esquece a leitura guardada (logout e mudanças de acesso). */
+export function dropSessionCache(id: string) { sessionCache.delete(id); }
+
 /**
  * Sessão válida do usuário logado. Aluno com a senha padrão (mustChangePassword) NÃO recebe sessão:
  * todas as rotas protegidas respondem 401 até ele criar a senha nova. Só /api/auth/me e a troca de
@@ -28,21 +66,15 @@ export async function getSession(options: { allowPasswordPending?: boolean; allo
   const session = await verifySessionToken(token);
   if (!session) return null;
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        sessionVersion: true,
-        mustChangePassword: true,
-        student: { select: { id: true, accessPending: true, profileCompleted: true } },
-        teacher: { select: { id: true } },
-        director: { select: { id: true } },
-        registration: { select: { status: true } },
-      },
-    });
+    // O banco fica longe do servidor (cada consulta custa ~0,6 s): rotas comuns reaproveitam a leitura do usuário por poucos segundos.
+    // Quem pede allowPasswordPending/allowAccessPending (troca de senha, cadastro) sempre lê do banco, e qualquer divergência com o token também.
+    const useCache = !options.allowPasswordPending && !options.allowAccessPending;
+    const cached = useCache ? readSessionCache(session.id) : null;
+    let user: SessionRow | null = cached && cached.role === session.role && cached.sessionVersion === (session.sessionVersion ?? 0) ? cached : null;
+    if (!user) {
+      user = await loadSessionUser(session.id);
+      if (user) writeSessionCache(user);
+    }
     if (!user || user.role !== session.role || user.sessionVersion !== (session.sessionVersion ?? 0)) return null;
     if (user.registration && user.registration.status !== "APPROVED") return null;
     const pending = user.role === "ALUNO" && user.mustChangePassword;
