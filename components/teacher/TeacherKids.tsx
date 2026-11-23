@@ -33,6 +33,11 @@ function TeacherGameUpload() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [mine, setMine] = useState<{ id: string; title: string; description: string | null; plays: number; createdAt: string }[] | null>(null);
+  const loadMine = useCallback(async () => {
+    try { setMine((await call("/api/teacher/games?mine=1")).games); } catch (e: any) { setError(e.message); }
+  }, []);
+  useEffect(() => { const t = setTimeout(loadMine, 0); return () => clearTimeout(t); }, [loadMine]);
 
   const pick = async (f?: File | null) => {
     setError(""); setNotice(""); setFile(null);
@@ -53,7 +58,7 @@ function TeacherGameUpload() {
         const f = new FormData(e.currentTarget); setBusy(true); setError(""); setNotice("");
         try {
           await call("/api/teacher/games", "POST", { title: f.get("title"), description: f.get("description"), html: file.html });
-          setNotice("Jogo publicado! Os alunos já podem jogar."); setFile(null); setFormKey((k) => k + 1);
+          setNotice("Jogo publicado! Os alunos já podem jogar."); setFile(null); setFormKey((k) => k + 1); await loadMine();
         } catch (err: any) { setError(err.message); } finally { setBusy(false); }
       }}>
         <label className="text-xs text-slate-300">Nome do jogo<input name="title" required minLength={3} maxLength={60} className={field} /></label>
@@ -63,6 +68,28 @@ function TeacherGameUpload() {
         {file && <p className="text-xs text-emerald-300 sm:col-span-2">Arquivo escolhido: {file.name}</p>}
         <button className={button} type="submit" disabled={busy || !file}>{busy ? "Conferindo..." : "Enviar jogo"}</button>
       </form>
+      <div className="space-y-2 border-t border-white/10 pt-3" data-testid="teacher-my-games">
+        <h4 className="text-sm font-bold text-white">Jogos que você enviou ({mine?.length ?? 0})</h4>
+        <ul className="space-y-2">
+          {(mine ?? []).map((g) => (
+            <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 p-3" data-testid={`my-game-${g.id}`}>
+              <div className="min-w-0">
+                <p className="font-semibold text-white">{g.title}</p>
+                <p className="text-xs text-slate-400">{g.plays} {g.plays === 1 ? "partida" : "partidas"} · enviado em {new Date(g.createdAt).toLocaleDateString("pt-BR", { timeZone: "America/Recife" })}{g.description ? ` · ${g.description}` : ""}</p>
+              </div>
+              <div className="flex gap-2">
+                <a className={button} href={`/api/games/${g.id}/play`} target="_blank" rel="noopener noreferrer">Testar</a>
+                <button className={button} onClick={async () => {
+                  if (!window.confirm(`Apagar o jogo "${g.title}"? Os alunos não poderão mais jogar.`)) return;
+                  setError(""); setNotice("");
+                  try { await call(`/api/teacher/games?id=${g.id}`, "DELETE"); setNotice("Jogo apagado."); await loadMine(); } catch (e: any) { setError(e.message); }
+                }}>Apagar</button>
+              </div>
+            </li>
+          ))}
+          {mine && !mine.length && <li className="text-sm text-slate-400">Você ainda não enviou nenhum jogo.</li>}
+        </ul>
+      </div>
     </section>
   );
 }

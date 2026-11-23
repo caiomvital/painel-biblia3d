@@ -29,6 +29,7 @@ import { ProfileScreen } from './shell/ProfileScreen';
 import { ChallengeScreen } from './shell/ChallengeScreen';
 import { DayScreen } from './shell/DayScreen';
 import { LearnedScreen } from './shell/LearnedScreen';
+import { EventsScreen } from './shell/EventsScreen';
 import { RankingScreen } from './shell/RankingScreen';
 import { parentTab, viewFromPanelTarget, type View } from './shell/views';
 
@@ -141,6 +142,8 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     screen = <LiveQuizScreen onBack={() => go('home')} />;
   } else if (view === 'games') {
     screen = <GamesScreen />;
+  } else if (view === 'events') {
+    screen = <EventsScreen />;
   } else if (view === 'ranking') {
     screen = <RankingScreen home={home} />;
   } else if (view === 'themes') {

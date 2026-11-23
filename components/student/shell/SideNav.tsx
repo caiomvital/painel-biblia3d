@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BellIcon, GamepadIcon, GavelIcon, HomeIcon, StarIcon, TargetIcon, TrophyIcon, UserIcon } from '@/components/ui/game';
+import { BellIcon, CalendarIcon, GamepadIcon, GavelIcon, HomeIcon, StarIcon, TargetIcon, TrophyIcon, UserIcon } from '@/components/ui/game';
 import { playSound } from '@/components/ui/game/sound-store';
 import type { View } from './views';
 
@@ -11,6 +11,7 @@ const ITEMS: { id: View; label: string; icon: React.ReactNode }[] = [
   { id: 'live', label: 'Quiz ao vivo', icon: <StarIcon /> },
   { id: 'auction', label: 'Leilão', icon: <GavelIcon /> },
   { id: 'games', label: 'Jogos', icon: <GamepadIcon /> },
+  { id: 'events', label: 'Eventos', icon: <CalendarIcon /> },
   { id: 'ranking', label: 'Ranking', icon: <TrophyIcon /> },
   { id: 'profile', label: 'Perfil', icon: <UserIcon /> },
 ];

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Button, GamepadIcon, GavelIcon, LiveMascot, MASCOT_NAME } from '@/components/ui/game';
 import { playSound } from '@/components/ui/game/sound-store';
 import type { KidsHomeData } from '../kids-api';
+import { NextEventCard } from './EventsScreen';
 import { ChestCard } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
 import { JourneyButton } from './JourneyButton';
@@ -68,6 +69,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
 
   const tail = (
     <>
+      <NextEventCard onOpen={() => onGo('events')} />
       <ChestCard refreshKey={home.points + home.level} onOpened={onRefresh} />
 
         {!home.profileCompleted && (

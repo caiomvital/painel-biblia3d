@@ -1,12 +1,12 @@
 export type View =
   | 'home' | 'quests' | 'auction' | 'games' | 'profile' // abas da barra inferior
   | 'day' | 'learned' | 'live' // botões da tela inicial
-  | 'ranking' // atalho do menu de três pontinhos
+  | 'events' | 'ranking' // atalho do menu de três pontinhos
   | 'wardrobe' | 'themes'; // Meu Lofi e coleção, em Perfil
 
 /** Qual aba da barra inferior fica marcada para cada tela. */
 export function parentTab(view: View): 'home' | 'quests' | 'auction' | 'games' | 'profile' {
-  if (view === 'ranking' || view === 'day' || view === 'learned' || view === 'live') return 'home';
+  if (view === 'ranking' || view === 'events' || view === 'day' || view === 'learned' || view === 'live') return 'home';
   if (view === 'wardrobe' || view === 'themes') return 'profile';
   return view;
 }

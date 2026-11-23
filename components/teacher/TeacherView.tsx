@@ -1,4 +1,5 @@
 "use client";
+import { EventsManager } from "@/components/common/EventsManager";
 import { useCallback, useEffect, useState } from "react";
 import type { TeacherDashboardData } from "@/lib/academic-service";
 import { TeacherEnrollmentManager } from "./TeacherEnrollmentManager";
@@ -11,6 +12,7 @@ const areas = [
   "Minhas Turmas",
   "Aula e Perguntas",
   "Quiz ao vivo",
+  "Eventos",
   "Atitudes",
   "Alunos",
 ] as const;
@@ -262,6 +264,7 @@ export function TeacherView() {
       )}
       {area === "Aula e Perguntas" && <TeacherKids />}
       {area === "Quiz ao vivo" && <TeacherLive />}
+      {area === "Eventos" && <EventsManager />}
       {area === "Atitudes" && <AttitudesPanel />}
       {area === "Alunos" && students}
     </section>

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     if (!gameHtmlAllowedHere(html)) throw new Error('Esse conteúdo não é permitido.');
     const scan = scanGameHtml(html);
     if (!scan.ok) throw new Error(scanMessage(scan));
-    const game = await prisma.game.create({ data: { title, description, html, authorName: session.name, isPublic: true, status: 'APPROVED' } });
+    const game = await prisma.game.create({ data: { title, description, html, authorName: session.name, authorUserId: session.id, isPublic: true, status: 'APPROVED' } });
     return NextResponse.json({ id: game.id });
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || 'Não foi possível enviar.' }, { status: 400 });
@@ -38,10 +38,18 @@ async function teacher() {
   return s && s.role === 'PROFESSOR' ? s : null;
 }
 
-/** Jogos que os alunos das turmas do professor pediram para tornar públicos (aguardando, aprovados e rejeitados). */
-export async function GET() {
+/** Jogos que os alunos das turmas do professor pediram para tornar públicos (aguardando, aprovados e rejeitados).
+ *  Com ?mine=1: os jogos que o próprio professor enviou. */
+export async function GET(req: NextRequest) {
   const t = await teacher();
   if (!t) return NextResponse.json({ error: 'Acesso restrito ao corpo docente.' }, { status: 403 });
+  if (req.nextUrl.searchParams.get('mine') === '1') {
+    const own = await prisma.game.findMany({
+      where: { authorUserId: t.id }, orderBy: { createdAt: 'desc' },
+      select: { id: true, title: true, description: true, plays: true, createdAt: true },
+    });
+    return NextResponse.json({ games: own.map((g) => ({ ...g, createdAt: g.createdAt.toISOString() })) });
+  }
   const ids = await teacherStudentIds(t.id);
   const games = await prisma.game.findMany({
     where: { authorStudentId: { in: ids }, isPublic: true },
@@ -70,4 +78,17 @@ export async function PATCH(req: NextRequest) {
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || 'Não foi possível salvar.' }, { status: 400 });
   }
+}
+
+/** O professor apaga um jogo que ele mesmo enviou. */
+export async function DELETE(req: NextRequest) {
+  const t = await teacher();
+  if (!t) return NextResponse.json({ error: 'Acesso restrito ao corpo docente.' }, { status: 403 });
+  const id = req.nextUrl.searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'Informe o jogo.' }, { status: 400 });
+  const game = await prisma.game.findUnique({ where: { id }, select: { authorUserId: true } });
+  if (!game) return NextResponse.json({ ok: true });
+  if (game.authorUserId !== t.id) return NextResponse.json({ error: 'Você só apaga os jogos que você enviou.' }, { status: 403 });
+  await prisma.game.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
 }
