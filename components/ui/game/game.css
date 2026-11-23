@@ -56,3 +56,44 @@
   15% { opacity: 1; }
   100% { transform: translateY(-4.5rem) scale(1.1); opacity: 0; }
 }
+
+/*
+ * Botões do estilo de jogo.
+ * .game-press: efeito de clique (afunda e brilha ao tocar). Vale para qualquer botão.
+ * .game-btn: relevo de botão de jogo (brilho, borda grossa e "pé" de sombra); a cor do pé vem de --btn-edge.
+ */
+.game-press {
+  transition: transform 90ms ease-out, filter 90ms ease-out, box-shadow 90ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.game-press:active:not(:disabled) {
+  transform: translateY(4px) scale(0.97);
+  filter: brightness(1.12) saturate(1.1);
+}
+.game-btn {
+  --btn-edge: var(--color-game-line);
+  box-shadow:
+    0 5px 0 0 var(--btn-edge),
+    0 10px 14px -4px rgb(0 0 0 / 0.5),
+    inset 0 2px 1px rgb(255 255 255 / 0.45),
+    inset 0 -3px 5px rgb(0 0 0 / 0.16);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.24) 0%, rgb(255 255 255 / 0) 52%);
+}
+.game-btn:active:not(:disabled) {
+  box-shadow:
+    0 1px 0 0 var(--btn-edge),
+    0 3px 6px -2px rgb(0 0 0 / 0.5),
+    inset 0 2px 1px rgb(255 255 255 / 0.45),
+    inset 0 -3px 5px rgb(0 0 0 / 0.16);
+}
+/* Botão que chama atenção (ex.: o Desafio do dia ainda não feito): brilho que pulsa. */
+@keyframes b3d-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 rgb(255 210 63 / 0)); }
+  50% { filter: drop-shadow(0 0 0.9rem rgb(255 210 63 / 0.75)); }
+}
+.game-glow { animation: b3d-glow 1.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .game-press, .game-press:active:not(:disabled) { transition: none; transform: none; }
+  .game-glow { animation: none; }
+}

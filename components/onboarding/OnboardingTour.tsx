@@ -36,9 +36,13 @@ const steps: Record<TourRole, Step[]> = {
 export const TOUR_EVENT = 'b3d:open-tour';
 const keyFor = (role: TourRole, id?: string | null) => `b3d-onboarding:${role}:${id ?? 'visitante'}`;
 
-/** Tour de boas-vindas: abre sozinho na primeira vez de cada pessoa e pode ser reaberto pela barra de contas de teste. */
+/**
+ * Tour de boas-vindas: abre sozinho na primeira vez de cada pessoa e pode ser reaberto pela barra de contas de teste.
+ * O aluno não tem tour (a criança descobre mexendo, como num jogo); os passos dele ficam só como referência.
+ */
 export function OnboardingTour({ role, userId }: { role: TourRole; userId?: string | null }) {
   const [open, setOpen] = useState(() => {
+    if (role === 'ALUNO') return false;
     try { return localStorage.getItem(keyFor(role, userId)) !== '1'; } catch { return true; }
   });
   const [i, setI] = useState(0);
@@ -46,10 +50,10 @@ export function OnboardingTour({ role, userId }: { role: TourRole; userId?: stri
   const list = steps[role];
 
   useEffect(() => {
-    const reopen = () => { setI(0); setOpen(true); };
+    const reopen = () => { if (role === 'ALUNO') return; setI(0); setOpen(true); };
     window.addEventListener(TOUR_EVENT, reopen);
     return () => window.removeEventListener(TOUR_EVENT, reopen);
-  }, []);
+  }, [role]);
 
   useEffect(() => {
     const d = ref.current;

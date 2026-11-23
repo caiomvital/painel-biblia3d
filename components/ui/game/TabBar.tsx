@@ -1,4 +1,5 @@
 import React from 'react';
+import { playSound } from './sound-store';
 
 export interface TabItem {
   id: string;
@@ -30,10 +31,10 @@ export function TabBar({ items, activeId, onChange, className = '' }: TabBarProp
             <li key={item.id} className="flex-1">
               <button
                 type="button"
-                onClick={() => onChange(item.id)}
+                onClick={() => { playSound('tap'); onChange(item.id); }}
                 aria-current={active ? 'page' : undefined}
                 className={[
-                  'relative flex min-h-16 w-full flex-col items-center justify-center gap-0.5 px-1 font-[family-name:var(--font-game-body)] text-xs font-semibold',
+                  'game-press relative flex min-h-16 w-full flex-col items-center justify-center gap-0.5 px-1 font-[family-name:var(--font-game-body)] text-xs font-semibold',
                   'focus-visible:outline-3 focus-visible:-outline-offset-4 focus-visible:outline-white',
                   active ? 'text-game-primary' : 'text-game-ink-dim',
                 ].join(' ')}
