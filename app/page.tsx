@@ -86,7 +86,7 @@ export default function HomePage() {
   const content = (
     <div className="min-h-screen bg-[#070a12] flex flex-col text-slate-100 selection:bg-amber-500/20 selection:text-amber-300">
       {/* Brand Header with PWA installation & profile info */}
-      {user?.role !== 'ALUNO' && <AppHeader user={user} onLogout={handleLogout} />}
+      {user && user.role !== 'ALUNO' && <AppHeader user={user} onLogout={handleLogout} />}
 
       {/* Main Dynamic Content based on User Role */}
       <main className={user?.role === 'ALUNO' ? 'flex-1' : 'flex-1 pb-16'}>
@@ -110,7 +110,7 @@ export default function HomePage() {
       {extras}
 
       {/* Footer */}
-      {user?.role !== 'ALUNO' && <footer className="border-t border-slate-900/80 bg-[#05070d] py-5 text-center text-[11px] text-slate-500">
+      {user && user.role !== 'ALUNO' && <footer className="border-t border-slate-900/80 bg-[#05070d] py-5 text-center text-[11px] text-slate-500">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-400">Bíblia 3D</span>

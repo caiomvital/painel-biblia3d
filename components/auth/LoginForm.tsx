@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Lock, Mail, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Button, Mascot } from '@/components/ui/game';
+import { PWAInstallButton } from '@/components/pwa/PWAInstallButton';
 
 interface LoginFormProps {
   onSuccess: (user: any) => void;
@@ -41,98 +42,42 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     }
   };
 
+  const field = 'min-h-14 w-full rounded-game border-2 border-game-line bg-game-bg px-4 text-lg text-game-ink placeholder:text-game-ink-dim focus:border-game-primary focus:outline-none';
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500 via-blue-600 to-indigo-600 p-[2px] shadow-lg shadow-amber-500/20 mb-4">
-            <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-slate-950">
-              <span className="font-mono text-3xl font-black text-amber-400">F</span>
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Painel Bíblia 3D</h1>
-        </div>
-
+    <div className="mx-auto w-full max-w-md font-[family-name:var(--font-game-body)] text-game-ink" data-testid="login-screen">
+      <div className="mb-5 flex flex-col items-center gap-3">
+        <Mascot size={6} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-biblia3d-branca.png" alt="Bíblia 3D" className="h-14 w-auto" draggable={false} />
+      </div>
+      <div className="rounded-game-lg border-2 border-game-line bg-game-surface p-5 shadow-2xl">
         {error && (
-          <div className="mb-6 flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-300">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
-            <span>{error}</span>
-          </div>
+          <p role="alert" className="mb-4 rounded-game border-2 border-game-danger bg-game-bg p-3 font-semibold">{error}</p>
         )}
 
         {choices && (
-          <div className="mb-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
-            <p className="mb-3 text-center text-sm font-bold text-amber-200">Quem vai entrar agora?</p>
+          <div className="mb-5 rounded-game border-2 border-game-primary bg-game-bg p-4">
+            <p className="mb-3 text-center text-lg font-bold">Quem vai entrar agora?</p>
             <div className="grid gap-2">
               {choices.map((c) => (
-                <button key={c.id} type="button" onClick={(ev) => handleSubmit(ev as unknown as React.FormEvent, c.id)}
-                  className="rounded-xl bg-amber-500 px-4 py-3 text-base font-black text-slate-950 hover:bg-amber-400">
-                  {c.name}
-                </button>
+                <Button key={c.id} size="lg" onClick={(ev) => handleSubmit(ev as unknown as React.FormEvent, c.id)}>{c.name}</Button>
               ))}
             </div>
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="login-email" className="block text-xs font-semibold text-slate-300 mb-1.5">Usuário ou e-mail</label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
-                <Mail className="h-4 w-4" />
-              </div>
-              <input
-                id="login-email"
-                type="text"
-                autoComplete="username"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="usuário ou e-mail"
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 py-3 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="login-password" className="text-xs font-semibold text-slate-300">Senha de Acesso</label>
-              <span className="text-[11px] text-slate-500">Suporte pedagógico</span>
-            </div>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
-                <Lock className="h-4 w-4" />
-              </div>
-              <input
-                id="login-password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 py-3 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-2 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-blue-600 to-indigo-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-blue-500 disabled:opacity-50 transition-all active:scale-[0.99]"
-          >
-            {loading ? (
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            ) : (
-              <>
-                <span>Entrar no Sistema</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
+          <label htmlFor="login-email" className="block font-semibold">Usuário ou e-mail
+            <input id="login-email" type="text" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)}
+              placeholder="Escreva aqui" className={`${field} mt-1`} />
+          </label>
+          <label htmlFor="login-password" className="block font-semibold">Senha
+            <input id="login-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)}
+              placeholder="Sua senha" className={`${field} mt-1`} />
+          </label>
+          <Button type="submit" size="lg" disabled={loading} className="w-full">{loading ? 'Entrando…' : 'Entrar'}</Button>
         </form>
-
       </div>
+      <div className="mt-4 flex justify-center"><PWAInstallButton /></div>
     </div>
   );
 };
