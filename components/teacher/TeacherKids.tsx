@@ -67,6 +67,48 @@ function TeacherGameUpload() {
   );
 }
 
+type ReviewGame = { id: string; title: string; description: string | null; authorName: string; status: "PENDING" | "APPROVED" | "REJECTED"; plays: number; scanProblems: string[] };
+const gameStatus: Record<string, string> = { PENDING: "aguardando você", APPROVED: "aprovado", REJECTED: "rejeitado" };
+
+/** O aluno envia o jogo e pede para torná-lo público; o professor testa e aprova ou rejeita. */
+function TeacherGameReview() {
+  const [games, setGames] = useState<ReviewGame[] | null>(null);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const load = useCallback(async () => {
+    try { setGames((await call("/api/teacher/games")).games); } catch (e: any) { setError(e.message); }
+  }, []);
+  useEffect(() => { const t = setTimeout(load, 0); return () => clearTimeout(t); }, [load]);
+  const decide = async (id: string, status: "APPROVED" | "REJECTED") => {
+    setError(""); setNotice("");
+    try { await call("/api/teacher/games", "PATCH", { id, status }); setNotice(status === "APPROVED" ? "Jogo aprovado. Os colegas já podem jogar." : "Jogo rejeitado."); await load(); }
+    catch (e: any) { setError(e.message); }
+  };
+  return (
+    <section className={panel} data-testid="teacher-game-review">
+      <h3 className="text-lg font-bold text-white">Jogos dos alunos ({games?.filter((g) => g.status === "PENDING").length ?? 0} para aprovar)</h3>
+      <p className="text-xs text-slate-400">Os alunos das suas turmas enviam o jogo e pedem para torná-lo público. Teste antes de aprovar: o jogo só aparece para os colegas depois do seu OK.</p>
+      {error && <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</p>}
+      {notice && <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">{notice}</p>}
+      <ul className="space-y-2">
+        {(games ?? []).map((g) => (
+          <li key={g.id} className="space-y-1 rounded-xl border border-slate-800 p-3" data-testid={`review-game-${g.id}`}>
+            <p className="font-semibold text-white">{g.title} <span className="text-xs font-normal text-slate-400">por {g.authorName} · {gameStatus[g.status]}</span></p>
+            {g.description && <p className="text-xs text-slate-400">{g.description}</p>}
+            {g.scanProblems.length > 0 && <p role="note" className="text-xs text-amber-300">⚠ A varredura achou: {g.scanProblems.join("; ")}. Não dá para aprovar assim.</p>}
+            <div className="flex flex-wrap gap-2">
+              <a className={button} href={`/api/games/${g.id}/play`} target="_blank" rel="noopener noreferrer">Testar (nova aba)</a>
+              {g.status !== "APPROVED" && <button className={button} disabled={g.scanProblems.length > 0} onClick={() => decide(g.id, "APPROVED")}>Aprovar</button>}
+              {g.status !== "REJECTED" && <button className={button} onClick={() => decide(g.id, "REJECTED")}>Rejeitar</button>}
+            </div>
+          </li>
+        ))}
+        {games && !games.length && <li className="text-sm text-slate-400">Nenhum aluno pediu para publicar um jogo ainda.</li>}
+      </ul>
+    </section>
+  );
+}
+
 export function TeacherKids() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
@@ -156,6 +198,8 @@ export function TeacherKids() {
           </ul>
         )}
       </section>
+
+      <TeacherGameReview />
 
       <TeacherGameUpload />
 

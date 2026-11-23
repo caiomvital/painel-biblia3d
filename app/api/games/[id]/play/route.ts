@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { gameHtmlAllowedHere } from '@/lib/probe-guard';
 import { injectGameShim } from '@/lib/game-shim';
+import { teacherStudentIds } from '@/lib/teacher-games';
 
 // Serve o jogo isolado: sem acesso à sessão do site e sem acesso à rede.
 const GAME_CSP =
@@ -27,7 +28,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   if (!session) return errorPage('Entre no painel para jogar.', 401);
   const { id } = await ctx.params;
   const game = await prisma.game.findUnique({ where: { id } });
-  const canSee = game && ((game.status === 'APPROVED' && game.isPublic) || session.role === 'DIRETOR' ||
+  // O professor testa o jogo de um aluno da turma antes de aprovar.
+  const teacherCanReview = !!game && session.role === 'PROFESSOR' && !!game.authorStudentId && (await teacherStudentIds(session.id)).includes(game.authorStudentId);
+  const canSee = game && ((game.status === 'APPROVED' && game.isPublic) || session.role === 'DIRETOR' || teacherCanReview ||
     (session.role === 'ALUNO' && session.studentId && game.authorStudentId === session.studentId));
   if (!game || !canSee) return errorPage('Este jogo não está disponível agora.', 404);
   // Jogos de sonda (testes de segurança) nunca são servidos fora do ambiente de teste local.

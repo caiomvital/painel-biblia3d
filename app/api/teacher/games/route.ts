@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { gameHtmlAllowedHere } from '@/lib/probe-guard';
 import { scanGameHtml, scanMessage } from '@/lib/game-scan';
+import { teacherStudentIds } from '@/lib/teacher-games';
 
 const MAX_HTML = 200_000;
 
@@ -29,5 +30,44 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ id: game.id });
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || 'Não foi possível enviar.' }, { status: 400 });
+  }
+}
+
+async function teacher() {
+  const s = await getSession();
+  return s && s.role === 'PROFESSOR' ? s : null;
+}
+
+/** Jogos que os alunos das turmas do professor pediram para tornar públicos (aguardando, aprovados e rejeitados). */
+export async function GET() {
+  const t = await teacher();
+  if (!t) return NextResponse.json({ error: 'Acesso restrito ao corpo docente.' }, { status: 403 });
+  const ids = await teacherStudentIds(t.id);
+  const games = await prisma.game.findMany({
+    where: { authorStudentId: { in: ids }, isPublic: true },
+    orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+    select: { id: true, title: true, description: true, authorName: true, status: true, plays: true, html: true },
+  });
+  return NextResponse.json({ games: games.map(({ html, ...g }) => ({ ...g, scanProblems: scanGameHtml(html).problems })) });
+}
+
+/** O professor aprova ou rejeita o jogo de um aluno da turma dele. Só aprova se o código passar na varredura. */
+export async function PATCH(req: NextRequest) {
+  const t = await teacher();
+  if (!t) return NextResponse.json({ error: 'Acesso restrito ao corpo docente.' }, { status: 403 });
+  try {
+    const b = await req.json();
+    if (b.status !== 'APPROVED' && b.status !== 'REJECTED') throw new Error('Escolha aprovar ou rejeitar.');
+    const game = await prisma.game.findUnique({ where: { id: String(b.id) } });
+    const ids = await teacherStudentIds(t.id);
+    if (!game || !game.isPublic || !game.authorStudentId || !ids.includes(game.authorStudentId)) throw new Error('Esse jogo não é de um aluno das suas turmas.');
+    if (b.status === 'APPROVED') {
+      const scan = scanGameHtml(game.html);
+      if (!scan.ok) throw new Error(scanMessage(scan));
+    }
+    await prisma.game.update({ where: { id: game.id }, data: { status: b.status } });
+    return NextResponse.json({ ok: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || 'Não foi possível salvar.' }, { status: 400 });
   }
 }
