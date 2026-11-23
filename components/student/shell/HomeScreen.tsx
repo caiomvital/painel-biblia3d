@@ -79,15 +79,15 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
         </button>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 pb-2 pt-1">
-        <JourneyButton testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} className="flex-1" />
-        <JourneyButton testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
+      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 pb-2 pt-1">
+        <JourneyButton grid testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
+        <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
-          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="flex-1" />
-        <JourneyButton testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
+          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} />
+        <JourneyButton grid testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
           hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-          onClick={() => onGo('quests')} glow={quizPending} className="flex-[1.35]" />
-        <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN" onClick={() => onGo('live')} live className="flex-1" />
+          onClick={() => onGo('quests')} glow={quizPending} />
+        <JourneyButton grid testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN" onClick={() => onGo('live')} live />
       </div>
         </div>
       ) : (
