@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { maskGameAuthorForStudent } from '@/lib/privacy-mask';
 import { gameHtmlAllowedHere } from '@/lib/probe-guard';
+import { scanGameHtml, scanMessage } from '@/lib/game-scan';
 
 const MAX_GAME_HTML = 200_000;
 
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest) {
     if (html.length < 20) throw new Error('Cole o código do jogo (HTML).');
     if (html.length > MAX_GAME_HTML) throw new Error('O jogo é grande demais (máximo de 200 mil caracteres).');
     if (!gameHtmlAllowedHere(html)) throw new Error('Esse conteúdo não é permitido.');
+    const scan = scanGameHtml(html);
+    if (!scan.ok) throw new Error(scanMessage(scan));
     const isPublic = b.isPublic === true;
     if (isPublic) await assertCanRequestPublic(session.studentId);
     const game = await prisma.game.create({

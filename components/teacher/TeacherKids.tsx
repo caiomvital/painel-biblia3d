@@ -26,6 +26,47 @@ async function call(url: string, method?: string, body?: unknown) {
   return json;
 }
 
+/** O professor envia um jogo (arquivo .html): o servidor confere o código e, se estiver tudo certo, já libera para os alunos. */
+function TeacherGameUpload() {
+  const [file, setFile] = useState<{ name: string; html: string } | null>(null);
+  const [formKey, setFormKey] = useState(0);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const pick = async (f?: File | null) => {
+    setError(""); setNotice(""); setFile(null);
+    if (!f) return;
+    if (!/\.html?$/i.test(f.name)) return setError("Escolha um arquivo .html.");
+    if (f.size > 200_000) return setError("O jogo é grande demais (máximo de 200 KB).");
+    setFile({ name: f.name, html: await f.text() });
+  };
+
+  return (
+    <section className={panel} data-testid="teacher-game-upload">
+      <h3 className="text-lg font-bold text-white">Enviar jogo para os alunos</h3>
+      <p className="text-xs text-slate-400">Escolha um arquivo .html (jogo em um arquivo só). O painel confere o código antes de aceitar: jogos que acessam a internet, abrem outras páginas ou tentam sair do quadro são recusados. Se passar, o jogo já fica disponível para todos os alunos.</p>
+      {error && <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</p>}
+      {notice && <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">{notice}</p>}
+      <form key={formKey} className="grid gap-2 sm:grid-cols-2" onSubmit={async (e) => {
+        e.preventDefault(); if (!file) return setError("Escolha o arquivo do jogo.");
+        const f = new FormData(e.currentTarget); setBusy(true); setError(""); setNotice("");
+        try {
+          await call("/api/teacher/games", "POST", { title: f.get("title"), description: f.get("description"), html: file.html });
+          setNotice("Jogo publicado! Os alunos já podem jogar."); setFile(null); setFormKey((k) => k + 1);
+        } catch (err: any) { setError(err.message); } finally { setBusy(false); }
+      }}>
+        <label className="text-xs text-slate-300">Nome do jogo<input name="title" required minLength={3} maxLength={60} className={field} /></label>
+        <label className="text-xs text-slate-300">Como se joga (opcional)<input name="description" maxLength={200} className={field} /></label>
+        <label className="text-xs text-slate-300 sm:col-span-2">Arquivo do jogo (.html)
+          <input type="file" name="arquivo" accept=".html,.htm,text/html" data-testid="teacher-game-file" className={field} onChange={(e) => pick(e.target.files?.[0])} /></label>
+        {file && <p className="text-xs text-emerald-300 sm:col-span-2">Arquivo escolhido: {file.name}</p>}
+        <button className={button} type="submit" disabled={busy || !file}>{busy ? "Conferindo..." : "Enviar jogo"}</button>
+      </form>
+    </section>
+  );
+}
+
 export function TeacherKids() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
@@ -115,6 +156,8 @@ export function TeacherKids() {
           </ul>
         )}
       </section>
+
+      <TeacherGameUpload />
 
       <section className={panel}>
         <h3 className="text-lg font-bold text-white">Meu banco de perguntas ({data.questions.length})</h3>
