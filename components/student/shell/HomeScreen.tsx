@@ -7,6 +7,8 @@ import type { KidsHomeData } from '../kids-api';
 import { ChestCard } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
 import { JourneyButton } from './JourneyButton';
+import { HomeDashboard } from './HomeDashboard';
+import { useWide } from './useWide';
 import type { View } from './views';
 
 function Tile({ icon, title, onClick, testId }: { icon: React.ReactNode; title: string; onClick: () => void; testId: string }) {
@@ -62,6 +64,23 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
   const quizPending = home.quiz.available && !home.quiz.completedToday;
   const lessonOpen = !!home.lesson && !home.lesson.done;
   const pwa = useStandalone();
+  const wide = useWide();
+
+  const tail = (
+    <>
+      <ChestCard refreshKey={home.points + home.level} onOpened={onRefresh} />
+
+        {!home.profileCompleted && (
+          <button type="button" onClick={() => setProfileOpen(true)} data-testid="home-profile-open"
+            className="w-full rounded-full border-2 border-dashed border-game-line px-4 py-3 text-center font-semibold text-game-ink-dim focus-visible:outline-3 focus-visible:outline-white">
+            Complete seu cadastro e ganhe 20 pontos
+          </button>
+        )}
+        {profileOpen && <ProfileSheet home={home} onClose={() => setProfileOpen(false)} onNotice={onNotice} onError={onError} onRefresh={onRefresh} />}
+    </>
+  );
+
+  if (wide) return <HomeDashboard home={home} celebrate={celebrate} onGo={onGo}>{tail}</HomeDashboard>;
 
   return (
     <div className="space-y-4">
@@ -114,15 +133,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
         </>
       )}
 
-      <ChestCard refreshKey={home.points + home.level} onOpened={onRefresh} />
-
-      {!home.profileCompleted && (
-        <button type="button" onClick={() => setProfileOpen(true)} data-testid="home-profile-open"
-          className="w-full rounded-full border-2 border-dashed border-game-line px-4 py-3 text-center font-semibold text-game-ink-dim focus-visible:outline-3 focus-visible:outline-white">
-          Complete seu cadastro e ganhe 20 pontos
-        </button>
-      )}
-      {profileOpen && <ProfileSheet home={home} onClose={() => setProfileOpen(false)} onNotice={onNotice} onError={onError} onRefresh={onRefresh} />}
+      {tail}
     </div>
   );
 }

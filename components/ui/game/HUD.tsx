@@ -18,16 +18,18 @@ export interface HUDProps {
   /** O perfil está aberto (marca o círculo do nível). */
   profileActive?: boolean;
   className?: string;
+  /** Computador: a barra usa a largura toda do conteúdo (ao lado do menu lateral). */
+  wide?: boolean;
 }
 
 /** Barra fixa no topo: nível + barra de XP, pontos e moedas. O nível vem de lib/level. */
-export function HUD({ coins, points, actions, onProfile, profileActive = false, className = '' }: HUDProps) {
+export function HUD({ coins, points, actions, onProfile, profileActive = false, className = '', wide = false }: HUDProps) {
   const { level, xpIntoLevel, xpForLevel } = levelProgress(points);
   return (
     <header
       className={`sticky top-0 z-30 border-b-2 border-game-line bg-game-bg/95 px-3 py-2 backdrop-blur ${className}`}
     >
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-2 gap-y-2 sm:flex-nowrap sm:gap-x-3">
+      <div className={`mx-auto flex ${wide ? 'max-w-3xl lg:max-w-7xl' : 'max-w-3xl'} flex-wrap items-center gap-x-2 gap-y-2 sm:flex-nowrap sm:gap-x-3`}>
         {(() => {
           const cls = 'flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-b-4 border-game-primary-deep bg-game-primary text-game-ink-on-light';
           const inner = (<>
