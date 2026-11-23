@@ -13,12 +13,12 @@ export const GAMES_TEXT = {
   mine: 'Meus jogos',
   others: 'Jogos dos colegas',
   makePublic: 'Tornar público',
-  makePublicHelp: 'Os colegas poderão jogar. A equipe confere antes de aparecer para todos.',
+  makePublicHelp: 'Os colegas poderão jogar. O professor confere antes de aparecer para todos.',
   makePrivate: 'Deixar só meu',
   sentPrivate: 'Jogo guardado! Só você vê. Marque "Tornar público" quando quiser mostrar aos colegas.',
   send: 'Enviar um jogo meu',
   sendHelp: 'Seu jogo é um arquivo HTML. Peça ajuda ao professor.',
-  sent: 'Jogo enviado! Quando a equipe aprovar, ele aparece para todos.',
+  sent: 'Jogo enviado! Quando o professor aprovar, ele aparece para todos.',
 } as const;
 
 /**
