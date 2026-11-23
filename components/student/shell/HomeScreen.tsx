@@ -21,7 +21,10 @@ function Tile({ icon, title, onClick, testId }: { icon: React.ReactNode; title: 
   );
 }
 
-/** No app instalado (PWA) a tela inicial usa a grade; no navegador comum, a versão em lista. */
+/**
+ * No app instalado (celular) a tela inicial usa a grade com Dia, O que aprendi e Desafio (em destaque, largo).
+ * O Quiz ao vivo é da sala de aula, então só aparece no navegador comum, que é a versão em lista.
+ */
 function subscribeStandalone(cb: () => void) {
   const mq = window.matchMedia('(display-mode: standalone)');
   mq.addEventListener('change', cb);
@@ -79,15 +82,14 @@ export function HomeScreen({ home, celebrate, unread, onGo, onOpenNotices, onNot
         </button>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 pb-2 pt-1">
-        <JourneyButton testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} className="flex-1" />
-        <JourneyButton testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
+      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 pb-2 pt-1">
+        <JourneyButton grid testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
+        <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
-          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="flex-1" />
-        <JourneyButton testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
+          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} />
+        <JourneyButton grid testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
           hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-          onClick={() => onGo('quests')} glow={quizPending} className="flex-[1.35]" />
-        <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN" onClick={() => onGo('live')} live className="flex-1" />
+          onClick={() => onGo('quests')} glow={quizPending} className="col-span-2" />
       </div>
         </div>
       ) : (
