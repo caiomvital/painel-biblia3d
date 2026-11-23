@@ -27,14 +27,14 @@ export function HUD({ coins, points, actions, onProfile, profileActive = false, 
   const { level, xpIntoLevel, xpForLevel } = levelProgress(points);
   return (
     <header
-      className={`sticky top-0 z-30 border-b-2 border-game-line bg-game-bg/95 px-3 py-2 backdrop-blur ${className}`}
+      className={`sticky top-0 z-30 border-b-2 border-game-line bg-game-bg/95 px-3 py-1.5 backdrop-blur sm:py-2 ${className}`}
     >
-      <div className={`mx-auto flex ${wide ? 'max-w-3xl lg:max-w-7xl' : 'max-w-3xl'} flex-wrap items-center gap-x-2 gap-y-2 sm:flex-nowrap sm:gap-x-3`}>
+      <div className={`mx-auto flex ${wide ? 'max-w-3xl lg:max-w-7xl' : 'max-w-3xl'} flex-wrap items-center gap-x-1.5 gap-y-1.5 sm:flex-nowrap sm:gap-x-3 sm:gap-y-2`}>
         {(() => {
-          const cls = 'flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-b-4 border-game-primary-deep bg-game-primary text-game-ink-on-light';
+          const cls = 'flex size-10 sm:size-12 shrink-0 flex-col items-center justify-center rounded-full border-b-4 border-game-primary-deep bg-game-primary text-game-ink-on-light';
           const inner = (<>
             <span className="text-[0.55rem] font-bold uppercase leading-none">Nível</span>
-            <span className="font-[family-name:var(--font-game-title)] text-lg leading-none">{level}</span>
+            <span className="font-[family-name:var(--font-game-title)] text-base leading-none sm:text-lg">{level}</span>
           </>);
           return onProfile ? (
             <button type="button" onClick={onProfile} aria-label="Perfil" aria-current={profileActive ? 'page' : undefined} data-testid="hud-profile"
@@ -49,19 +49,19 @@ export function HUD({ coins, points, actions, onProfile, profileActive = false, 
         </div>
 
         <div
-          className="flex shrink-0 items-center gap-1 rounded-full bg-game-surface px-2.5 py-1.5 text-game-ink"
+          className="flex shrink-0 items-center gap-1 rounded-full bg-game-surface px-2 py-1 text-game-ink sm:px-2.5 sm:py-1.5"
           aria-label={`${points} pontos`}
         >
           <StarIcon className="text-game-primary" width="1.1em" height="1.1em" />
-          <AnimatedNumber value={points} className="font-[family-name:var(--font-game-title)] text-base" />
+          <AnimatedNumber value={points} className="font-[family-name:var(--font-game-title)] text-sm sm:text-base" />
         </div>
 
         <div
-          className="flex shrink-0 items-center gap-1 rounded-full bg-game-surface px-2.5 py-1.5 text-game-ink"
+          className="flex shrink-0 items-center gap-1 rounded-full bg-game-surface px-2 py-1 text-game-ink sm:px-2.5 sm:py-1.5"
           aria-label={`${coins} fichas`}
         >
           <CoinIcon className="text-game-coin" width="1.1em" height="1.1em" />
-          <AnimatedNumber value={coins} className="font-[family-name:var(--font-game-title)] text-base" />
+          <AnimatedNumber value={coins} className="font-[family-name:var(--font-game-title)] text-sm sm:text-base" />
         </div>
 
         {actions}

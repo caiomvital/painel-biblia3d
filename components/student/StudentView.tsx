@@ -162,9 +162,9 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
         <ThemeApplier themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <LevelEffect effect={preferences.levelEffect} burst={burst} />
         <HUD wide className="lg:pl-64" coins={home?.coins.available ?? 0} points={home?.points ?? 0} actions={<>
-          <SoundToggle className="size-10!" />
+          <SoundToggle className="size-9! sm:size-10!" />
           {home && (
-            <Button variant="ghost" size="icon" onClick={() => setMenuOpen(true)} aria-label="Meus dados e mais" data-testid="home-menu" className="relative size-10!">
+            <Button variant="ghost" size="icon" onClick={() => setMenuOpen(true)} aria-label="Meus dados e mais" data-testid="home-menu" className="relative size-9! sm:size-10!">
               <MoreIcon />
               {unread ? <span className="absolute -right-1 -top-1 size-4 rounded-full bg-game-danger" aria-hidden /> : null}
             </Button>
