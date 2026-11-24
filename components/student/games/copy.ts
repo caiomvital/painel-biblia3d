@@ -1,7 +1,7 @@
 /** Textos e regras de apresentação dos Jogos (curtos, para crianças de 6 a 13 anos). */
 export const GAMES_TEXT = {
   title: 'Jogos',
-  intro: 'Jogue os jogos da turma e crie o seu!',
+  intro: 'Jogue os jogos da turma. O seu pode entrar aqui também!',
   empty: 'Ainda não há jogos. Que tal criar o primeiro?',
   loading: 'Carregando…',
   play: 'Jogar',
@@ -12,13 +12,8 @@ export const GAMES_TEXT = {
   navigated: 'O jogo recarregou. Tentar de novo?',
   mine: 'Meus jogos',
   others: 'Jogos dos colegas',
-  makePublic: 'Tornar público',
-  makePublicHelp: 'Os colegas poderão jogar. O professor confere antes de aparecer para todos.',
-  makePrivate: 'Deixar só meu',
-  sentPrivate: 'Jogo guardado! Só você vê. Marque "Tornar público" quando quiser mostrar aos colegas.',
-  send: 'Enviar um jogo meu',
-  sendHelp: 'Seu jogo é um arquivo HTML. Peça ajuda ao professor.',
-  sent: 'Jogo enviado! Quando o professor aprovar, ele aparece para todos.',
+  send: 'Fez um jogo?',
+  sendHelp: 'Mande o seu jogo para o professor por e-mail ou WhatsApp. Ele testa e coloca no ar com o seu nome!',
 } as const;
 
 /**

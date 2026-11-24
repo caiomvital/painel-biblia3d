@@ -33,11 +33,13 @@ function TeacherGameUpload() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
-  const [mine, setMine] = useState<{ id: string; title: string; description: string | null; plays: number; createdAt: string }[] | null>(null);
+  const [mine, setMine] = useState<{ id: string; title: string; description: string | null; plays: number; createdAt: string; authorName: string | null }[] | null>(null);
+  const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
   const loadMine = useCallback(async () => {
     try { setMine((await call("/api/teacher/games?mine=1")).games); } catch (e: any) { setError(e.message); }
   }, []);
   useEffect(() => { const t = setTimeout(loadMine, 0); return () => clearTimeout(t); }, [loadMine]);
+  useEffect(() => { call("/api/teacher/games?students=1").then((d) => setStudents(d.students)).catch(() => {}); }, []);
 
   const pick = async (f?: File | null) => {
     setError(""); setNotice(""); setFile(null);
@@ -49,32 +51,37 @@ function TeacherGameUpload() {
 
   return (
     <section className={panel} data-testid="teacher-game-upload">
-      <h3 className="text-lg font-bold text-white">Enviar jogo para os alunos</h3>
-      <p className="text-xs text-slate-400">Escolha um arquivo .html (jogo em um arquivo só). O painel confere o código antes de aceitar: jogos que acessam a internet, abrem outras páginas ou tentam sair do quadro são recusados. Se passar, o jogo já fica disponível para todos os alunos.</p>
+      <h3 className="text-lg font-bold text-white">Publicar jogo</h3>
+      <p className="text-xs text-slate-400">Os alunos não enviam jogo pelo painel: mandam para você por e-mail ou WhatsApp. Você testa, publica aqui e escolhe o aluno autor. Escolha um arquivo .html (jogo em um arquivo só). O painel confere o código antes de aceitar: jogos que acessam a internet, abrem outras páginas ou tentam sair do quadro são recusados. Se passar, o jogo já fica disponível para todos os alunos.</p>
       {error && <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</p>}
       {notice && <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">{notice}</p>}
       <form key={formKey} className="grid gap-2 sm:grid-cols-2" onSubmit={async (e) => {
         e.preventDefault(); if (!file) return setError("Escolha o arquivo do jogo.");
         const f = new FormData(e.currentTarget); setBusy(true); setError(""); setNotice("");
         try {
-          await call("/api/teacher/games", "POST", { title: f.get("title"), description: f.get("description"), html: file.html });
+          await call("/api/teacher/games", "POST", { title: f.get("title"), description: f.get("description"), studentId: f.get("studentId") || null, html: file.html });
           setNotice("Jogo publicado! Os alunos já podem jogar."); setFile(null); setFormKey((k) => k + 1); await loadMine();
         } catch (err: any) { setError(err.message); } finally { setBusy(false); }
       }}>
         <label className="text-xs text-slate-300">Nome do jogo<input name="title" required minLength={3} maxLength={60} className={field} /></label>
         <label className="text-xs text-slate-300">Como se joga (opcional)<input name="description" maxLength={200} className={field} /></label>
+        <label className="text-xs text-slate-300 sm:col-span-2">Aluno autor (opcional)
+          <select name="studentId" data-testid="teacher-game-student" className={field} defaultValue="">
+            <option value="">Sem aluno (jogo meu)</option>
+            {students.map((st) => <option key={st.id} value={st.id}>{st.name}</option>)}
+          </select></label>
         <label className="text-xs text-slate-300 sm:col-span-2">Arquivo do jogo (.html)
           <input type="file" name="arquivo" accept=".html,.htm,text/html" data-testid="teacher-game-file" className={field} onChange={(e) => pick(e.target.files?.[0])} /></label>
         {file && <p className="text-xs text-emerald-300 sm:col-span-2">Arquivo escolhido: {file.name}</p>}
         <button className={button} type="submit" disabled={busy || !file}>{busy ? "Conferindo..." : "Enviar jogo"}</button>
       </form>
       <div className="space-y-2 border-t border-white/10 pt-3" data-testid="teacher-my-games">
-        <h4 className="text-sm font-bold text-white">Jogos que você enviou ({mine?.length ?? 0})</h4>
+        <h4 className="text-sm font-bold text-white">Jogos que você publicou ({mine?.length ?? 0})</h4>
         <ul className="space-y-2">
           {(mine ?? []).map((g) => (
             <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 p-3" data-testid={`my-game-${g.id}`}>
               <div className="min-w-0">
-                <p className="font-semibold text-white">{g.title}</p>
+                <p className="font-semibold text-white">{g.title}{g.authorName && <span className="text-xs font-normal text-slate-400"> · por {g.authorName}</span>}</p>
                 <p className="text-xs text-slate-400">{g.plays} {g.plays === 1 ? "partida" : "partidas"} · enviado em {new Date(g.createdAt).toLocaleDateString("pt-BR", { timeZone: "America/Recife" })}{g.description ? ` · ${g.description}` : ""}</p>
               </div>
               <div className="flex gap-2">
@@ -87,51 +94,9 @@ function TeacherGameUpload() {
               </div>
             </li>
           ))}
-          {mine && !mine.length && <li className="text-sm text-slate-400">Você ainda não enviou nenhum jogo.</li>}
+          {mine && !mine.length && <li className="text-sm text-slate-400">Você ainda não publicou nenhum jogo.</li>}
         </ul>
       </div>
-    </section>
-  );
-}
-
-type ReviewGame = { id: string; title: string; description: string | null; authorName: string; status: "PENDING" | "APPROVED" | "REJECTED"; plays: number; scanProblems: string[] };
-const gameStatus: Record<string, string> = { PENDING: "aguardando você", APPROVED: "aprovado", REJECTED: "rejeitado" };
-
-/** O aluno envia o jogo e pede para torná-lo público; o professor testa e aprova ou rejeita. */
-function TeacherGameReview() {
-  const [games, setGames] = useState<ReviewGame[] | null>(null);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const load = useCallback(async () => {
-    try { setGames((await call("/api/teacher/games")).games); } catch (e: any) { setError(e.message); }
-  }, []);
-  useEffect(() => { const t = setTimeout(load, 0); return () => clearTimeout(t); }, [load]);
-  const decide = async (id: string, status: "APPROVED" | "REJECTED") => {
-    setError(""); setNotice("");
-    try { await call("/api/teacher/games", "PATCH", { id, status }); setNotice(status === "APPROVED" ? "Jogo aprovado. Os colegas já podem jogar." : "Jogo rejeitado."); await load(); }
-    catch (e: any) { setError(e.message); }
-  };
-  return (
-    <section className={panel} data-testid="teacher-game-review">
-      <h3 className="text-lg font-bold text-white">Jogos dos alunos ({games?.filter((g) => g.status === "PENDING").length ?? 0} para aprovar)</h3>
-      <p className="text-xs text-slate-400">Os alunos das suas turmas enviam o jogo e pedem para torná-lo público. Teste antes de aprovar: o jogo só aparece para os colegas depois do seu OK.</p>
-      {error && <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</p>}
-      {notice && <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">{notice}</p>}
-      <ul className="space-y-2">
-        {(games ?? []).map((g) => (
-          <li key={g.id} className="space-y-1 rounded-xl border border-slate-800 p-3" data-testid={`review-game-${g.id}`}>
-            <p className="font-semibold text-white">{g.title} <span className="text-xs font-normal text-slate-400">por {g.authorName} · {gameStatus[g.status]}</span></p>
-            {g.description && <p className="text-xs text-slate-400">{g.description}</p>}
-            {g.scanProblems.length > 0 && <p role="note" className="text-xs text-amber-300">⚠ A varredura achou: {g.scanProblems.join("; ")}. Não dá para aprovar assim.</p>}
-            <div className="flex flex-wrap gap-2">
-              <a className={button} href={`/api/games/${g.id}/play`} target="_blank" rel="noopener noreferrer">Testar (nova aba)</a>
-              {g.status !== "APPROVED" && <button className={button} disabled={g.scanProblems.length > 0} onClick={() => decide(g.id, "APPROVED")}>Aprovar</button>}
-              {g.status !== "REJECTED" && <button className={button} onClick={() => decide(g.id, "REJECTED")}>Rejeitar</button>}
-            </div>
-          </li>
-        ))}
-        {games && !games.length && <li className="text-sm text-slate-400">Nenhum aluno pediu para publicar um jogo ainda.</li>}
-      </ul>
     </section>
   );
 }
@@ -226,7 +191,6 @@ export function TeacherKids() {
         )}
       </section>
 
-      <TeacherGameReview />
 
       <TeacherGameUpload />
 

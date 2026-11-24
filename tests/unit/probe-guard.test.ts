@@ -65,8 +65,8 @@ describe('a trava está ligada nas 3 rotas que criam ou servem jogos', () => {
     expect(guard).toBeGreaterThan(-1);
     expect(guard).toBeLessThan(s.indexOf('injectGameShim(game.html)')); // a checagem vem antes de servir
   });
-  test('criação por aluno e por diretor recusa o marcador', () => {
-    for (const rel of ['app/api/games/route.ts', 'app/api/director/kids/games/route.ts']) {
+  test('criação por professor e por diretor recusa o marcador', () => {
+    for (const rel of ['app/api/teacher/games/route.ts', 'app/api/director/kids/games/route.ts']) {
       const s = src(rel);
       expect(s).toContain("from '@/lib/probe-guard'");
       expect(s).toContain('gameHtmlAllowedHere(html)');

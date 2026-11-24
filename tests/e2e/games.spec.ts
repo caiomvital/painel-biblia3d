@@ -26,7 +26,6 @@ const ui = {
   card: (page: Page, gameId: string) => page.getByTestId(`game-card-${gameId}`),
   play: (page: Page, gameId: string) => page.getByTestId(`game-play-${gameId}`).click(),
   back: (page: Page) => page.getByRole("button", { name: "Voltar", exact: true }).click(),
-  openSubmit: (page: Page) => page.getByTestId("game-submit-open").click(),
 };
 
 const GAME_HTML = (word: string) => `<!doctype html><html><head><title>${word}</title></head><body><h1 id="ok">${word}</h1></body></html>`;
@@ -110,24 +109,49 @@ test("cabeçalhos de segurança e permissões da rota de jogar", async ({ page, 
   expect((await (await page.request.get("/")).headers())["x-frame-options"]).toBe("DENY"); // o resto do site continua sem iframe
 });
 
-test("aluno envia um jogo e ele fica pendente", async ({ page }, info) => {
-  const x = fixtures(info.project.name);
+test("aluno não envia jogo pelo painel: a tela explica e a API recusa", async ({ page }, info) => {
   await login(page, info.project.name);
   await ui.openGamesTab(page);
-  await ui.openSubmit(page);
-  const title = `Enviado Pelo Teste ${info.project.name}`;
-  await page.getByLabel("Nome do jogo").fill(title);
-  await page.getByLabel("Código do jogo (HTML)").fill(GAME_HTML("ENVIADO-OK"));
-  await page.getByTestId("game-public").check(); // "Tornar público": vai para a revisão da equipe
-  const sent = page.waitForResponse((r) => r.url().endsWith("/api/games") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Enviar", exact: true }).click();
-  expect((await sent).status()).toBe(200);
+  await expect(page.getByTestId("game-submit-open")).toHaveCount(0);
+  await expect(page.getByTestId("game-send-help")).toContainText("professor por e-mail ou WhatsApp");
+  const body = { title: "Tentativa Do Aluno", html: GAME_HTML("TENTATIVA"), isPublic: true };
+  const post = await page.request.post("/api/games", { data: body, headers: { Origin: origin } });
+  expect(post.status()).toBe(403);
+  expect((await page.request.patch("/api/games", { data: { id: "x", isPublic: true }, headers: { Origin: origin } })).status()).toBe(403);
+  expect(await db.game.count({ where: { title: "Tentativa Do Aluno" } })).toBe(0);
+});
+
+test("professor publica o jogo do aluno: já fica no ar, com o nome do aluno", async ({ browser, page }, info) => {
+  const x = fixtures(info.project.name);
+  const ctx = await browser.newContext();
+  const teacher = ctx.request;
+  const loginRes = await teacher.post(`${origin}/api/auth/login`, { data: { email: x.f.email("teacher"), password }, headers: { Origin: origin } });
+  expect(loginRes.status()).toBe(200);
+  const title = `Do Aluno Pelo Professor ${info.project.name}`;
+  const post = (data: object) => teacher.post(`${origin}/api/teacher/games`, { data, headers: { Origin: origin } });
+  const students = await (await teacher.get(`${origin}/api/teacher/games?students=1`)).json();
+  expect(students.students.map((s: { id: string }) => s.id)).toEqual([x.studentId]); // só os alunos das turmas dele
+  expect((await post({ title, html: GAME_HTML("DO-ALUNO-OK"), studentId: x.outsiderId })).status()).toBe(400); // aluno de outra turma
+  const ok = await post({ title, html: GAME_HTML("DO-ALUNO-OK"), studentId: x.studentId });
+  expect(ok.status()).toBe(200);
   const row = await db.game.findFirstOrThrow({ where: { title } });
-  expect(row.status).toBe("PENDING");
+  expect(row.status).toBe("APPROVED");
   expect(row.isPublic).toBe(true);
   expect(row.authorStudentId).toBe(x.studentId);
-  await expect(page.getByText(title).first()).toBeVisible(); // aparece em "Meus jogos"
-  await db.game.delete({ where: { id: row.id } });
+  expect(row.authorUserId).toBe(x.f.teacher);
+  const mine = await (await teacher.get(`${origin}/api/teacher/games?mine=1`)).json();
+  expect(mine.games.find((g: { id: string }) => g.id === row.id)?.authorName).toBe(row.authorName);
+  // o aluno vê em "Meus jogos"; os colegas veem pelo primeiro nome
+  await login(page, info.project.name);
+  await ui.openGamesTab(page);
+  await expect(page.getByTestId("my-games")).toContainText(title);
+  const list = await (await page.request.get("/api/games")).json();
+  expect(list.mine.map((g: { id: string }) => g.id)).toContain(row.id);
+  expect(list.games.map((g: { id: string }) => g.id)).not.toContain(row.id);
+  // só o professor que publicou apaga
+  expect((await teacher.delete(`${origin}/api/teacher/games?id=${row.id}`, { headers: { Origin: origin } })).status()).toBe(200);
+  expect(await db.game.count({ where: { id: row.id } })).toBe(0);
+  await ctx.close();
 });
 
 test("erros da rota de jogar viram páginas amigáveis (não texto solto)", async ({ page, browser }, info) => {
@@ -232,26 +256,4 @@ test('jogo legítimo que reinicia com location.reload(): aviso neutro e Tentar d
   await page.getByRole("button", { name: "Tentar de novo" }).click();
   await expect(page.getByTestId("game-navigated")).toHaveCount(0);
   await expect(page.frameLocator("iframe").locator("#again")).toBeVisible(); // o jogo volta
-});
-
-test("jogo sem \"Tornar público\" fica só do autor: nem aparece nem abre para os colegas", async ({ page }, info) => {
-  const x = fixtures(info.project.name);
-  await login(page, info.project.name);
-  await ui.openGamesTab(page);
-  await ui.openSubmit(page);
-  const title = `Privado Pelo Teste ${info.project.name}`;
-  await page.getByLabel("Nome do jogo").fill(title);
-  await page.getByLabel("Código do jogo (HTML)").fill(GAME_HTML("PRIVADO-OK"));
-  const sent = page.waitForResponse((r) => r.url().endsWith("/api/games") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Enviar", exact: true }).click();
-  expect((await sent).status()).toBe(200);
-  const row = await db.game.findFirstOrThrow({ where: { title } });
-  expect(row.isPublic).toBe(false);
-  expect(row.authorStudentId).toBe(x.studentId);
-  // o dono joga; "Meus jogos" vem primeiro
-  expect((await page.request.get(`/api/games/${row.id}/play`)).status()).toBe(200);
-  const list = await (await page.request.get("/api/games")).json();
-  expect(list.mine.map((g: { id: string }) => g.id)).toContain(row.id);
-  expect(list.games.map((g: { id: string }) => g.id)).not.toContain(row.id);
-  await db.game.delete({ where: { id: row.id } });
 });
