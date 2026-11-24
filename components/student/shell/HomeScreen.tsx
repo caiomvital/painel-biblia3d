@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Button, LiveMascot, MASCOT_NAME } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import { NextEventCard } from './EventsScreen';
-import { ChestCard } from '../chests/ChestCard';
+import { ChestButton, ChestCard, useChests } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
 import { JourneyButton } from './JourneyButton';
 import { HomeDashboard } from './HomeDashboard';
@@ -55,11 +55,12 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
   const lessonOpen = !!home.lesson && !home.lesson.done;
   const pwa = useStandalone();
   const wide = useWide();
+  const chest = useChests(home.points + home.level, onRefresh);
 
   const tail = (
     <>
       <NextEventCard onOpen={() => onGo('events')} />
-      <ChestCard refreshKey={home.points + home.level} onOpened={onRefresh} />
+      {wide && <ChestCard ctl={chest} />}
 
         {!home.profileCompleted && (
           <button type="button" onClick={() => setProfileOpen(true)} data-testid="home-profile-open"
@@ -71,7 +72,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
     </>
   );
 
-  if (wide) return <HomeDashboard home={home} celebrate={celebrate} onGo={onGo}>{tail}</HomeDashboard>;
+  if (wide) return <><HomeDashboard home={home} celebrate={celebrate} onGo={onGo}>{tail}</HomeDashboard>{chest.portal}</>;
 
   return (
     <div className="space-y-4">
@@ -94,17 +95,22 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
         </div>
 
         {pwa ? (
-          /* No app instalado o mascote fica sozinho embaixo (pula enquanto o Desafio de hoje não foi feito). */
-          <div className={`flex shrink-0 justify-center ${quizPending ? 'game-bounce' : ''}`}>
+          /* No app instalado o mascote fica sozinho embaixo (pula enquanto o Desafio de hoje não foi feito).
+             Com baú para abrir, o botão do baú toma o lugar do mascote: assim não precisa rolar a tela. */
+          chest.chests.length > 0 ? <ChestButton ctl={chest} className="min-h-24 shrink-0" /> : <div className={`flex shrink-0 justify-center ${quizPending ? 'game-bounce' : ''}`}>
             <LiveMascot bare size={4.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
           </div>
         ) : (
           /* No navegador do celular o Quiz ao vivo (sala de aula) fica à mão; Jogos e Leilão estão na barra de baixo. */
-          <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Digite o PIN" onClick={() => onGo('live')} className="h-20 shrink-0" />
+          <>
+            <ChestButton ctl={chest} className="min-h-20 shrink-0" />
+            <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Digite o PIN" onClick={() => onGo('live')} className="h-20 shrink-0" />
+          </>
         )}
       </div>
 
       {tail}
+      {chest.portal}
     </div>
   );
 }

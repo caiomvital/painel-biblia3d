@@ -151,7 +151,7 @@ test("tela: card na Home, abertura animada e Tela de Resultado com NOVO ITEM", a
   await loginUi(page, f.email("student"));
   const card = page.getByTestId("home-chest");
   await expect(card).toBeVisible();
-  await card.getByRole("button", { name: "Abrir baú" }).click();
+  await page.locator('button[data-testid="home-chest"], [data-testid="home-chest"] button').first().click(); // celular: o botão do baú; tela larga: cartão
   const opening = page.getByRole("dialog", { name: "Abrir baú" });
   await expect(opening).toBeVisible();
   if (SHOTS) {
