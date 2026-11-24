@@ -48,7 +48,7 @@ export function FirstPasswordScreen({ onDone, onLogout }: { onDone: () => void; 
       <main className="mx-auto flex max-w-md flex-col items-center gap-4">
         <Mascot size={7.5} />
         <h1 className="text-center font-[family-name:var(--font-game-title)] text-3xl tracking-wide">Crie sua senha nova</h1>
-        <p className="text-center text-game-ink-dim">Só você vai saber. Use 6 letras ou números, ou mais.</p>
+        <p className="text-center text-game-ink-dim">Só você vai saber. Use 5 letras ou números.</p>
         <Card as="div" tone="highlight" className="w-full">
           <form className="space-y-4" onSubmit={submit} noValidate>
             <label className="block font-semibold">Senha nova

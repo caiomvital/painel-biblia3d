@@ -56,6 +56,20 @@ async function loginUi(page: Page, who: string, pass: string) {
   return response;
 }
 
+test("o login da criança vale com só os 8 últimos dígitos e a mensagem de erro fala em login", async ({ page }, info) => {
+  const x = fx(info.project.name);
+  const eight = x.phone.slice(-8);
+  const ok = await page.request.post("/api/auth/login", { headers: { Origin: origin }, data: { email: eight, password: DEFAULT } });
+  expect(ok.status()).toBe(200);
+  expect((await ok.json()).user.email).toBe(x.email);
+  await page.request.post("/api/auth/logout", { headers: { Origin: origin } });
+  const bad = await page.request.post("/api/auth/login", { headers: { Origin: origin }, data: { email: eight, password: "errada-errada" } });
+  expect(bad.status()).toBe(401);
+  expect((await bad.json()).error).toContain("login e senha");
+  const none = await page.request.post("/api/auth/login", { headers: { Origin: origin }, data: { email: "00000000", password: DEFAULT } });
+  expect(none.status()).toBe(401);
+});
+
 test("senha padrão cai na tela de troca e o servidor bloqueia todo o resto", async ({ page }, info) => {
   const x = fx(info.project.name);
   const response = await loginUi(page, x.maskedPhone, DEFAULT); // telefone formatado, como o responsável digita

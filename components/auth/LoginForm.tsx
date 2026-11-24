@@ -101,7 +101,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <label htmlFor="login-email" className="block font-semibold">{who === 'ALUNO' ? 'Seu usuário' : 'Seu e-mail'}
             <input id="login-email" type="text" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder={who === 'ALUNO' ? 'Telefone do responsável' : 'Seu e-mail'} className={`${field} mt-1`} />
+              placeholder={who === 'ALUNO' ? 'Login (8 números, sem o 81)' : 'Seu e-mail'} className={`${field} mt-1`} />
           </label>
           <label htmlFor="login-password" className="block font-semibold">Senha
             <input id="login-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)}
