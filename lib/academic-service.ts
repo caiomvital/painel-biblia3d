@@ -930,6 +930,21 @@ export async function createLessonByStaff(userId: string, role: string, data: { 
   });
 }
 
+/** Passa o aluno para outra turma: a matrícula ativa anterior vira DROPPED (fica no histórico) e a nova fica ACTIVE. */
+export async function moveStudentToClassByDirector(studentId: string, classId: string) {
+  if (!studentId || !classId) throw new Error("Aluno e turma são obrigatórios.");
+  return prisma.$transaction(async (tx) => {
+    const cls = await tx.class.findUnique({ where: { id: classId } });
+    if (!cls || !(await tx.student.findUnique({ where: { id: studentId } }))) throw new Error("Aluno ou turma não encontrado.");
+    await tx.enrollment.updateMany({ where: { studentId, status: "ACTIVE", classId: { not: classId } }, data: { status: "DROPPED" } });
+    const enrollment = await tx.enrollment.upsert({
+      where: { studentId_classId: { studentId, classId } },
+      update: { status: "ACTIVE" },
+      create: { studentId, classId, status: "ACTIVE" },
+    });
+    return { ...enrollment, name: cls.name };
+  });
+}
 export async function updateEnrollmentByDirector(id: string, status: string) {
   if (!["ACTIVE", "COMPLETED", "DROPPED"].includes(status))
     throw new Error("Situação da matrícula inválida.");

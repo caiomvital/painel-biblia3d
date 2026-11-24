@@ -1026,6 +1026,17 @@ export async function deleteAuctionItemByDirector(id: string) {
   return true;
 }
 
+/** Cria uma temporada nova (ativa). As anteriores continuam como estão: a mais recente é a que vale. */
+export async function createAuctionSeasonByDirector(data: { title: string; endDate: string; minBidIncrement?: number }) {
+  const title = String(data.title ?? '').trim();
+  if (title.length < 3 || title.length > 80) throw new Error('Dê um nome à temporada (de 3 a 80 letras).');
+  const endsAt = new Date(data.endDate);
+  if (!Number.isFinite(endsAt.getTime()) || endsAt.getTime() <= Date.now()) throw new Error('A data final precisa ser no futuro.');
+  const minBidIncrement = Number(data.minBidIncrement) || 50;
+  if (!Number.isInteger(minBidIncrement) || minBidIncrement < 1 || minBidIncrement > 100000) throw new Error('O incremento mínimo deve ser um número inteiro de fichas.');
+  return prisma.auctionSeason.create({ data: { title, status: AuctionStatus.ACTIVE, minBidIncrement, endsAt } });
+}
+
 export async function updateAuctionSettingsByDirector(settings: {
   seasonTitle?: string;
   status?: AuctionStatus;

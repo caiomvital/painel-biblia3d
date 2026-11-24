@@ -11,6 +11,7 @@ import {
   updateAuctionItemByDirector,
   deleteAuctionItemByDirector,
   updateAuctionSettingsByDirector,
+  createAuctionSeasonByDirector,
 } from '@/lib/auction-service';
 
 export async function GET() {
@@ -49,6 +50,17 @@ export async function POST(req: Request) {
       if (typeof body.itemId !== 'string' || !body.itemId) return NextResponse.json({error:'Item obrigatório.'}, {status:400});
       const item = await trackedChange(session, "Lote encerrado", body.itemId, body.reason, () => closeAuctionItem(body.itemId));
       return NextResponse.json({success:true,item});
+    }
+    if (body.action === 'CREATE_SEASON') {
+      try {
+        const season = await trackedChange(session, "Temporada criada", '', body.reason, () => createAuctionSeasonByDirector({
+          title: body.title, endDate: body.endDate, minBidIncrement: body.minBidIncrement,
+        }));
+        return NextResponse.json({ success: true, season });
+      } catch (error: any) {
+        // dados inválidos (nome curto, data passada) voltam com a mensagem clara, não como erro do servidor
+        return NextResponse.json({ error: error?.message || 'Não foi possível criar a temporada.' }, { status: 400 });
+      }
     }
     // Se for atualização de configurações da temporada/datas do leilão
     if (body.action === 'UPDATE_SETTINGS') {

@@ -103,12 +103,14 @@ export default function DirectorFinanceControls({
     }
   };
 
+  const [seasonOpen, setSeasonOpen] = useState(false); // quadro "Nova temporada": controlado, para o React não fechar a caixa quando os dados chegam
   const loadAuction = async () => {
     setLoadingAuction(true);
     try {
       const json = await api("/api/director/auction");
       setAuctionItems(json.items);
       setAuctionSettings(json.settings);
+      if (!json.settings) setSeasonOpen(true);
       setBids(json.bids);
     } catch (error) {
       showNotification((error as Error).message, true);
@@ -122,6 +124,7 @@ export default function DirectorFinanceControls({
       .then((json) => {
         setAuctionItems(json.items);
         setAuctionSettings(json.settings);
+        if (!json.settings) setSeasonOpen(true); // ainda não há temporada: já abre o formulário
         setBids(json.bids);
       })
       .catch((error) => {
@@ -272,6 +275,31 @@ export default function DirectorFinanceControls({
     }
   };
 
+  const handleCreateSeason = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    try {
+      const res = await fetch("/api/director/auction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "CREATE_SEASON",
+          title: f.get("title"),
+          endDate: `${f.get("endDate")}T23:59:00-03:00`,
+          minBidIncrement: Number(f.get("minBidIncrement")) || 50,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Falha ao criar a temporada.");
+      showNotification("Temporada criada! Agora cadastre os prêmios dela.");
+      form.reset();
+      loadAuction();
+    } catch (err: any) {
+      showNotification(err.message || "Erro ao criar a temporada.", true);
+    }
+  };
+
   const filteredAuctionItems = auctionItems.filter(
     (i) =>
       i.title.toLowerCase().includes(auctionSearch.toLowerCase()) ||
@@ -377,6 +405,19 @@ export default function DirectorFinanceControls({
       </section>
       {activeTab === "auction" && (
         <div className="space-y-6">
+          <details className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4" data-testid="new-season" open={seasonOpen} onToggle={(e) => setSeasonOpen((e.currentTarget as HTMLDetailsElement).open)}>
+            <summary className="cursor-pointer text-sm font-bold text-amber-300">Nova temporada de leilão{!auctionSettings ? " (ainda não há nenhuma)" : ""}</summary>
+            <form onSubmit={handleCreateSeason} className="mt-3 grid gap-3 text-xs sm:grid-cols-4">
+              <label className="text-slate-300 sm:col-span-2">Nome da temporada
+                <input name="title" required minLength={3} maxLength={80} placeholder="Ex.: Leilão de Dezembro" className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-white" /></label>
+              <label className="text-slate-300">Termina em
+                <input name="endDate" type="date" required className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-white" /></label>
+              <label className="text-slate-300">Aumento mínimo por lance (fichas)
+                <input name="minBidIncrement" type="number" min={1} defaultValue={50} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-white" /></label>
+              <button type="submit" className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 font-bold text-amber-300 hover:bg-amber-500/20 sm:col-span-4 sm:w-fit">Criar temporada</button>
+            </form>
+          </details>
+
           {/* Banner de Controle da Temporada & Datas do Leilão */}
           <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-slate-900/90 to-slate-900 p-6 backdrop-blur-md shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
