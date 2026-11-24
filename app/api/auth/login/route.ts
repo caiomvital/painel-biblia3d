@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     if (typeof email !== 'string' || typeof password !== 'string' || !email || !password || email.length > 254 || password.length > 1024) {
       return NextResponse.json(
-        { error: 'E-mail e senha são obrigatórios para acessar a plataforma.' },
+        { error: 'Login e senha são obrigatórios para acessar a plataforma.' },
         { status: 400 }
       );
     }
@@ -34,9 +34,11 @@ export async function POST(req: NextRequest) {
     } as const;
     let user: any = null;
     const phoneOnly = normalizedEmail.replace(/[\s().-]/g, '');
-    if (/^\d{10,11}$/.test(phoneOnly)) {
+    if (/^\d{8}$/.test(phoneOnly) || /^\d{10,11}$/.test(phoneOnly)) {
       // Login da criança: telefone do responsável + senha. Vários filhos => pergunta quem está entrando.
-      const kids = await prisma.user.findMany({ where: { student: { guardianPhone: phoneOnly } }, include: userInclude });
+      // O login é digitado só com os 8 últimos dígitos (sem o 81); o telefone completo, com DDD, continua valendo.
+      const where = phoneOnly.length === 8 ? { endsWith: phoneOnly } : phoneOnly;
+      const kids = await prisma.user.findMany({ where: { student: { guardianPhone: where } }, include: userInclude });
       const matches: any[] = [];
       for (const kid of kids) {
         if (kid.passwordHash && (await verifyPassword(password, kid.passwordHash))) matches.push(kid);
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
     // Se o usuário não foi localizado no PostgreSQL, rejeitar com 401
     if (!user) {
       return NextResponse.json(
-        { error: 'Credenciais inválidas. Verifique seu e-mail e senha.' },
+        { error: 'Credenciais inválidas. Verifique seu login e senha.' },
         { status: 401 }
       );
     }
@@ -64,7 +66,7 @@ export async function POST(req: NextRequest) {
     // 2. Validar passwordHash com bcrypt.compare (sem bypass, sem senhas curinga, sem fallback)
     if (!user.passwordHash) {
       return NextResponse.json(
-        { error: 'Credenciais inválidas. Verifique seu e-mail e senha.' },
+        { error: 'Credenciais inválidas. Verifique seu login e senha.' },
         { status: 401 }
       );
     }
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
     const passwordMatches = await verifyPassword(password, user.passwordHash);
     if (!passwordMatches) {
       return NextResponse.json(
-        { error: 'Credenciais inválidas. Verifique seu e-mail e senha.' },
+        { error: 'Credenciais inválidas. Verifique seu login e senha.' },
         { status: 401 }
       );
     }

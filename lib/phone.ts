@@ -2,10 +2,10 @@
 export const canonicalPhone = (value: string) => value.replace(/\D/g, "");
 
 /**
- * Chave do limitador de tentativas de login. Telefones (10 ou 11 dígitos, com ou sem
+ * Chave do limitador de tentativas de login. Telefones (8 dígitos sem o DDD, ou 10 ou 11 com DDD, com ou sem
  * espaços, parênteses e traços) caem todos na mesma chave canônica; e-mails/logins ficam como estão.
  */
 export function loginLimiterKey(normalizedLogin: string): string {
   const phone = normalizedLogin.replace(/[\s().-]/g, "");
-  return /^\d{10,11}$/.test(phone) ? phone : normalizedLogin;
+  return /^\d{8}$|^\d{10,11}$/.test(phone) ? phone : normalizedLogin;
 }

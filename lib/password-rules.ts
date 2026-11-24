@@ -1,6 +1,6 @@
 /** Regras da senha que a criança cria no primeiro acesso. Mensagens curtas e amigáveis. */
 export const MSG = {
-  short: "A senha precisa ter pelo menos 6 letras ou números.",
+  short: "A senha precisa ter pelo menos 5 letras ou números.",
   long: "Use no máximo 32 letras ou números.",
   easy: "Essa senha é fácil de adivinhar. Escolha outra!",
   phone: "A senha não pode ser o telefone. Escolha outra!",
@@ -38,7 +38,7 @@ export interface PasswordContext {
 
 /** Devolve a mensagem do problema, ou null se a senha nova é aceitável. */
 export function firstPasswordProblem(password: string, ctx: PasswordContext = {}): string | null {
-  if (password.length < 6) return MSG.short;
+  if (password.length < 5) return MSG.short;
   if (password.length > 32) return MSG.long;
   const lower = password.toLowerCase();
   if (BLOCKED.has(lower) || isRun(lower) || isRepeatedPattern(lower)) return MSG.easy;

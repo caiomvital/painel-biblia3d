@@ -6,10 +6,11 @@ import { takeLoginAttempt } from "@/lib/login-limiter";
 describe("senha nova do primeiro acesso", () => {
   const ctx = { phone: "81995474295", login: "aluno" };
   test("mínimo de 6 caracteres", () => {
-    expect(firstPasswordProblem("abc12", ctx)).toBe(MSG.short);
+    expect(firstPasswordProblem("abc1", ctx)).toBe(MSG.short);
     expect(firstPasswordProblem("", ctx)).toBe(MSG.short);
     expect(firstPasswordProblem("estrela7", ctx)).toBeNull();
-    expect(firstPasswordProblem("abcdef1", ctx)).toBeNull(); // 6+ e não é sequência pura
+    expect(firstPasswordProblem("abcdef1", ctx)).toBeNull(); // 5+ e não é sequência pura
+    expect(firstPasswordProblem("abc12", ctx)).toBeNull(); // 5 letras ou números já vale
   });
   test("recusa 123 e as sequências óbvias pedidas", () => {
     for (const p of ["123", "123456", "111111", "000000", "654321"]) expect(firstPasswordProblem(p, ctx), p).not.toBeNull();
