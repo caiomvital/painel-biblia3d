@@ -3,7 +3,7 @@ import { Button, GamepadIcon } from '@/components/ui/game';
 import type { GameItem } from './api';
 import { GAMES_TEXT as T } from './copy';
 
-const COVERS = ['from-[#5b3fd0] to-[#2a1f7a]', 'from-[#2a82ee] to-[#1349a8]', 'from-[#1f9b46] to-[#0f672b]', 'from-[#f1700e] to-[#a8480a]', 'from-[#d6409f] to-[#7a1d5c]'];
+const COVERS = ['from-[#4a6fb0] to-[#243a5c]', 'from-[#2a82ee] to-[#1349a8]', 'from-[#1f9b46] to-[#0f672b]', 'from-[#f1700e] to-[#a8480a]', 'from-[#d6409f] to-[#7a1d5c]'];
 const hash = (s: string) => Array.from(s).reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 7);
 
 export function GameCard({ game, onPlay, badge, action }: { game: GameItem; onPlay: (g: GameItem) => void; badge?: string; action?: React.ReactNode }) {

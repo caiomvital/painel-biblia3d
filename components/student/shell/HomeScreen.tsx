@@ -82,7 +82,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
         </div>
 
         {/* O Desafio é a atração principal: vai na frente, em cima e largo. */}
-        <JourneyButton grid testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
+        <JourneyButton grid testId="home-daily" tone="teal" img="/jornada/desafio.png" title="Desafio"
           hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
           onClick={() => onGo('quests')} glow={quizPending} className="flex-1" />
 

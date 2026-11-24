@@ -15,7 +15,7 @@ export function resolveThemeVars(theme: ThemeDef, look: MascotLook): Record<stri
     vars = tint ? { primary: tint[0], 'primary-deep': tint[1], secondary: tint[0], 'secondary-deep': tint[1], line: tint[1] } : {};
   }
   if (theme.id === 'padrao') return vars;
-  const base = { surface: '#221d52', 'surface-2': '#2e2870', ...vars };
+  const base = { surface: '#1b2535', 'surface-2': '#253247', ...vars };
   return { ...vars, surface: withAlpha(base.surface), 'surface-2': withAlpha(base['surface-2']) };
 }
 
