@@ -31,7 +31,7 @@ export function HomeDashboard({ home, celebrate, onGo, children }: {
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_21rem]" data-testid="home-dashboard">
       <div className="min-w-0 space-y-5">
-        <section className="flex flex-wrap items-center gap-6 rounded-[2rem] border-2 border-game-primary bg-gradient-to-br from-[#4b34b8] via-[#2f2380] to-[#1b1550] p-6 shadow-xl">
+        <section className="flex flex-wrap items-center gap-6 rounded-[2rem] border-2 border-game-primary bg-gradient-to-br from-[#34507a] via-[#243a5c] to-[#17253d] p-6 shadow-xl">
           <div className={quizPending ? 'game-bounce' : ''}><LiveMascot bare size={9} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} /></div>
           <div className="min-w-64 flex-1">
             <h1 className="font-[family-name:var(--font-game-title)] text-4xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
@@ -51,7 +51,7 @@ export function HomeDashboard({ home, celebrate, onGo, children }: {
         </section>
 
         <div className="grid grid-cols-2 gap-5">
-          <JourneyButton grid testId="home-daily" tone="purple" img="/jornada/desafio.png" title="Desafio"
+          <JourneyButton grid testId="home-daily" tone="teal" img="/jornada/desafio.png" title="Desafio"
             hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
             onClick={() => onGo('quests')} glow={quizPending} className="h-60" />
           <JourneyButton grid testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN do professor"

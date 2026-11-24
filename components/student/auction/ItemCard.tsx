@@ -14,7 +14,7 @@ export function ItemCard({ item, balance, withdrawing, onBid, onWithdraw }: {
   return (
     <article data-testid={`auction-item-${item.id}`}
       className={`flex flex-col gap-3 rounded-game-lg border-2 border-b-4 p-4 ${item.isMyHighestBid ? 'border-game-success bg-game-surface-2' : 'border-game-line bg-game-surface'}`}>
-      <div aria-hidden="true" className="hidden h-28 items-center justify-center rounded-game bg-gradient-to-br from-[#5b3fd0] to-[#2a1f7a] text-6xl lg:flex">{itemEmoji(item.iconType)}</div>
+      <div aria-hidden="true" className="hidden h-28 items-center justify-center rounded-game bg-gradient-to-br from-[#4a6fb0] to-[#243a5c] text-6xl lg:flex">{itemEmoji(item.iconType)}</div>
       <div className="flex items-start gap-3">
         <span aria-hidden="true" className="flex size-14 shrink-0 lg:hidden items-center justify-center rounded-game bg-game-bg text-3xl">{itemEmoji(item.iconType)}</span>
         <div className="min-w-0 flex-1">

@@ -12,10 +12,10 @@ export type OpenedChest = {
 };
 
 /** Desenho próprio do baú (SVG). A tampa abre; com movimento reduzido só troca de estado. */
-function ChestArt({ open, shaking, reduce }: { open: boolean; shaking: boolean; reduce: boolean }) {
+export function ChestArt({ open, shaking, reduce, width = '13rem', height = '11.4rem' }: { open: boolean; shaking: boolean; reduce: boolean; width?: string; height?: string }) {
   return (
     <motion.svg
-      viewBox="0 0 160 140" width="13rem" height="11.4rem" aria-hidden="true" focusable="false"
+      viewBox="0 0 160 140" width={width} height={height} aria-hidden="true" focusable="false"
       animate={reduce || !shaking ? { rotate: 0, x: 0 } : { rotate: [0, -5, 5, -6, 6, -3, 3, 0], x: [0, -4, 4, -4, 4, -2, 2, 0] }}
       transition={{ duration: 0.9 }}
     >

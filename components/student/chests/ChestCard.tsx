@@ -2,40 +2,61 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useReducedMotion } from 'motion/react';
 import { Button, Card, CoinIcon } from '@/components/ui/game';
+import { playSound } from '@/components/ui/game/sound-store';
 import { kidsCall } from '../kids-api';
-import { ChestOpening } from './ChestOpening';
+import { ChestArt, ChestOpening } from './ChestOpening';
 
 type Chest = { id: string; label: string; source: string };
 
-/** Baús conquistados e ainda fechados. Não aparece quando não há nenhum. */
-export function ChestCard({ refreshKey, onOpened }: { refreshKey: number; onOpened: () => void }) {
+/** Baús conquistados e ainda fechados, mais a tela cheia de abertura (no body, acima da barra de abas). */
+export function useChests(refreshKey: number, onOpened: () => void) {
   const [chests, setChests] = useState<Chest[]>([]);
   const [opening, setOpening] = useState<Chest | null>(null);
 
   const load = useCallback(async () => {
-    try { setChests((await kidsCall('/api/kids/chests')).chests); } catch { /* o cartão é opcional */ }
+    try { setChests((await kidsCall('/api/kids/chests')).chests); } catch { /* o baú é opcional */ }
   }, []);
   useEffect(() => { const t = setTimeout(load, 0); return () => clearTimeout(t); }, [load, refreshKey]);
 
-  if (chests.length === 0 && !opening) return null;
-  const first = chests[0];
+  const portal = opening ? createPortal(
+    <ChestOpening chestId={opening.id} label={opening.label}
+      onClose={(opened) => { setOpening(null); if (opened) onOpened(); void load(); }} />,
+    document.body,
+  ) : null;
+  return { chests, openFirst: () => { if (chests[0]) setOpening(chests[0]); }, portal };
+}
+export type ChestControl = ReturnType<typeof useChests>;
+
+const countText = (n: number) => (n === 1 ? 'Você tem 1 baú para abrir.' : `Você tem ${n} baús para abrir.`);
+
+/** Cartão da tela inicial larga. Não aparece quando não há baú. */
+export function ChestCard({ ctl }: { ctl: ChestControl }) {
+  if (ctl.chests.length === 0) return null;
   return (
-    <>
-      {first && (
-        <Card title="Baú conquistado!" tone="highlight" data-testid="home-chest">
-          <p className="text-game-ink-dim">
-            {chests.length === 1 ? 'Você tem 1 baú para abrir.' : `Você tem ${chests.length} baús para abrir.`} Dentro tem um item para o Lofi!
-          </p>
-          <Button className="mt-3" icon={<CoinIcon />} onClick={() => setOpening(first)}>Abrir baú</Button>
-        </Card>
-      )}
-      {/* no body: a tela cheia fica acima da barra de abas, sem depender de onde o cartão está */}
-      {opening && createPortal(
-        <ChestOpening chestId={opening.id} label={opening.label}
-          onClose={(opened) => { setOpening(null); if (opened) onOpened(); void load(); }} />,
-        document.body,
-      )}
-    </>
+    <Card title="Baú conquistado!" tone="highlight" data-testid="home-chest">
+      <p className="text-game-ink-dim">{countText(ctl.chests.length)} Dentro tem um item para o Lofi!</p>
+      <Button className="mt-3" icon={<CoinIcon />} onClick={ctl.openFirst}>Abrir baú</Button>
+    </Card>
+  );
+}
+
+/** No celular o baú ocupa o lugar do Lofi: um botão com o desenho do baú, sem precisar rolar a tela. */
+export function ChestButton({ ctl, className = '' }: { ctl: ChestControl; className?: string }) {
+  const reduce = useReducedMotion() ?? false;
+  const n = ctl.chests.length;
+  if (n === 0) return null;
+  return (
+    <button type="button" data-testid="home-chest" onClick={() => { playSound('tap'); ctl.openFirst(); }}
+      aria-label={`Abrir baú. ${countText(n)}`}
+      style={{ backgroundImage: 'linear-gradient(180deg,#ffbe4d 0%,#f1700e 100%)', borderColor: '#ffe1a8', ['--btn-edge' as string]: '#a8480a' }}
+      className={`game-btn game-press game-glow relative flex w-full max-w-sm items-center justify-center gap-3 self-center rounded-[1.75rem] border-2 px-4 py-2 text-white font-[family-name:var(--font-game-body)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${className}`}>
+      <ChestArt open={false} shaking={false} reduce={reduce} width="5.5rem" height="4.8rem" />
+      <span className="text-left">
+        <span className="block font-[family-name:var(--font-game-title)] text-2xl leading-none tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35)]">Abrir baú</span>
+        <span className="mt-1 block text-sm font-semibold leading-tight [text-shadow:0_1px_2px_rgb(0_0_0/0.55)]">{n === 1 ? '1 baú esperando' : `${n} baús esperando`}</span>
+      </span>
+    </button>
   );
 }

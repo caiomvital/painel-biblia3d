@@ -7,7 +7,7 @@ import { playSound } from '@/components/ui/game/sound-store';
 const TONE = {
   blue: { bg: 'linear-gradient(180deg,#59c8ff 0%,#2a82ee 100%)', edge: '#1349a8', ring: '#bfe9ff' },
   orange: { bg: 'linear-gradient(180deg,#ffbe4d 0%,#f1700e 100%)', edge: '#a8480a', ring: '#ffe1a8' },
-  purple: { bg: 'linear-gradient(180deg,#b873ff 0%,#7b2fe2 100%)', edge: '#4a199b', ring: '#e3c8ff' },
+  teal: { bg: 'linear-gradient(180deg,#3fd9c4 0%,#12877f 100%)', edge: '#0a5650', ring: '#bff5ec' },
   green: { bg: 'linear-gradient(180deg,#5fdc72 0%,#1f9b46 100%)', edge: '#0f672b', ring: '#c4f5cc' },
 } as const;
 

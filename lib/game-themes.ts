@@ -17,7 +17,7 @@ export interface ThemeDef {
 }
 
 export const THEMES: readonly ThemeDef[] = [
-  { id: 'padrao', name: 'Noite Índigo', group: 'livre', blurb: 'O visual de sempre.' },
+  { id: 'padrao', name: 'Noite Azul', group: 'livre', blurb: 'O visual de sempre.' },
   { id: 'oceano', name: 'Oceano', group: 'livre',
     vars: { bg: '#06283d', surface: '#0b3b5a', 'surface-2': '#0f5280', line: '#2b7cab', 'xp-track': '#052237', primary: '#37d6e6', 'primary-deep': '#1597a6', secondary: '#7fb6ff', 'ink-on-light': '#06283d' }, blurb: 'Azul profundo e bichinhos do mar.' },
   { id: 'floresta', name: 'Floresta', group: 'livre',
