@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Mascot } from '@/components/ui/game';
+import { Button } from '@/components/ui/game';
 import { playSound } from '@/components/ui/game/sound-store';
 import { PWAInstallButton } from '@/components/pwa/PWAInstallButton';
 
@@ -51,9 +51,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     return (
       <div className="login-tema mx-auto w-full max-w-md font-[family-name:var(--font-game-body)] text-game-ink" data-testid="login-escolha">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <Mascot size={6} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-biblia3d-branca.png" alt="Bíblia 3D" className="h-14 w-auto" draggable={false} />
+          <img src="/logo-biblia3d-branca.png" alt="Bíblia 3D" className="h-20 w-auto" draggable={false} />
         </div>
         <div className="rounded-game-lg border-2 border-game-line bg-game-surface p-5 text-center shadow-2xl">
           <h1 className="mb-4 font-[family-name:var(--font-game-title)] text-2xl uppercase tracking-wide">Escolha seu login:</h1>
@@ -79,9 +78,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   return (
     <div className="login-tema mx-auto w-full max-w-md font-[family-name:var(--font-game-body)] text-game-ink" data-testid="login-screen">
       <div className="mb-5 flex flex-col items-center gap-3">
-        <Mascot size={6} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-biblia3d-branca.png" alt="Bíblia 3D" className="h-14 w-auto" draggable={false} />
+        <img src="/logo-biblia3d-branca.png" alt="Bíblia 3D" className="h-20 w-auto" draggable={false} />
       </div>
       <div className="rounded-game-lg border-2 border-game-line bg-game-surface p-5 shadow-2xl">
         {error && (
