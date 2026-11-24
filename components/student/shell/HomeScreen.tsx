@@ -100,7 +100,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
           </div>
         ) : (
           /* No navegador do celular o Quiz ao vivo (sala de aula) fica à mão; Jogos e Leilão estão na barra de baixo. */
-          <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Digite o PIN" onClick={() => onGo('live')} live className="h-20 shrink-0" />
+          <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Digite o PIN" onClick={() => onGo('live')} className="h-20 shrink-0" />
         )}
       </div>
 

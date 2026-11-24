@@ -17,9 +17,9 @@ export type JourneyTone = keyof typeof TONE;
  * Botão grande da tela inicial (faixa colorida com ícone 3D, nome, dica curta e seta de "jogar").
  * Afunda e brilha ao toque (.game-press). `glow` faz o botão pulsar quando há algo novo para fazer.
  */
-export function JourneyButton({ tone, img, title, hint, onClick, disabled, glow, live, testId, className = '', grid }: {
+export function JourneyButton({ tone, img, title, hint, onClick, disabled, glow, testId, className = '', grid }: {
   tone: JourneyTone; img: string; title: string; hint: string; onClick: () => void;
-  disabled?: boolean; glow?: boolean; live?: boolean; testId: string; className?: string;
+  disabled?: boolean; glow?: boolean; testId: string; className?: string;
   /** Versão quadrada da grade 2x2 (app instalado): ícone em cima, nome e dica embaixo. Sem isso, é a faixa larga. */
   grid?: boolean;
 }) {
@@ -34,11 +34,6 @@ export function JourneyButton({ tone, img, title, hint, onClick, disabled, glow,
         style={{ backgroundImage: t.bg, borderColor: t.ring, ['--btn-edge' as string]: t.edge }}
         className={`game-btn game-press relative flex min-h-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-[1.75rem] border-2 p-3 text-center text-white font-[family-name:var(--font-game-body)] disabled:cursor-not-allowed disabled:opacity-60 disabled:saturate-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${glow ? 'game-glow' : ''} ${className}`}
       >
-        {live && (
-          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-[0.6rem] font-extrabold uppercase leading-none tracking-wide text-white">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-white" />Ao vivo
-          </span>
-        )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={img} alt="" draggable={false} className="min-h-10 w-auto max-w-[60%] flex-1 object-contain drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]" />
         <span className="font-[family-name:var(--font-game-title)] text-xl leading-tight tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35),0_0_6px_rgb(0_0_0/0.25)]">{title}</span>
@@ -58,11 +53,6 @@ export function JourneyButton({ tone, img, title, hint, onClick, disabled, glow,
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={img} alt="" draggable={false} className="h-full max-h-20 min-h-10 w-auto shrink-0 object-contain drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]" />
       <span className="min-w-0 flex-1">
-        {live && (
-          <span className="mb-0.5 inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-[0.65rem] font-extrabold uppercase leading-none tracking-wide text-white">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-white" />Ao vivo
-          </span>
-        )}
         <span className="block font-[family-name:var(--font-game-title)] text-[1.7rem] leading-none tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35),0_0_6px_rgb(0_0_0/0.25)] [@media(max-height:700px)]:text-2xl">{title}</span>
         <span className="mt-1 block text-sm font-semibold leading-tight [text-shadow:0_1px_2px_rgb(0_0_0/0.55)] [@media(max-height:700px)]:hidden">{hint}</span>
       </span>
