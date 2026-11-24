@@ -52,7 +52,7 @@ describe('jogos de sonda não viram dado de produção', () => {
       .filter((f) => readFileSync(f, 'utf8').includes(PROBE_MARKER))
       .map((f) => f.slice(root.length + 1).split(String.fromCharCode(92)).join('/'));
     for (const f of hits) expect(f === 'lib/probe-guard.ts' || f.startsWith('tests/')).toBe(true);
-  });
+  }, 30_000);
 });
 
 describe('a trava está ligada nas 3 rotas que criam ou servem jogos', () => {

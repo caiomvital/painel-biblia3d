@@ -86,7 +86,7 @@ test("cada 5 atitudes positivas dão um baú; item repetido vira fichas (sem XP)
 
   // com o inventário completo, qualquer sorteio é repetido
   const all = await db.cosmeticItem.findMany();
-  expect(all.length).toBe(16);
+  expect(all.length).toBeGreaterThanOrEqual(16); // o catálogo cresceu (itens do Davi)
   await db.studentItem.createMany({ data: all.map((i) => ({ studentId: sid, itemId: i.id })), skipDuplicates: true });
   const before = await db.student.findUniqueOrThrow({ where: { id: sid } });
   const r = await (await s.post("/api/kids/chests", { data: { chestId: chests[0].id }, headers: H })).json();
@@ -95,7 +95,7 @@ test("cada 5 atitudes positivas dão um baú; item repetido vira fichas (sem XP)
   const after = await db.student.findUniqueOrThrow({ where: { id: sid } });
   expect(after.coinBalance - before.coinBalance).toBe(r.duplicateCoins);
   expect(after.currentXp).toBe(before.currentXp);
-  expect(await db.studentItem.count({ where: { studentId: sid } })).toBe(16);
+  expect(await db.studentItem.count({ where: { studentId: sid } })).toBe(all.length);
 });
 
 test("sequência: 3º dia seguido concede o baú, e logar de novo no mesmo dia não repete", async ({}, info) => {
@@ -135,10 +135,11 @@ test("permissões e privacidade: só aluno, só o seu baú, sem chances na respo
 async function loginUi(page: Page, email: string) {
   await page.request.post("/api/auth/logout", { headers: H });
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(email);
-  await page.getByLabel("Senha de Acesso").fill(password);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(email);
+  await page.locator("#login-password").fill(password);
   const response = page.waitForResponse((r) => r.url().endsWith("/api/auth/login") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await response).status()).toBe(200);
 }
 

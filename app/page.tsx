@@ -78,7 +78,8 @@ export default function HomePage() {
   const tourRole: TourRole = user?.role === 'ALUNO' || user?.role === 'PROFESSOR' || user?.role === 'DIRETOR' ? user.role : 'VISITANTE';
   const extras = (
     <>
-      <OnboardingTour key={`${tourRole}:${user?.id ?? ''}`} role={tourRole} userId={user?.id} />
+      {/* O tour de visitante manda usar as contas de teste: só aparece quando esse painel está ligado (senão cobre a tela de login à toa). */}
+      {(tourRole !== 'VISITANTE' || testAccounts) && <OnboardingTour key={`${tourRole}:${user?.id ?? ''}`} role={tourRole} userId={user?.id} />}
       {testAccounts && <TestAccountsPanel accounts={testAccounts} currentLogin={user?.email} onSwitch={handleLoginSuccess} onOpenTour={() => window.dispatchEvent(new Event(TOUR_EVENT))} />}
     </>
   );

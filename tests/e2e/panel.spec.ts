@@ -1,12 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
 import { hash } from 'bcryptjs';
 import { db, ids, password } from './data';
+import { dismissTour } from './tour';
 
 async function login(page: Page, email: string) {
   const response = await page.request.post('/api/auth/login', { data: { email, password } });
   expect(response.status()).toBe(200);
   await page.goto('/');
   await expect(page.getByRole('navigation', { name: 'Áreas do diretor' })).toBeVisible();
+  await dismissTour(page);
 }
 async function tools(page: Page, area: string) {
   await page.getByRole('button', { name: /^Meu painel/ }).click();
@@ -16,20 +18,15 @@ async function tools(page: Page, area: string) {
 }
 test.afterAll(async () => { await db.$disconnect(); });
 
-test('busca de aluno mostra seleção e permite buscar outro ou voltar à lista', async ({ page }, info) => {
+test('busca de aluno leva o diretor à aba Alunos', async ({ page }, info) => {
   const f = ids(info.project.name);
   await login(page, f.email('director'));
   const dialog = await tools(page, 'Busca');
   await dialog.getByLabel('Buscar aluno, professor, turma ou leilão').fill(`Teste student ${info.project.name}`);
   await dialog.getByRole('button', { name: 'Buscar', exact: true }).click();
   await dialog.getByRole('button').filter({ hasText: `Teste student ${info.project.name}` }).click();
-  await expect(page.getByText(`Aluno selecionado: Teste student ${info.project.name}`)).toBeVisible();
-  await page.getByLabel('Buscar aluno por nome').fill(`Teste outsider ${info.project.name}`);
-  await expect(page.getByTestId(`student-${f.outsider}_profile`)).toBeVisible();
-  await page.getByTestId(`student-${f.outsider}_profile`).getByRole('button', { name: `Teste outsider ${info.project.name}`, exact: true }).click();
-  await page.getByRole('button', { name: 'Ver todos os alunos' }).click();
-  await expect(page.getByTestId(`student-${f.student}_profile`)).toBeVisible();
-  await expect(page.getByTestId(`student-${f.outsider}_profile`)).toBeVisible();
+  // a tela de seleção de aluno saiu com o sistema antigo (#36): o resultado leva à aba Alunos
+  await expect(page.getByRole('navigation', { name: 'Áreas do diretor' }).getByRole('button', { name: 'Alunos', exact: true })).toHaveAttribute('aria-current', 'page');
 });
 
 test('preferências recuperam falha de leitura e persistem cor e tamanho de texto', async ({ page }, info) => {

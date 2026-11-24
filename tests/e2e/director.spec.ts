@@ -1,3 +1,4 @@
+import { dismissTour } from "./tour";
 import { test as base, expect, type Page } from "@playwright/test";
 import { db, ids, password } from "./data";
 const test = base.extend<{ health: void }>({
@@ -13,6 +14,8 @@ const test = base.extend<{ health: void }>({
         if (
           r.status() >= 400 &&
           !(new URL(r.url()).pathname === "/api/auth/me" && r.status() === 401)
+          // o painel de contas de teste desligado responde 404 de propósito
+          && !(new URL(r.url()).pathname === "/api/test-accounts" && r.status() === 404)
         )
           errors.push(`${new URL(r.url()).pathname}: ${r.status()}`);
       });
@@ -24,14 +27,16 @@ const test = base.extend<{ health: void }>({
 });
 async function login(page: Page, project: string, role = "director") {
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(ids(project).email(role));
-  await page.getByLabel("Senha de Acesso").fill(password);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(ids(project).email(role));
+  await page.locator("#login-password").fill(password);
   const response = page.waitForResponse(
     (r) =>
       r.url().endsWith("/api/auth/login") && r.request().method() === "POST",
   );
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await response).status()).toBe(200);
+  await dismissTour(page);
   if (role === "director")
     await expect(
       page.getByRole("navigation", { name: "Áreas do diretor" }),

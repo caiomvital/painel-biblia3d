@@ -7,6 +7,7 @@ import { db, ids, password as e2ePassword } from "./data";
  */
 const origin = `http://127.0.0.1:${process.env.TEST_APP_PORT ?? 3100}`;
 const DEFAULT = "123";
+const RESET_DEFAULT = "tecnologia"; // senha para a qual a direção redefine (DEFAULT_KID_PASSWORD)
 const NEW_PASSWORD = "estrela7";
 
 function fx(project: string) {
@@ -47,10 +48,11 @@ test.afterAll(async ({}, info) => {
 async function loginUi(page: Page, who: string, pass: string) {
   await page.request.post("/api/auth/logout", { headers: { Origin: origin } });
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(who);
-  await page.getByLabel("Senha de Acesso").fill(pass);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(who);
+  await page.locator("#login-password").fill(pass);
   const response = page.waitForResponse((r) => r.url().endsWith("/api/auth/login") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   return response;
 }
 
@@ -140,7 +142,7 @@ test("diretor redefine a senha e a troca obrigatória volta", async ({ page, bro
   const row = await db.user.findUniqueOrThrow({ where: { id: x.userId } });
   expect(row.mustChangePassword).toBe(true);
   // a sessão antiga caiu e a senha padrão volta a exigir a tela de troca
-  const again = await loginUi(page, x.phone, DEFAULT);
+  const again = await loginUi(page, x.phone, RESET_DEFAULT);
   expect((await again).status()).toBe(200);
   await expect(page.getByTestId("first-password-screen")).toBeVisible();
   expect((await page.request.get("/api/kids/home")).status()).toBe(401);

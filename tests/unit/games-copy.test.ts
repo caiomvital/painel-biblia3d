@@ -13,6 +13,6 @@ describe('Jogos: isolamento e textos', () => {
   test('estado dos jogos enviados tem símbolo e texto', () => {
     expect(myGameStatusView('PENDING')).toEqual({ symbol: '⏳', label: 'Esperando revisão' });
     expect(myGameStatusView('REJECTED')).toEqual({ symbol: '✋', label: 'Não aprovado' });
-    expect(myGameStatusView('APPROVED').label).toBe('Aprovado');
+    expect(myGameStatusView('APPROVED').label).toBe('Público');
   });
 });

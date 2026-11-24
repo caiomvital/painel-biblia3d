@@ -106,10 +106,11 @@ test("diretor registra em qualquer turma", async ({}, info) => {
 async function loginUi(page: Page, email: string) {
   await page.request.post("/api/auth/logout", { headers: H });
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(email);
-  await page.getByLabel("Senha de Acesso").fill(password);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(email);
+  await page.locator("#login-password").fill(password);
   const response = page.waitForResponse((r) => r.url().endsWith("/api/auth/login") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await response).status()).toBe(200);
 }
 
@@ -119,7 +120,7 @@ test("aluno vê a Tela de Resultado ao entrar, só com os totais dele, e não re
   const dialog = page.getByRole("dialog", { name: "BOA ATITUDE!" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByTestId("reward-total")).toContainText("+20", { timeout: 15_000 });
-  await expect(dialog).not.toContainText(/professor|colega/i);
+  await expect(dialog).not.toContainText(/colega/i); // só a frase genérica do Davi cita "professor", nunca quem deu a atitude
   if (process.env.B3D_SHOTS_DIR) {
     await page.setViewportSize({ width: 360, height: 740 });
     await page.waitForTimeout(3500);

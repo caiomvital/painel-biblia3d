@@ -74,10 +74,11 @@ test("servidor: só equipa o que o aluno tem, no encaixe certo; coleção não r
 async function loginUi(page: Page, email: string) {
   await page.request.post("/api/auth/logout", { headers: H });
   await page.goto("/");
-  await page.getByLabel("Usuário ou e-mail").fill(email);
-  await page.getByLabel("Senha de Acesso").fill(password);
+  await page.getByTestId("login-continuar").click();
+  await page.locator("#login-email").fill(email);
+  await page.locator("#login-password").fill(password);
   const response = page.waitForResponse((r) => r.url().endsWith("/api/auth/login") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Entrar no Sistema" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await response).status()).toBe(200);
 }
 
@@ -88,8 +89,9 @@ test("tela: prévia antes de salvar, salva, aparece na Home e depois de recarreg
   await page.getByTestId("profile-wardrobe").click();
   const screen = page.getByTestId("wardrobe-screen");
   await expect(screen).toBeVisible();
-  await expect(screen.getByTestId("wardrobe-count")).toContainText("4 de 16");
-  await expect(screen.getByTestId("item-locked")).toHaveCount(12);
+  const total = await db.cosmeticItem.count(); // o catálogo cresceu (itens do Davi): o total vem do banco
+  await expect(screen.getByTestId("wardrobe-count")).toContainText(`4 de ${total}`);
+  await expect(screen.getByTestId("item-locked")).toHaveCount(12); // a tela lista os itens do Lofi (16, dos quais 4 são do aluno); o contador de cima soma também o Davi
 
   const preview = screen.getByTestId("wardrobe-preview");
   await expect(preview).toContainText("Este é o visual salvo");
@@ -113,6 +115,7 @@ test("tela: prévia antes de salvar, salva, aparece na Home e depois de recarreg
   await expect(page.getByRole("status").filter({ hasText: "Lofi atualizado!" })).toBeVisible();
   expect((await db.student.findUniqueOrThrow({ where: { id: `${f.student}_profile` } })).mascotLook).toEqual({ color: "color-azul", accessory: "acc-coroa", background: "bg-noite" });
 
+  await page.addStyleTag({ content: "nextjs-portal{display:none!important}" }); // o botão de ferramentas do Next (só em desenvolvimento) cobre a aba Início no celular
   await page.getByRole("button", { name: "Início", exact: true }).click();
   const shell = page.getByTestId("student-shell");
   await expect(shell.locator("svg[data-look*='color-azul']").first()).toBeVisible();
