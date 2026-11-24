@@ -106,3 +106,16 @@
   .game-press, .game-press:active:not(:disabled) { transition: none; transform: none; }
   .game-glow { animation: none; }
 }
+
+/*
+ * Tela de login: o cartão e os botões ficam em azul-ardósia, sem o índigo/roxo do painel
+ * (pedido do Diógenes: "o login está muito roxo"). Só redefine os tokens dentro do login.
+ */
+.login-tema {
+  --color-game-bg: #121a29;
+  --color-game-surface: #1b2535;
+  --color-game-surface-2: #253247;
+  --color-game-line: #3b4b63;
+  --color-game-ink-dim: #b4bfd0;
+  --color-game-xp-track: #162033;
+}

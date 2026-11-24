@@ -49,7 +49,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
   if (step === 'escolha') {
     return (
-      <div className="mx-auto w-full max-w-md font-[family-name:var(--font-game-body)] text-game-ink" data-testid="login-escolha">
+      <div className="login-tema mx-auto w-full max-w-md font-[family-name:var(--font-game-body)] text-game-ink" data-testid="login-escolha">
         <div className="mb-6 flex flex-col items-center gap-3">
           <Mascot size={6} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -77,7 +77,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
   const field = 'min-h-14 w-full rounded-game border-2 border-game-line bg-game-bg px-4 text-lg text-game-ink placeholder:text-game-ink-dim focus:border-game-primary focus:outline-none';
   return (
-    <div className="mx-auto w-full max-w-md font-[family-name:var(--font-game-body)] text-game-ink" data-testid="login-screen">
+    <div className="login-tema mx-auto w-full max-w-md font-[family-name:var(--font-game-body)] text-game-ink" data-testid="login-screen">
       <div className="mb-5 flex flex-col items-center gap-3">
         <Mascot size={6} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
