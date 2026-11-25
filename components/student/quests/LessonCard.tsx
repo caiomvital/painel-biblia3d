@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button, Card } from '@/components/ui/game';
 import { kidsCall, type KidsHomeData } from '../kids-api';
+import { POINTS_PER_LESSON_TOPIC } from '@/lib/lesson-points';
 import { OptionTile } from './OptionTile';
 
 export function LessonCard({ lesson, onDone, onError }: {
@@ -33,7 +34,8 @@ export function LessonCard({ lesson, onDone, onError }: {
         </>
       ) : (
         <>
-          <div className="space-y-2">
+          <p className="text-sm text-game-ink-dim">Marque o que você lembra. Vale {POINTS_PER_LESSON_TOPIC} pontos cada. Depois de salvar, não muda.</p>
+          <div className="mt-3 space-y-2">
             {lesson.topics.map((t, i) => (
               <OptionTile key={i} type="checkbox" checked={checked.includes(i)}
                 onChange={() => setChecked((c) => (c.includes(i) ? c.filter((x) => x !== i) : [...c, i]))}>{t}</OptionTile>

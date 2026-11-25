@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import { brazilDay } from '@/lib/kids-service';
 import { confirmTeacherAttendance } from '@/lib/academic-service';
+import { DEFAULT_ATTENDANCE_XP } from '@/lib/attendance-xp';
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -80,5 +81,5 @@ export async function saveRollCall(userId: string, input: { classId?: unknown; d
     }
   }
   const rule = await prisma.gamificationRule.findUnique({ where: { code: 'XP_ATTENDANCE' } });
-  return { lessonId, day, presents, absents, xpPerPresence: rule && rule.isActive ? rule.xpValue : 20 };
+  return { lessonId, day, presents, absents, xpPerPresence: rule && rule.isActive ? rule.xpValue : DEFAULT_ATTENDANCE_XP };
 }

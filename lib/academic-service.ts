@@ -1,4 +1,5 @@
 import { levelFromXp } from "@/lib/level";
+import { DEFAULT_ATTENDANCE_XP } from "@/lib/attendance-xp";
 import { notifyUsers, notifyClass } from './panel-events';
 import { initialPasswordHash } from "./account-password";
 import { DEFAULT_KID_PASSWORD } from "./password-rules";
@@ -1549,7 +1550,7 @@ export async function confirmTeacherAttendance(
     const rule = await tx.gamificationRule.findUnique({
       where: { code: "XP_ATTENDANCE" },
     });
-    const xpValue = rule && rule.isActive ? rule.xpValue : 20;
+    const xpValue = rule && rule.isActive ? rule.xpValue : DEFAULT_ATTENDANCE_XP;
 
     // 3. Criar PointTransaction se ainda não existir
     const existingTx = await tx.pointTransaction.findFirst({
@@ -1933,7 +1934,7 @@ export async function updateStudentAttendanceRecord(params: {
         const rule = await tx.gamificationRule.findUnique({
           where: { code: "XP_ATTENDANCE" },
         });
-        const xpValue = rule && rule.isActive ? rule.xpValue : 20;
+        const xpValue = rule && rule.isActive ? rule.xpValue : DEFAULT_ATTENDANCE_XP;
 
         if (xpValue > 0) {
           await tx.pointTransaction.create({
