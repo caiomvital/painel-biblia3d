@@ -7,6 +7,12 @@ import { removeQuestion } from '@/lib/question-removal';
 export const TEACHER_POINTS_REPORT = 1;
 export const TEACHER_POINTS_QUESTION = 10;
 
+function addDaysTo(day: string, n: number): string {
+  const d = new Date(`${day}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 async function teacherOf(userId: string) {
   const t = await prisma.teacher.findUnique({ where: { userId } });
   if (!t) throw new Error('Cadastro de professor não encontrado.');
@@ -72,7 +78,8 @@ export async function saveLessonReport(userId: string, input: { classId?: unknow
   const teacher = await teacherOf(userId);
   const cls = await ownClass(teacher.id, input.classId);
   const day = typeof input.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.day) ? input.day : brazilDay();
-  if (day > brazilDay()) throw new Error('A data da aula não pode estar no futuro.');
+  // pode cadastrar com antecedência (até 21 dias): as crianças só veem a aula a partir da data
+  if (day > addDaysTo(brazilDay(), 21)) throw new Error('A data da aula está longe demais (máximo de 21 dias à frente).');
   const lines = (Array.isArray(input.topics) ? input.topics : String(input.topics ?? '').split('\n'))
     .map((t) => String(t).trim().replace(/\s+/g, ' ')).filter(Boolean);
   if (lines.length < 1 || lines.length > 10) throw new Error('Informe de 1 a 10 tópicos, um por linha.');
@@ -94,20 +101,20 @@ export async function saveTeacherQuestion(userId: string, b: Record<string, unkn
   const cls = await ownClass(teacher.id, b.classId);
   const data = parseQuestion(b);
   const q = await prisma.quizQuestion.create({
-    data: { ...data, status: 'PENDING', source: 'TEACHER', kind: 'WEEKLY', classId: cls.id, teacherId: teacher.id, createdById: userId },
+    data: { ...data, status: 'APPROVED', source: 'TEACHER', kind: 'WEEKLY', classId: cls.id, teacherId: teacher.id, createdById: userId },
   });
   await awardTeacher(teacher.id, TEACHER_POINTS_QUESTION, `Pergunta cadastrada (${cls.name})`, `QUESTION_${q.id}`);
   return { id: q.id, awarded: TEACHER_POINTS_QUESTION };
 }
 
-/** Edita uma pergunta própria. Volta para a revisão da direção (a versão aprovada já foi vista pelos alunos). */
+/** Edita uma pergunta própria. As perguntas do professor entram direto no Desafio da semana (sem revisão da direção). */
 export async function updateTeacherQuestion(userId: string, b: Record<string, unknown>) {
   const teacher = await teacherOf(userId);
   const q = await prisma.quizQuestion.findFirst({ where: { id: String(b.id ?? ''), teacherId: teacher.id } });
   if (!q) throw new Error('Pergunta não encontrada.');
   const cls = await ownClass(teacher.id, b.classId ?? q.classId);
-  await prisma.quizQuestion.update({ where: { id: q.id }, data: { ...parseQuestion(b), classId: cls.id, status: 'PENDING' } });
-  return { id: q.id, backToReview: q.status === 'APPROVED' };
+  await prisma.quizQuestion.update({ where: { id: q.id }, data: { ...parseQuestion(b), classId: cls.id, status: 'APPROVED' } });
+  return { id: q.id, backToReview: false };
 }
 
 /** Remove uma pergunta própria, em qualquer status. Se já foi usada em desafios, fica arquivada em vez de apagada. */
