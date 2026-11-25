@@ -64,8 +64,8 @@ export default function HomePage() {
     );
   }
 
-  // Aluno com a senha padrão só enxerga a tela de criar a senha nova (o servidor bloqueia o resto).
-  if (user?.role === 'ALUNO' && user.mustChangePassword) {
+  // Aluno ou professor com a senha padrão só enxerga a tela de criar a senha nova (o servidor bloqueia o resto).
+  if ((user?.role === 'ALUNO' || user?.role === 'PROFESSOR') && user.mustChangePassword) {
     return <FirstPasswordScreen onDone={() => setUser({ ...user, mustChangePassword: false })} onLogout={handleLogout} />;
   }
 

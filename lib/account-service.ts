@@ -38,7 +38,7 @@ export async function changePassword(session: SessionUser, value: unknown) {
 }
 
 /**
- * Primeiro acesso do aluno: troca a senha padrão por uma nova, sem pedir a antiga (ele acabou de entrar com ela).
+ * Primeiro acesso do aluno ou do professor: troca a senha padrão por uma nova, sem pedir a antiga (ele acabou de entrar com ela).
  * Só funciona enquanto a conta exige a troca; limpa a flag e encerra as outras sessões.
  */
 export async function setFirstPassword(session: SessionUser, newPassword: unknown) {
@@ -48,7 +48,7 @@ export async function setFirstPassword(session: SessionUser, newPassword: unknow
     where: { id: session.id },
     select: { email: true, role: true, passwordHash: true, sessionVersion: true, mustChangePassword: true, student: { select: { guardianPhone: true } } },
   });
-  if (user.role !== 'ALUNO' || !user.mustChangePassword) throw bad('Sua senha já foi criada.', 409);
+  if ((user.role !== 'ALUNO' && user.role !== 'PROFESSOR') || !user.mustChangePassword) throw bad('Sua senha já foi criada.', 409);
   if (user.sessionVersion !== (session.sessionVersion ?? 0)) throw bad('Sua sessão acabou. Entre de novo.', 409);
   const problem = firstPasswordProblem(newPassword, { phone: user.student?.guardianPhone, login: user.email });
   if (problem) throw bad(problem);
@@ -60,7 +60,7 @@ export async function setFirstPassword(session: SessionUser, newPassword: unknow
       data: { passwordHash, mustChangePassword: false, sessionVersion: { increment: 1 } },
     });
     if (updated.count !== 1) throw bad('Sua senha já foi criada.', 409);
-    await tx.auditLog.create({ data: { actorId: session.id, actorName: session.name, action: 'Senha criada no primeiro acesso', entityId: session.id, summary: 'Aluno trocou a senha padrão no primeiro acesso.' } });
+    await tx.auditLog.create({ data: { actorId: session.id, actorName: session.name, action: 'Senha criada no primeiro acesso', entityId: session.id, summary: `${user.role === 'PROFESSOR' ? 'Professor' : 'Aluno'} trocou a senha padrão no primeiro acesso.` } });
     const { mustChangePassword: _omit, ...rest } = session;
     void _omit;
     return { ...rest, sessionVersion: user.sessionVersion + 1 };
