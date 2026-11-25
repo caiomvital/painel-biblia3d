@@ -7,6 +7,12 @@ import { removeQuestion } from '@/lib/question-removal';
 export const TEACHER_POINTS_REPORT = 1;
 export const TEACHER_POINTS_QUESTION = 10;
 
+function addDaysTo(day: string, n: number): string {
+  const d = new Date(`${day}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 async function teacherOf(userId: string) {
   const t = await prisma.teacher.findUnique({ where: { userId } });
   if (!t) throw new Error('Cadastro de professor não encontrado.');
@@ -72,7 +78,8 @@ export async function saveLessonReport(userId: string, input: { classId?: unknow
   const teacher = await teacherOf(userId);
   const cls = await ownClass(teacher.id, input.classId);
   const day = typeof input.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.day) ? input.day : brazilDay();
-  if (day > brazilDay()) throw new Error('A data da aula não pode estar no futuro.');
+  // pode cadastrar com antecedência (até 21 dias): as crianças só veem a aula a partir da data
+  if (day > addDaysTo(brazilDay(), 21)) throw new Error('A data da aula está longe demais (máximo de 21 dias à frente).');
   const lines = (Array.isArray(input.topics) ? input.topics : String(input.topics ?? '').split('\n'))
     .map((t) => String(t).trim().replace(/\s+/g, ' ')).filter(Boolean);
   if (lines.length < 1 || lines.length > 10) throw new Error('Informe de 1 a 10 tópicos, um por linha.');

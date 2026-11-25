@@ -120,7 +120,7 @@ async function lessonForStudent(studentId: string, classId: string | null) {
   if (!classId) return null;
   const since = brazilDay(new Date(Date.now() - 14 * 86400 * 1000));
   const report = await prisma.lessonReport.findFirst({
-    where: { classId, day: { gte: since } },
+    where: { classId, day: { gte: since, lte: brazilDay() } }, // aula cadastrada para o futuro só aparece na data
     orderBy: { day: 'desc' },
     include: { checks: { where: { studentId } } },
   });

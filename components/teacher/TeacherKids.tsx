@@ -101,7 +101,7 @@ function TeacherGameUpload() {
   );
 }
 
-export function TeacherKids() {
+export function TeacherKids({ section }: { section: "aula" | "perguntas" | "jogos" }) {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -137,34 +137,12 @@ export function TeacherKids() {
       {error && <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</p>}
       {notice && <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">{notice}</p>}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className={panel}><p className="text-xs text-slate-400">Seus pontos de professor</p><p className="text-4xl font-black text-amber-300">⭐ {data.points}</p>
-          <p className="text-xs text-slate-400">+{data.rules.report} por aula registrada · +{data.rules.question} por pergunta cadastrada</p></div>
-        <div className={panel}><p className="text-xs text-slate-400">Sua posição entre os professores</p><p className="text-4xl font-black text-white">{data.rank.position}º</p>
-          <p className="text-xs text-slate-400">de {data.rank.total} professores</p></div>
-      </div>
-
-      <section className={panel}>
-        <h3 className="text-lg font-bold text-white">Avaliação dos alunos</h3>
-        {data.rating.count === 0 ? (
-          <p className="text-sm text-slate-400">Ainda ninguém avaliou. As crianças avaliam uma vez por semana.</p>
-        ) : (
-          <>
-            <p className="text-3xl font-black text-amber-300">{data.rating.average?.toString().replace(".", ",")} <span className="text-sm font-normal text-slate-400">de 10 · {data.rating.count} avaliação(ões)</span></p>
-            {data.rating.comments.length > 0 && (
-              <ul className="space-y-1 text-sm text-slate-200">
-                {data.rating.comments.map((c, i) => <li key={i}>“{c.comment}” <span className="text-xs text-slate-400">— nota {c.score}</span></li>)}
-              </ul>
-            )}
-          </>
-        )}
-      </section>
-
       {noClass && <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">Você ainda não tem turma atribuída. Peça à direção para vincular suas turmas.</p>}
 
+      {section === "aula" && (
       <section className={panel}>
-        <h3 className="text-lg font-bold text-white">O que demos na aula de hoje</h3>
-        <p className="text-xs text-slate-400">Um tópico por linha (até 10). As crianças veem esta lista como checklist e marcam o que aprenderam.</p>
+        <h3 className="text-lg font-bold text-white">Registrar a aula</h3>
+        <p className="text-xs text-slate-400">Um tópico por linha (até 10). Pode cadastrar a aula antes: as crianças só veem na data da aula, como checklist para marcar o que aprenderam.</p>
         <form key={`r${formKey}`} className="space-y-3" onSubmit={(e) => {
           e.preventDefault(); const f = new FormData(e.currentTarget);
           submit({ action: "report", classId: f.get("classId"), day: f.get("day"), topics: String(f.get("topics") ?? "").split("\n") },
@@ -174,7 +152,7 @@ export function TeacherKids() {
             <label className="text-xs text-slate-300">Turma
               <select name="classId" required disabled={noClass} className={field}>{data.classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
             <label className="text-xs text-slate-300">Data da aula
-              <input name="day" type="date" defaultValue={data.today} max={data.today} className={field} /></label>
+              <input name="day" type="date" defaultValue={data.today} className={field} /></label>
           </div>
           <label className="block text-xs text-slate-300">Tópicos
             <textarea name="topics" required rows={5} placeholder={"O que é uma inteligência artificial\nComo fazer um bom pedido (prompt)\nCriamos um objeto 3D"} className={field} /></label>
@@ -192,8 +170,11 @@ export function TeacherKids() {
       </section>
 
 
-      <TeacherGameUpload />
+      )}
 
+      {section === "jogos" && <TeacherGameUpload />}
+
+      {section === "perguntas" && (
       <section className={panel}>
         <h3 className="text-lg font-bold text-white">Meu banco de perguntas ({data.questions.length})</h3>
         <p className="text-xs text-slate-400">Escreva a pergunta, 4 respostas e marque a certa. Depois de aprovadas pela direção, entram no <b>Desafio da semana</b> da turma. Se você editar uma pergunta aprovada, ela volta para a revisão.</p>
@@ -262,6 +243,7 @@ export function TeacherKids() {
           </div>
         )}
       </section>
+      )}
     </div>
   );
 }
