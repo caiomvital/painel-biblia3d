@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { TeacherDashboardData } from "@/lib/academic-service";
 import { TeacherKids } from "./TeacherKids";
 import { TeacherRollCall } from "./TeacherRollCall";
+import { TeacherClasses } from "./TeacherClasses";
 import { TeacherLive } from "./TeacherLive";
 import { AttitudesPanel } from "@/components/attitudes/AttitudesPanel";
 
@@ -14,6 +15,7 @@ const areas = [
   { id: "Perguntas", icon: "❓", hint: "Desafio da semana" },
   { id: "Quiz ao vivo", icon: "🏆", hint: "Na sala de aula" },
   { id: "Jogos", icon: "🎮", hint: "Publique um jogo" },
+  { id: "Turmas", icon: "🗓️", hint: "Dias e horários" },
 ] as const;
 type Area = (typeof areas)[number]["id"];
 
@@ -70,7 +72,7 @@ export function TeacherView() {
         )}
       </header>
 
-      <nav aria-label="Área do professor" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <nav aria-label="Área do professor" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
         {areas.map((a) => (
           <button
             key={a.id}
@@ -99,6 +101,7 @@ export function TeacherView() {
       {area === "Perguntas" && <TeacherKids section="perguntas" />}
       {area === "Quiz ao vivo" && <TeacherLive />}
       {area === "Jogos" && <TeacherKids section="jogos" />}
+      {area === "Turmas" && <TeacherClasses classes={data.classes} onSaved={load} />}
     </section>
   );
 }

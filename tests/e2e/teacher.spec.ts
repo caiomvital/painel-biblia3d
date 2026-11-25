@@ -100,7 +100,7 @@ test("Professor: áreas atuais do painel, sem vestígios do sistema antigo", asy
   const f = ids(info.project.name);
   await login(page, info.project.name);
   const nav = page.getByRole("navigation", { name: "Área do professor" });
-  for (const name of ["Chamada", "Aula de hoje", "Atitudes", "Perguntas", "Quiz ao vivo", "Jogos"])
+  for (const name of ["Chamada", "Aula de hoje", "Atitudes", "Perguntas", "Quiz ao vivo", "Jogos", "Turmas"])
     await expect(nav.getByRole("button", { name, exact: true })).toBeVisible();
   for (const name of ["Aulas e Diário", "Exercícios", "Presenças", "Visão Geral", "Minhas Turmas", "Alunos", "Eventos"])
     await expect(nav.getByRole("button", { name, exact: true })).toHaveCount(0);
@@ -154,6 +154,17 @@ test("Professor: áreas atuais do painel, sem vestígios do sistema antigo", asy
   await db.coinTransaction.deleteMany({ where: { studentId: sid, originReference: r1.lessonId } });
   await db.lesson.delete({ where: { id: r1.lessonId } });
   await db.student.update({ where: { id: sid }, data: { currentXp: xp0, coinBalance: { decrement: r1.xpPerPresence } } });
+  // o professor ajusta dia e horário da própria turma; da turma dos outros, não
+  const original = await db.class.findUniqueOrThrow({ where: { id: f.class } });
+  const patch = (data: object) => page.request.patch("/api/teacher/classes", { data });
+  expect((await patch({ classId: f.class, daysOfWeek: "SAB", startTime: "09:00", endTime: "12:30" })).status()).toBe(200);
+  expect((await db.class.findUniqueOrThrow({ where: { id: f.class } })).scheduleTime).toBe("09:00 - 12:30");
+  expect((await patch({ classId: f.class, daysOfWeek: "SAB", startTime: "13:00", endTime: "12:00" })).status()).toBe(400);
+  expect((await patch({ classId: f.class, daysOfWeek: "XXX", startTime: "09:00", endTime: "10:00" })).status()).toBe(400);
+  expect((await patch({ classId: f.otherClass, daysOfWeek: "SAB", startTime: "09:00", endTime: "10:00" })).status()).toBe(400);
+  await db.class.update({ where: { id: f.class }, data: { daysOfWeek: original.daysOfWeek, scheduleTime: original.scheduleTime } });
+  await nav.getByRole("button", { name: "Turmas", exact: true }).click();
+  await expect(page.getByTestId(`class-schedule-${f.class}`)).toBeVisible();
 });
 test("Marco 8: API docente recusa aluno e professor de outra turma", async ({
 
