@@ -14,14 +14,15 @@ export function LearnedScreen({ home, onNotice, onError, onRefresh }: {
   return (
     <div className="space-y-4" data-testid="learned-screen">
       <h1 className="font-[family-name:var(--font-game-title)] text-3xl tracking-wide">O que aprendi</h1>
-      <Card tone="highlight" title="Como funciona">
-        <ul className="list-disc space-y-1 pl-5 text-game-ink-dim">
-          <li>Cada coisa que você marcar vale <strong className="text-game-ink">{POINTS_PER_LESSON_TOPIC} pontos</strong>.</li>
-          <li>Marque <strong className="text-game-ink">só o que você lembra</strong> de verdade.</li>
-          <li>Não lembra de algum? Deixe sem marcar, sem problema.</li>
-          <li>Depois de salvar, não dá para mudar.</li>
-        </ul>
-      </Card>
+      {home.lesson && !home.lesson.done && (
+        <Card tone="highlight" title="Como funciona">
+          <ul className="list-disc space-y-1 pl-5 text-game-ink-dim">
+            <li>Cada coisa que você marcar vale <strong className="text-game-ink">{POINTS_PER_LESSON_TOPIC} pontos</strong>.</li>
+            <li>Marque <strong className="text-game-ink">só o que você lembra</strong>. Sem marcar, sem problema.</li>
+            <li>Depois de salvar, não dá para mudar.</li>
+          </ul>
+        </Card>
+      )}
       {home.lesson ? (
         <LessonCard key={home.lesson.reportId + String(home.lesson.done)} lesson={home.lesson} onDone={done} onError={onError} />
       ) : (

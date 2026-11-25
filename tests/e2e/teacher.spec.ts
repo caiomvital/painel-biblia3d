@@ -100,7 +100,7 @@ test("Professor: áreas atuais do painel, sem vestígios do sistema antigo", asy
   const f = ids(info.project.name);
   await login(page, info.project.name);
   const nav = page.getByRole("navigation", { name: "Área do professor" });
-  for (const name of ["Aula de hoje", "Atitudes", "Perguntas", "Quiz ao vivo", "Jogos"])
+  for (const name of ["Chamada", "Aula de hoje", "Atitudes", "Perguntas", "Quiz ao vivo", "Jogos"])
     await expect(nav.getByRole("button", { name, exact: true })).toBeVisible();
   for (const name of ["Aulas e Diário", "Exercícios", "Presenças", "Visão Geral", "Minhas Turmas", "Alunos", "Eventos"])
     await expect(nav.getByRole("button", { name, exact: true })).toHaveCount(0);
@@ -133,6 +133,27 @@ test("Professor: áreas atuais do painel, sem vestígios do sistema antigo", asy
   expect(saved.status).toBe("APPROVED");
   expect(saved.kind).toBe("WEEKLY");
   await db.quizQuestion.delete({ where: { id: saved.id } });
+  // chamada: marca quem veio; os pontos de presença saem uma vez só
+  const sid = `${f.student}_profile`;
+  const roll = await (await page.request.get(`/api/teacher/roll-call?classId=${f.class}`)).json();
+  expect(roll.students.map((x: { id: string }) => x.id)).toEqual([sid]);
+  const xp0 = (await db.student.findUniqueOrThrow({ where: { id: sid } })).currentXp;
+  const first = await page.request.post("/api/teacher/roll-call", { data: { classId: f.class, presentIds: [sid] } });
+  expect(first.status()).toBe(200);
+  const r1 = await first.json();
+  expect(r1).toMatchObject({ presents: 1, absents: 0 });
+  expect((await db.attendance.findUniqueOrThrow({ where: { lessonId_studentId: { lessonId: r1.lessonId, studentId: sid } } })).status).toBe("PRESENT");
+  const xp1 = (await db.student.findUniqueOrThrow({ where: { id: sid } })).currentXp;
+  expect(xp1 - xp0).toBe(r1.xpPerPresence);
+  expect((await page.request.post("/api/teacher/roll-call", { data: { classId: f.class, presentIds: [sid] } })).status()).toBe(200);
+  expect((await db.student.findUniqueOrThrow({ where: { id: sid } })).currentXp).toBe(xp1);
+  // aluno de outra turma não entra; a falta não mexe em pontos
+  expect((await page.request.post("/api/teacher/roll-call", { data: { classId: f.class, presentIds: [`${f.outsider}_profile`] } })).status()).toBe(400);
+  expect((await page.request.post("/api/teacher/roll-call", { data: { classId: f.otherClass, presentIds: [] } })).status()).toBe(400);
+  await db.pointTransaction.deleteMany({ where: { studentId: sid, originReference: r1.lessonId } });
+  await db.coinTransaction.deleteMany({ where: { studentId: sid, originReference: r1.lessonId } });
+  await db.lesson.delete({ where: { id: r1.lessonId } });
+  await db.student.update({ where: { id: sid }, data: { currentXp: xp0, coinBalance: { decrement: r1.xpPerPresence } } });
 });
 test("Marco 8: API docente recusa aluno e professor de outra turma", async ({
 
