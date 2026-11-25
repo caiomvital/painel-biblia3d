@@ -177,16 +177,16 @@ export function TeacherKids({ section }: { section: "aula" | "perguntas" | "jogo
       {section === "perguntas" && (
       <section className={panel}>
         <h3 className="text-lg font-bold text-white">Meu banco de perguntas ({data.questions.length})</h3>
-        <p className="text-xs text-slate-400">Escreva a pergunta, 4 respostas e marque a certa. Depois de aprovadas pela direção, entram no <b>Desafio da semana</b> da turma. Se você editar uma pergunta aprovada, ela volta para a revisão.</p>
+        <p className="text-xs text-slate-400">Escreva a pergunta, 4 respostas e marque a certa. Ela entra direto no <b>Desafio da semana</b> da turma (são 5 perguntas por desafio).</p>
         <form key={`q${formKey}-${editing?.id ?? "nova"}`} className="space-y-2" onSubmit={async (e) => {
           e.preventDefault(); const f = new FormData(e.currentTarget);
           const body = { classId: f.get("classId"), text: f.get("text"), topic: f.get("topic"),
             options: [0, 1, 2, 3].map((i) => f.get(`o${i}`)), correctIndex: Number(f.get("correct")) };
-          if (!editing) { submit({ action: "question", ...body }, (r) => `Pergunta enviada para revisão! Você ganhou ${r.awarded} pontos.`); return; }
+          if (!editing) { submit({ action: "question", ...body }, (r) => `Pergunta cadastrada! Já vale para o Desafio da semana.`); return; }
           setBusy(true); setError(""); setNotice("");
           try {
             const r = await call("/api/teacher/kids", "PATCH", { id: editing.id, ...body });
-            setNotice(r.backToReview ? "Pergunta salva e enviada de novo para a revisão da direção." : "Pergunta salva.");
+            setNotice("Pergunta salva.");
             setEditing(null); setFormKey((k) => k + 1); await load();
           } catch (err: any) { setError(err.message); } finally { setBusy(false); }
         }}>

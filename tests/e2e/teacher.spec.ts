@@ -126,6 +126,13 @@ test("Professor: áreas atuais do painel, sem vestígios do sistema antigo", asy
   const far = await page.request.post("/api/teacher/kids", { data: { action: "report", classId: f.class, day: day(40), topics: ["Longe"] } });
   expect(far.status()).toBe(400);
   await db.lessonReport.deleteMany({ where: { classId: f.class, day: day(3) } });
+  // pergunta do professor entra direto (sem revisão da direção)
+  const q = await page.request.post("/api/teacher/kids", { data: { action: "question", classId: f.class, text: "Quanto é 1 + 1?", options: ["1", "2", "3", "4"], correctIndex: 1 } });
+  expect(q.status()).toBe(200);
+  const saved = await db.quizQuestion.findUniqueOrThrow({ where: { id: (await q.json()).id } });
+  expect(saved.status).toBe("APPROVED");
+  expect(saved.kind).toBe("WEEKLY");
+  await db.quizQuestion.delete({ where: { id: saved.id } });
 });
 test("Marco 8: API docente recusa aluno e professor de outra turma", async ({
 

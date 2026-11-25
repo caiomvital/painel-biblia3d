@@ -53,20 +53,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ user, onLogout }) => {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#0b0f19]/90 backdrop-blur-md">
       <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:h-16 lg:flex-nowrap lg:px-8 lg:py-0">
-        {/* Brand / Logo */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 via-blue-600 to-indigo-600 p-[1px] shadow-sm shadow-amber-500/20">
-            <div className="flex h-full w-full items-center justify-center rounded-[11px] bg-slate-950">
-              <span className="font-mono text-base font-black tracking-tighter text-amber-400">F</span>
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black tracking-wider text-white">FUCTURA</span>
-              <span className="text-[10px] font-semibold tracking-widest text-amber-400 uppercase">TECNOLOGIA</span>
-            </div>
-            <span className="text-[10px] text-slate-400 hidden sm:inline">Escola de Informática &bull; Recife - PE</span>
-          </div>
+        {/* Marca */}
+        <div className="flex items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-biblia3d-branca.png" alt="Bíblia 3D" className="h-10 w-auto" draggable={false} />
         </div>
 
         {/* Action Controls & User Identity */}

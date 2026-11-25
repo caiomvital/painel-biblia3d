@@ -101,20 +101,20 @@ export async function saveTeacherQuestion(userId: string, b: Record<string, unkn
   const cls = await ownClass(teacher.id, b.classId);
   const data = parseQuestion(b);
   const q = await prisma.quizQuestion.create({
-    data: { ...data, status: 'PENDING', source: 'TEACHER', kind: 'WEEKLY', classId: cls.id, teacherId: teacher.id, createdById: userId },
+    data: { ...data, status: 'APPROVED', source: 'TEACHER', kind: 'WEEKLY', classId: cls.id, teacherId: teacher.id, createdById: userId },
   });
   await awardTeacher(teacher.id, TEACHER_POINTS_QUESTION, `Pergunta cadastrada (${cls.name})`, `QUESTION_${q.id}`);
   return { id: q.id, awarded: TEACHER_POINTS_QUESTION };
 }
 
-/** Edita uma pergunta própria. Volta para a revisão da direção (a versão aprovada já foi vista pelos alunos). */
+/** Edita uma pergunta própria. As perguntas do professor entram direto no Desafio da semana (sem revisão da direção). */
 export async function updateTeacherQuestion(userId: string, b: Record<string, unknown>) {
   const teacher = await teacherOf(userId);
   const q = await prisma.quizQuestion.findFirst({ where: { id: String(b.id ?? ''), teacherId: teacher.id } });
   if (!q) throw new Error('Pergunta não encontrada.');
   const cls = await ownClass(teacher.id, b.classId ?? q.classId);
-  await prisma.quizQuestion.update({ where: { id: q.id }, data: { ...parseQuestion(b), classId: cls.id, status: 'PENDING' } });
-  return { id: q.id, backToReview: q.status === 'APPROVED' };
+  await prisma.quizQuestion.update({ where: { id: q.id }, data: { ...parseQuestion(b), classId: cls.id, status: 'APPROVED' } });
+  return { id: q.id, backToReview: false };
 }
 
 /** Remove uma pergunta própria, em qualquer status. Se já foi usada em desafios, fica arquivada em vez de apagada. */
