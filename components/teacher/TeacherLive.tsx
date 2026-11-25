@@ -98,7 +98,7 @@ function Creator({ questions, onCreated, onError }: { questions: Pickable[]; onC
           </select>
         </label>
       </div>
-      {questions.length === 0 && <p className="text-sm text-slate-300">Você ainda não tem perguntas. Cadastre em &quot;Aula e Perguntas&quot;.</p>}
+      {questions.length === 0 && <p className="text-sm text-slate-300">Você ainda não tem perguntas. Cadastre em &quot;Perguntas&quot;.</p>}
       <ul className="max-h-96 space-y-1 overflow-y-auto pr-1">
         {shown.map((q) => (
           <li key={q.id}>
