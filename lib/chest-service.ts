@@ -3,6 +3,7 @@ import { randomInt } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { brazilDay } from '@/lib/kids-service';
 import { levelFromXp } from '@/lib/level';
+import { QUIZ_BLOCK } from '@/lib/quiz-points';
 import { COSMETICS, RARITY_LABEL, type RarityName, type SlotName } from '@/lib/cosmetics';
 import {
   DUPLICATE_COINS, addDays, attitudeChestRefs, describeChest, lessonChestRefs, levelChestRefs, quizChestRefs, milestoneHit, nextStreak, pickItem, pickRarity,
@@ -68,13 +69,14 @@ export async function touchStreak(studentId: string): Promise<{ current: number 
 export async function grantChests(studentId: string) {
   const student = await prisma.student.findUnique({ where: { id: studentId }, select: { currentXp: true } });
   if (!student) return;
-  const [positives, quizzes, lessons] = await Promise.all([
+  const [positives, quizDays, lessons] = await Promise.all([
     prisma.attitude.count({ where: { studentId, kind: 'POSITIVE' } }),
-    prisma.quizDay.count({ where: { studentId, completedAt: { not: null } } }),
+    prisma.quizDay.findMany({ where: { studentId, completedAt: { not: null } }, select: { answers: true } }),
     prisma.lessonCheck.count({ where: { studentId } }),
   ]);
   await createChests(studentId, [
-    ...levelChestRefs(levelFromXp(student.currentXp)), ...attitudeChestRefs(positives), ...quizChestRefs(quizzes), ...lessonChestRefs(lessons),
+    ...levelChestRefs(levelFromXp(student.currentXp)), ...attitudeChestRefs(positives), ...quizChestRefs(quizDays.filter((d) => Array.isArray(d.answers) && d.answers.length >= QUIZ_BLOCK).length), // só conta desafio com pelo menos 5 respostas
+    ...lessonChestRefs(lessons),
   ]);
 }
 
