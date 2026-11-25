@@ -72,9 +72,8 @@ test("resultado do desafio: tela aparece, mostra o total do servidor e CONTINUAR
   await expect(dialog.getByRole("button", { name: "CONTINUAR" })).toBeFocused();
 
   // o total mostrado é o que o servidor creditou (fichas EARNED desse desafio)
-  const credited = await db.coinTransaction.findFirstOrThrow({
-    where: { studentId: x.studentId, originReference: { startsWith: `QUIZ_${x.studentId}_` } },
-  });
+  const creditedRows = await db.coinTransaction.findMany({ where: { studentId: x.studentId, originReference: { startsWith: `QUIZ_${x.studentId}_` } } });
+  const credited = { amount: creditedRows.reduce((n, r) => n + r.amount, 0) };
   expect(credited.amount).toBeGreaterThan(0);
   await expect(dialog.getByTestId("reward-total")).toContainText(`+${credited.amount}`, { timeout: 15_000 });
   await expect(dialog.getByRole("listitem")).toHaveCount(2);
@@ -92,4 +91,66 @@ test("resultado do desafio: tela aparece, mostra o total do servidor e CONTINUAR
   await expect(dialog).toBeHidden();
   // ganho simples não usa a tela cheia: o aviso pequeno (RewardPop) não ficou duplicado por baixo
   await expect(page.getByTestId("student-shell")).toBeVisible();
+});
+
+/** Desafio v2: responde quantas quiser e encerra; o bônus de 50 só vem a cada 5 perguntas completas. */
+test("desafio v2: encerrar com poucas perguntas não dá bônus; 5 completas dão 50; encerrar duas vezes é recusado", async ({ page }, info) => {
+  const x = fx(info.project.name);
+  await db.quizDay.deleteMany({ where: { studentId: x.studentId } });
+  await db.pointTransaction.deleteMany({ where: { studentId: x.studentId, originReference: { startsWith: `QUIZ_${x.studentId}_` } } });
+  await db.coinTransaction.deleteMany({ where: { studentId: x.studentId, originReference: { startsWith: `QUIZ_${x.studentId}_` } } });
+  await login(page, info.project.name);
+  const H = { Origin: origin };
+  const quiz = await (await page.request.get("/api/kids/quiz?kind=daily")).json();
+  expect(quiz.total).toBe(6); // todas as perguntas aprovadas do dia (até 25)
+  expect(quiz.blockSize).toBe(5);
+  const day = await db.quizDay.findFirstOrThrow({ where: { studentId: x.studentId } });
+  const rows = await db.quizQuestion.findMany({ where: { id: { in: day.questionIds } } });
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const answer = async (i: number, right: boolean) => {
+    const q = byId.get(day.questionIds[i])!;
+    const choice = right ? q.correctIndex : (q.correctIndex + 1) % 4;
+    const r = await page.request.post("/api/kids/quiz", { data: { kind: "daily", check: true, index: i, choice }, headers: H });
+    expect(r.status()).toBe(200);
+  };
+  const sum = async () => (await db.pointTransaction.findMany({ where: { studentId: x.studentId, originReference: { startsWith: `QUIZ_${x.studentId}_` } } })).reduce((n, t) => n + t.amount, 0);
+  // não dá para encerrar sem responder
+  expect((await page.request.post("/api/kids/quiz", { data: { kind: "daily", finish: true }, headers: H })).status()).toBe(400);
+  // 2 respostas (uma certa, uma errada) = 5 + 1, sem bônus
+  await answer(0, true); await answer(1, false);
+  expect(await sum()).toBe(6);
+  await answer(1, true); // repetir a pergunta não paga de novo
+  expect(await sum()).toBe(6);
+  // 3 respostas certas a mais completam o desafio 1 (5 perguntas): + 50 de bônus
+  await answer(2, true); await answer(3, true); await answer(4, true);
+  expect(await sum()).toBe(6 + 15 + 50);
+  const fin = await (await page.request.post("/api/kids/quiz", { data: { kind: "daily", finish: true }, headers: H })).json();
+  expect(fin).toMatchObject({ completed: true, total: 5, score: 4, pointsAwarded: 6 + 15 + 50 });
+  expect(await sum()).toBe(6 + 15 + 50); // encerrar não paga de novo
+  expect((await page.request.post("/api/kids/quiz", { data: { kind: "daily", finish: true }, headers: H })).status()).toBe(400);
+  expect((await page.request.post("/api/kids/quiz", { data: { kind: "daily", check: true, index: 5, choice: 0 }, headers: H })).status()).toBe(400);
+});
+
+test("desafio v2 na tela: depois de responder aparece Encerrar, que leva à Tela de Resultado e ao início", async ({ page }, info) => {
+  const x = fx(info.project.name);
+  await db.quizDay.deleteMany({ where: { studentId: x.studentId } });
+  await db.pointTransaction.deleteMany({ where: { studentId: x.studentId, originReference: { startsWith: `QUIZ_${x.studentId}_` } } });
+  await db.coinTransaction.deleteMany({ where: { studentId: x.studentId, originReference: { startsWith: `QUIZ_${x.studentId}_` } } });
+  await login(page, info.project.name);
+  await page.getByRole("button", { name: "Desafios", exact: true }).click();
+  const card = page.getByTestId("quiz-daily");
+  await expect(card.getByRole("radio").first()).toBeVisible();
+  const day = await db.quizDay.findFirstOrThrow({ where: { studentId: x.studentId } });
+  const q = await db.quizQuestion.findUniqueOrThrow({ where: { id: day.questionIds[0] } });
+  await expect(card.getByTestId("quiz-finish")).toHaveCount(0); // sem resposta ainda, não há o que encerrar
+  await card.getByText(q.options[q.correctIndex], { exact: true }).click();
+  await card.getByRole("button", { name: "Responder" }).click();
+  await expect(card.getByTestId("quiz-feedback")).toContainText("Acertou");
+  await expect(card.getByRole("button", { name: "Próxima pergunta" })).toBeVisible();
+  await card.getByTestId("quiz-finish").click();
+  const dialog = page.getByRole("dialog", { name: /MISSÃO CUMPRIDA|BOA!/ });
+  await expect(dialog).toBeVisible({ timeout: 20_000 });
+  await dialog.getByRole("button", { name: "CONTINUAR" }).click();
+  await expect(page.getByTestId("student-shell")).toBeVisible();
+  expect((await db.quizDay.findFirstOrThrow({ where: { studentId: x.studentId } })).completedAt).not.toBeNull();
 });

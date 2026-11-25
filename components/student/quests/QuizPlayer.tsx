@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, CoinRise, useGameSound } from '@/components/ui/game';
-import { quizBreakdown, POINTS_COMPLETE, POINTS_CORRECT, POINTS_WRONG } from '@/lib/quiz-points';
+import { quizBreakdown, POINTS_COMPLETE, POINTS_CORRECT, POINTS_WRONG, QUIZ_BLOCK } from '@/lib/quiz-points';
 import { quizRewardSummary, type RewardSummaryData } from '@/lib/reward-summary';
 import { kidsCall } from '../kids-api';
 import { OptionTile } from './OptionTile';
@@ -13,13 +13,15 @@ type Review = { id: string; text: string; options: string[]; correctIndex: numbe
 type Question = { id: string; text: string; options: string[] };
 type QuizState =
   | { available: false }
-  | { available: true; completed: false; total: number; questions: Question[]; checked?: { index: number; chosen: number; correctIndex: number }[] }
+  | { available: true; completed: false; total: number; blockSize?: number; questions: Question[]; checked?: { index: number; chosen: number; correctIndex: number }[] }
   | { available: true; completed: true; score: number; total: number; pointsAwarded: number; review: Review[] };
 type Result = { score: number; total: number; pointsAwarded: number; coinsAwarded: number; review: Review[] };
 
 /**
- * Desafio em formato de jogo: abre direto na primeira pergunta, uma de cada vez. Ao concluir, as moedas "sobem"
- * pergunta por pergunta (1 por responder, 5 por acerto) e depois o bônus por concluir, e então vem a Tela de Resultado.
+ * Desafio em formato de jogo: abre direto na primeira pergunta, uma de cada vez. As perguntas vêm em desafios de 5, e o aluno
+ * responde quantas quiser: depois de cada resposta pode seguir ("Próxima pergunta") ou "Encerrar". Ao encerrar, as moedas "sobem"
+ * pergunta por pergunta (1 por responder, 5 por acerto) e depois o bônus de cada desafio de 5 completo, e então vem a Tela de Resultado.
+ * O aluno nunca vê quantas perguntas existem no total.
  */
 export function QuizPlayer({ kind, emptyText, onDone, onError, onReward, onExit }: {
   kind: 'daily' | 'weekly'; emptyText: string; onDone: () => void; onError: (m: string) => void;
@@ -76,7 +78,7 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward, onExit 
   const send = async () => {
     setSending(true); onError('');
     try {
-      const r: Result & { completed: true } = await kidsCall('/api/kids/quiz', 'POST', { kind, answers });
+      const r: Result & { completed: true } = await kidsCall('/api/kids/quiz', 'POST', { kind, finish: true });
       pendingRefresh.current = true;
       setResult(r); setShown(0); setPhase('reveal');
     } catch (e) { onError(e instanceof Error ? e.message : 'Erro.'); } finally { setSending(false); }
@@ -92,7 +94,7 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward, onExit 
   // revela uma linha por vez (pergunta 1, 2, ... e por fim o bônus por concluir)
   useEffect(() => {
     if (phase !== 'reveal' || !result) return;
-    const rows = result.total + 1;
+    const rows = result.total + 1; // uma linha por pergunta respondida + o bônus dos desafios completos
     const t = setTimeout(() => {
       if (shown < rows) { setShown((n) => n + 1); play('coin'); } else finishReveal();
     }, shown === 0 ? 500 : shown < rows ? 850 : 1100);
@@ -117,7 +119,7 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward, onExit 
           ))}
           {shown > result.total && b.completion > 0 && (
             <li className="relative flex items-center justify-between rounded-game border-2 border-game-primary bg-game-surface-2 px-4 py-3">
-              <span className="font-semibold">Você concluiu!</span>
+              <span className="font-semibold">{b.blocks === 1 ? 'Desafio completo!' : `${b.blocks} desafios completos!`}</span>
               <span className="font-[family-name:var(--font-game-title)] text-2xl text-game-primary">+{b.completion}</span>
               <CoinRise count={9} />
             </li>
@@ -142,15 +144,17 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward, onExit 
     const last = step === quiz.total - 1;
     const fb = feedback[step];
     const right = !!fb && fb.chosen === fb.correctIndex;
+    const block = Math.floor(step / QUIZ_BLOCK) + 1;
+    const blockDone = !!fb && (step + 1) % QUIZ_BLOCK === 0;
     return (
       <Card title={kind === 'daily' ? 'Desafio do dia' : 'Desafio da semana'} data-testid={`quiz-${kind}`}>
         {step === 0 && !fb && <DaviTutor text={DAVI_QUIZ_INTRO} mood="feliz" className="mb-3" />}
         {step === 0 && !fb && (
           <p className="mb-3 text-sm text-game-ink-dim">
-            Ganhe pontos e fichas: {POINTS_WRONG} ponto por responder, {POINTS_CORRECT} por acertar e {POINTS_COMPLETE} por concluir!
+            Responda quantas quiser! {POINTS_WRONG} ponto por responder, {POINTS_CORRECT} por acertar e {POINTS_COMPLETE} a cada {QUIZ_BLOCK} perguntas completas.
           </p>
         )}
-        <p className="mb-1 text-sm font-semibold text-game-ink-dim">Pergunta {step + 1} de {quiz.total}</p>
+        <p className="mb-1 text-sm font-semibold text-game-ink-dim">Pergunta {step + 1} · Desafio {block}</p>
         <fieldset key={q.id} className="space-y-2" disabled={!!fb}>
           <legend className="mb-2 text-lg font-semibold">{q.text}</legend>
           {q.options.map((opt, oi) => {
@@ -166,14 +170,25 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward, onExit 
             {right ? '✔ Acertou! Muito bem!' : `✘ Quase! A resposta certa é: ${q.options[fb.correctIndex]}`}
           </p>
         )}
-        <div className="mt-4 flex gap-2">
-          {step > 0 && <Button variant="ghost" onClick={() => setStep(step - 1)}>Voltar</Button>}
+        {blockDone && !last && (
+          <p data-testid="quiz-block-done" className="mt-3 rounded-game border-2 border-game-primary bg-game-surface-2 px-4 py-3 text-lg font-semibold text-game-primary">
+            🎉 Desafio {block} completo! Você ganhou {POINTS_COMPLETE} pontos de bônus. Quer continuar?
+          </p>
+        )}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {step > 0 && !fb && <Button variant="ghost" onClick={() => setStep(step - 1)}>Voltar</Button>}
           {!fb ? (
-            <Button size="lg" className="flex-1" disabled={checking || answers[step] < 0} onClick={() => void check()}>{checking ? 'Conferindo…' : 'Responder'}</Button>
+            <>
+              <Button size="lg" className="flex-1" disabled={checking || answers[step] < 0} onClick={() => void check()}>{checking ? 'Conferindo…' : 'Responder'}</Button>
+              {answers.some((a) => a >= 0) && <Button size="lg" variant="ghost" disabled={sending || checking} onClick={() => void send()} data-testid="quiz-finish">{sending ? 'Enviando…' : 'Encerrar'}</Button>}
+            </>
+          ) : last ? (
+            <Button size="lg" className="flex-1" disabled={sending} onClick={() => void send()}>{sending ? 'Enviando…' : 'Ver meus pontos'}</Button>
           ) : (
-            <Button size="lg" className="flex-1" disabled={sending} onClick={() => (last ? void send() : setStep(step + 1))}>
-              {sending ? 'Enviando…' : last ? 'Ver meus pontos' : 'Próxima'}
-            </Button>
+            <>
+              <Button size="lg" className="flex-1" disabled={sending} onClick={() => setStep(step + 1)}>Próxima pergunta</Button>
+              <Button size="lg" variant="ghost" disabled={sending} onClick={() => void send()} data-testid="quiz-finish">{sending ? 'Enviando…' : 'Encerrar'}</Button>
+            </>
           )}
         </div>
       </Card>

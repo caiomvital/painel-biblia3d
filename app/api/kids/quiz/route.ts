@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     if (body?.check === true) return NextResponse.json(await checkQuizAnswer(s.id, kindOf(body?.kind), body?.index, body?.choice));
-    return NextResponse.json(await submitQuiz(s.id, kindOf(body?.kind), body?.answers));
+    return NextResponse.json(await submitQuiz(s.id, kindOf(body?.kind)));
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || 'Não foi possível enviar.' }, { status: 400 });
   }

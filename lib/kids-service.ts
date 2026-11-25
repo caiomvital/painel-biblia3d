@@ -2,10 +2,9 @@ import { levelFromXp } from '@/lib/level';
 // Serviço do painel infantil: pontos, desafios (dia e semana), checklist da aula, cadastro e ranking.
 import { prisma } from '@/lib/prisma';
 import { parseLook } from '@/lib/mascot-look';
-import { quizBreakdown } from './quiz-points';
+import { QUIZ_BLOCK, QUIZ_MAX, POINTS_COMPLETE, completedBlocks, pointsForAnswer, quizBreakdown } from './quiz-points';
 import { POINTS_PER_LESSON_TOPIC } from './lesson-points';
 
-export const QUIZ_SIZE = 5;
 export const POINTS_PROFILE = 20;
 export { POINTS_PER_LESSON_TOPIC };
 
@@ -278,7 +277,7 @@ export async function getQuiz(studentId: string, kind: QuizKindName) {
     });
     if (!pool.length) return { available: false as const };
     // mesmo sorteio para todos no mesmo dia/semana (e na mesma turma, no desafio da semana)
-    const ids = seededShuffle(pool.map((a) => a.id), `quiz-${kind}-${key}-${kind === 'weekly' ? classId : ''}`).slice(0, QUIZ_SIZE);
+    const ids = seededShuffle(pool.map((a) => a.id), `quiz-${kind}-${key}-${kind === 'weekly' ? classId : ''}`).slice(0, QUIZ_MAX);
     try {
       qd = await prisma.quizDay.create({ data: { studentId, day: key, questionIds: ids } });
     } catch (error: any) {
@@ -289,15 +288,18 @@ export async function getQuiz(studentId: string, kind: QuizKindName) {
   if (!qd) return { available: false as const };
   const questions = await questionsByIds(qd.questionIds);
   if (qd.completedAt) {
+    // o desafio vale só o que foi respondido até o aluno encerrar
+    const given = Array.isArray(qd.answers) ? (qd.answers as number[]) : [];
+    const answered = questions.slice(0, given.length);
     return {
-      available: true as const, completed: true as const, score: qd.score, total: questions.length,
-      pointsAwarded: qd.pointsAwarded, review: review(questions, (qd.answers as number[]) ?? []),
+      available: true as const, completed: true as const, score: qd.score, total: answered.length,
+      pointsAwarded: qd.pointsAwarded, review: review(answered, given),
     };
   }
   // Respostas já dadas (e conferidas na hora): a criança retoma de onde parou e não troca uma resposta já vista.
   const stored = storedAnswers(qd.answers, questions.length);
   return {
-    available: true as const, completed: false as const, total: questions.length,
+    available: true as const, completed: false as const, total: questions.length, blockSize: QUIZ_BLOCK,
     questions: questions.map((q) => ({ id: q.id, text: q.text, options: q.options })),
     checked: questions.flatMap((q, i) => (stored[i] >= 0 ? [{ index: i, chosen: stored[i], correctIndex: q.correctIndex }] : [])),
   };
@@ -335,33 +337,49 @@ export async function checkQuizAnswer(studentId: string, kind: QuizKindName, raw
     if (now >= 0) return { chosen: now, correct: now === q.correctIndex, correctIndex: q.correctIndex };
     throw new Error('Não deu certo. Tente de novo.');
   }
+  await creditAnswers(studentId, kind, key, questions, stored);
   return { chosen: choice, correct: choice === q.correctIndex, correctIndex: q.correctIndex };
 }
 
-export async function submitQuiz(studentId: string, kind: QuizKindName, rawAnswers: unknown) {
+/**
+ * Credita (de forma idempotente) os pontos e fichas das perguntas já respondidas e o bônus de cada desafio de 5 completo.
+ * Cada pergunta e cada bônus tem a sua referência: repetir a chamada nunca paga duas vezes.
+ */
+async function creditAnswers(studentId: string, kind: QuizKindName, key: string, questions: Awaited<ReturnType<typeof questionsByIds>>, stored: number[]) {
+  const label = kind === 'daily' ? 'Desafio do dia' : 'Desafio da semana';
+  let answered = 0;
+  for (let i = 0; i < questions.length && stored[i] >= 0; i++) {
+    answered++;
+    await awardPoints(studentId, pointsForAnswer(stored[i] === questions[i].correctIndex), `${label} (${key}): pergunta ${i + 1}`, `QUIZ_${studentId}_${key}_Q${i}`);
+  }
+  for (let b = 1; b <= completedBlocks(answered); b++) {
+    await awardPoints(studentId, POINTS_COMPLETE, `${label} (${key}): desafio ${b} completo`, `QUIZ_${studentId}_${key}_B${b}`);
+  }
+}
+
+/** Encerra o desafio do dia/semana: vale o que foi respondido até aqui (mínimo 1 pergunta). Os pontos já foram creditados a cada resposta. */
+export async function submitQuiz(studentId: string, kind: QuizKindName) {
   const key = kind === 'daily' ? brazilDay() : brazilWeekKey();
   const qd = await prisma.quizDay.findUnique({ where: { studentId_day: { studentId, day: key } } });
   if (!qd) throw new Error('Abra o desafio antes de responder.');
-  if (qd.completedAt) throw new Error(kind === 'daily' ? 'Você já respondeu o desafio de hoje. Volte amanhã!' : 'Você já respondeu o desafio desta semana. Volte na próxima!');
-  const questions = await questionsByIds(qd.questionIds);
-  if (!Array.isArray(rawAnswers) || rawAnswers.length !== questions.length ||
-      !rawAnswers.every((a) => Number.isInteger(a) && a >= 0 && a < 4)) {
-    throw new Error('Responda todas as perguntas.');
-  }
-  // o que a criança já viu corrigido vale como está (travado); o resto vem do envio
-  const locked = storedAnswers(qd.answers, questions.length);
-  const answers = (rawAnswers as number[]).map((a, i) => (locked[i] >= 0 ? locked[i] : a));
-  const score = questions.filter((q, i) => q.correctIndex === answers[i]).length;
-  const points = quizBreakdown(questions.map((q, i) => q.correctIndex === answers[i])).total;
+  if (qd.completedAt) throw new Error(kind === 'daily' ? 'Você já encerrou o desafio de hoje. Volte amanhã!' : 'Você já encerrou o desafio desta semana. Volte na próxima!');
+  const all = await questionsByIds(qd.questionIds);
+  const stored = storedAnswers(qd.answers, all.length);
+  const count = stored.findIndex((a) => a < 0);
+  const answeredCount = count === -1 ? all.length : count;
+  if (answeredCount < 1) throw new Error('Responda pelo menos uma pergunta.');
+  const questions = all.slice(0, answeredCount);
+  const answers = stored.slice(0, answeredCount);
+  await creditAnswers(studentId, kind, key, all, stored); // garante o que faltar (idempotente)
+  const flags = questions.map((q, i) => q.correctIndex === answers[i]);
+  const score = flags.filter(Boolean).length;
+  const points = quizBreakdown(flags).total;
   const done = await prisma.quizDay.updateMany({
     where: { id: qd.id, completedAt: null },
-    data: { answers, score, pointsAwarded: points, completedAt: new Date() },
+    data: { answers: answers, score, pointsAwarded: points, completedAt: new Date() },
   });
-  if (done.count === 0) throw new Error('Você já respondeu este desafio.');
-  const label = kind === 'daily' ? 'Desafio do dia' : 'Desafio da semana';
-  const credited = await awardPoints(studentId, points, `${label} (${key}): ${score}/${questions.length}`, `QUIZ_${studentId}_${key}`);
-  // fichas creditadas pelo próprio awardPoints (regra do servidor); aqui só repassamos o valor para a tela
-  return { completed: true as const, score, total: questions.length, pointsAwarded: points, coinsAwarded: credited ? points : 0, review: review(questions, answers) };
+  if (done.count === 0) throw new Error('Você já encerrou este desafio.');
+  return { completed: true as const, score, total: answeredCount, pointsAwarded: points, coinsAwarded: points, review: review(questions, answers) };
 }
 
 /** Checklist "o que aprendi na aula": 2 pontos por tópico marcado; o que não marcar não altera a pontuação. */
