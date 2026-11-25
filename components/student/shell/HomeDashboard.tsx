@@ -27,7 +27,6 @@ export function HomeDashboard({ home, celebrate, onGo, chest, children }: {
   const lp = levelProgress(home.points);
   const quizPending = home.quiz.available && !home.quiz.completedToday;
   const lessonOpen = !!home.lesson && !home.lesson.done;
-  const goal = home.prize?.pointsGoal ?? 0;
   const reserved = home.coins.reserved;
   return (
     <div className="mx-auto max-w-6xl" data-testid="home-dashboard">
@@ -73,14 +72,8 @@ export function HomeDashboard({ home, celebrate, onGo, chest, children }: {
             onClick={() => onGo('live')} />
           <JourneyButton grid testId="home-games" tone="blue" emoji="🎮" title="Jogos" hint="Jogue e crie o seu"
             onClick={() => onGo('games')} />
-          {home.prize && goal > 0 ? (
-            <JourneyButton grid testId="home-prize" tone="rose" emoji="🎁" title="Meta do mês"
-              hint={home.points >= goal ? `Meta alcançada! ${home.prize.title}` : `${home.prize.title}: faltam ${goal - home.points} pontos`}
-              onClick={() => onGo('ranking')} />
-          ) : (
-            <JourneyButton grid testId="home-ranking" tone="rose" emoji="🏆" title="Ranking" hint="Veja sua posição"
-              onClick={() => onGo('ranking')} />
-          )}
+          <JourneyButton grid testId="home-ranking" tone="rose" emoji="🏆" title="Ranking" hint="Veja sua posição"
+            onClick={() => onGo('ranking')} />
         </div>
         {/* Evento e convite de cadastro só aparecem se sobrar altura: o aluno vê tudo sem rolar. */}
         <div className="shrink-0 empty:hidden [@media(max-height:820px)]:hidden">{children}</div>
