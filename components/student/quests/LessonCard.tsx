@@ -34,7 +34,7 @@ export function LessonCard({ lesson, onDone, onError }: {
         </>
       ) : (
         <>
-          <p className="text-game-ink-dim">Marque só o que você lembra. Cada item vale {POINTS_PER_LESSON_TOPIC} pontos.</p>
+          <p className="text-sm text-game-ink-dim">Marque o que você lembra. Vale {POINTS_PER_LESSON_TOPIC} pontos cada. Depois de salvar, não muda.</p>
           <div className="mt-3 space-y-2">
             {lesson.topics.map((t, i) => (
               <OptionTile key={i} type="checkbox" checked={checked.includes(i)}

@@ -2,11 +2,13 @@
 import { useCallback, useEffect, useState } from "react";
 import type { TeacherDashboardData } from "@/lib/academic-service";
 import { TeacherKids } from "./TeacherKids";
+import { TeacherRollCall } from "./TeacherRollCall";
 import { TeacherLive } from "./TeacherLive";
 import { AttitudesPanel } from "@/components/attitudes/AttitudesPanel";
 
 /** Área do professor (v1): poucas tarefas, cada uma num botão grande. */
 const areas = [
+  { id: "Chamada", icon: "✅", hint: "Quem veio hoje" },
   { id: "Aula de hoje", icon: "📖", hint: "Registre os tópicos" },
   { id: "Atitudes", icon: "⭐", hint: "Elogie ou chame atenção" },
   { id: "Perguntas", icon: "❓", hint: "Desafio da semana" },
@@ -19,7 +21,7 @@ const button = "rounded-lg border border-white/15 px-3 py-2 hover:bg-white/10 di
 
 export function TeacherView() {
   const [data, setData] = useState<TeacherDashboardData | null>(null);
-  const [area, setArea] = useState<Area>("Aula de hoje");
+  const [area, setArea] = useState<Area>("Chamada");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -68,7 +70,7 @@ export function TeacherView() {
         )}
       </header>
 
-      <nav aria-label="Área do professor" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <nav aria-label="Área do professor" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {areas.map((a) => (
           <button
             key={a.id}
@@ -91,6 +93,7 @@ export function TeacherView() {
       )}
       {data.classes.length === 0 && <p>Nenhuma turma atribuída a este professor. Peça à direção para vincular suas turmas.</p>}
 
+      {area === "Chamada" && <TeacherRollCall classes={data.classes.map((c) => ({ id: c.id, name: c.name }))} today={new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10)} />}
       {area === "Aula de hoje" && <TeacherKids section="aula" />}
       {area === "Atitudes" && <AttitudesPanel />}
       {area === "Perguntas" && <TeacherKids section="perguntas" />}

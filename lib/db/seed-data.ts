@@ -900,6 +900,6 @@ export const INITIAL_POINT_TRANSACTIONS: PointTransactionEntity[] = [
 
 export const INITIAL_GAMIFICATION_RULES: GamificationRuleEntity[] = [
   { id: 'rule_1', code: 'XP_LOGIN', name: 'XP por Login Diário', xpValue: 5, description: 'Recompensa concedida uma vez ao dia no primeiro login.', isActive: true, updatedAt: '2026-01-10T10:00:00.000Z' },
-  { id: 'rule_2', code: 'XP_ATTENDANCE', name: 'XP por Presença Confirmada', xpValue: 20, description: 'Recompensa concedida quando o professor confirma a presença na aula.', isActive: true, updatedAt: '2026-01-10T10:00:00.000Z' },
+  { id: 'rule_2', code: 'XP_ATTENDANCE', name: 'XP por Presença Confirmada', xpValue: 10, description: 'Recompensa concedida quando o professor confirma a presença na aula.', isActive: true, updatedAt: '2026-01-10T10:00:00.000Z' },
   { id: 'rule_3', code: 'XP_ACTIVITY', name: 'XP por Atividade Concluída', xpValue: 30, description: 'Pontos ao submeter e concluir exercício prático do curso.', isActive: true, updatedAt: '2026-01-10T10:00:00.000Z' },
 ];

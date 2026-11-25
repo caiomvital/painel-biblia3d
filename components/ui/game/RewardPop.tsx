@@ -39,7 +39,7 @@ export function RewardPop({ reward, onDone, duration = 1800 }: RewardPopProps) {
             {kind === 'coins' ? <CoinIcon width="1.6em" height="1.6em" /> : <StarIcon width="1.6em" height="1.6em" />}
             <span className="font-[family-name:var(--font-game-title)] text-2xl leading-none">+{reward.amount}</span>
             <span className="font-[family-name:var(--font-game-body)] text-base font-semibold">
-              {reward.label ?? (kind === 'coins' ? 'fichas' : 'pontos')}
+              {reward.label ?? (kind === 'coins' ? (reward.amount === 1 ? 'ficha' : 'fichas') : reward.amount === 1 ? 'ponto' : 'pontos')}
             </span>
             {!reduce &&
               [0, 1, 2, 3].map((i) => (
