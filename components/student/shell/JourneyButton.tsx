@@ -40,7 +40,7 @@ export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled
           // eslint-disable-next-line @next/next/no-img-element
           <img src={img} alt="" draggable={false} className="min-h-10 w-auto max-w-[60%] flex-1 object-contain drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]" />
         ) : (
-          <span aria-hidden="true" className="flex min-h-10 flex-1 items-center text-7xl leading-none drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]">{emoji}</span>
+          <span aria-hidden="true" className="flex min-h-10 flex-1 items-center text-5xl leading-none [@media(min-height:800px)]:text-7xl drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]">{emoji}</span>
         )}
         <span className="font-[family-name:var(--font-game-title)] text-xl leading-tight tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35),0_0_6px_rgb(0_0_0/0.25)]">{title}</span>
         <span className="text-xs font-semibold leading-tight [text-shadow:0_1px_2px_rgb(0_0_0/0.55)] [@media(max-height:640px)]:hidden">{hint}</span>
