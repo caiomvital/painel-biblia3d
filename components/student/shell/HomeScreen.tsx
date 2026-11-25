@@ -107,9 +107,10 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
             <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Digite o PIN" onClick={() => onGo('live')} className="h-20 shrink-0" />
           </>
         )}
-      </div>
 
-      {tail}
+        {/* Evento e convite de cadastro ficam DENTRO da altura da tela: os botões encolhem e a página não rola. */}
+        <div className="shrink-0 space-y-2 empty:hidden">{tail}</div>
+      </div>
       {chest.portal}
     </div>
   );
