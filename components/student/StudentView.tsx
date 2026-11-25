@@ -157,7 +157,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   return (
     <MotionConfig reducedMotion="user">
       <MascotLookProvider value={home?.mascotLook ?? {}}>
-      <div className={`min-h-screen pb-28 font-[family-name:var(--font-game-body)] text-lg text-game-ink ${hasScene(preferences.theme) ? 'relative z-10' : 'bg-game-bg'}`} data-testid="student-shell">
+      <div className={`min-h-dvh pb-28 font-[family-name:var(--font-game-body)] text-lg text-game-ink ${hasScene(preferences.theme) ? 'relative z-10' : 'bg-game-bg'}`} data-testid="student-shell">
         <ThemeBackdrop themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <ThemeApplier themeId={preferences.theme} look={home?.mascotLook ?? {}} />
         <LevelEffect effect={preferences.levelEffect} burst={burst} />

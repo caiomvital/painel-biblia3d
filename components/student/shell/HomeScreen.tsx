@@ -59,7 +59,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
 
   const tail = (
     <>
-      <NextEventCard onOpen={() => onGo('events')} />
+      <NextEventCard onOpen={() => onGo('events')} compact={!pwa} />
       {wide && <ChestCard ctl={chest} />}
 
         {!home.profileCompleted && (
@@ -87,8 +87,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
           hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
           onClick={() => onGo('quests')} glow={quizPending} className="flex-1" />
 
-        <div className="grid min-h-0 flex-[1.2] grid-cols-2 gap-3 pt-1">
-          <JourneyButton grid testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
+        <div className="grid min-h-0 flex-[0.7] grid-cols-1 gap-3 pt-1">
           <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
             hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
             onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} />
@@ -102,10 +101,15 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
           </div>
         ) : (
           /* No navegador do celular o Quiz ao vivo (sala de aula) fica à mão; Jogos e Leilão estão na barra de baixo. */
-          <>
-            <ChestButton ctl={chest} className="min-h-20 shrink-0" />
+          chest.chests.length > 0 ? (
+            /* Com baú: baú e Quiz lado a lado, para caber sem rolar no navegador (que tem a barra de endereço). */
+            <div className="grid h-24 shrink-0 grid-cols-2 gap-3">
+              <ChestButton ctl={chest} compact className="h-full" />
+              <JourneyButton grid testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Digite o PIN" onClick={() => onGo('live')} className="h-full !gap-0 !p-1 [&_img]:max-w-[40%] [&>span:first-of-type]:text-lg" />
+            </div>
+          ) : (
             <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Digite o PIN" onClick={() => onGo('live')} className="h-20 shrink-0" />
-          </>
+          )
         )}
 
         {/* Evento e convite de cadastro ficam DENTRO da altura da tela: os botões encolhem e a página não rola. */}
