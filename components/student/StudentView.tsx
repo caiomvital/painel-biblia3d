@@ -105,6 +105,20 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
 
   const { home, error: loadError, reload } = useKidsHome(onGain);
 
+  // Pontos por toque em qualquer botão: o aparelho só pede a cada 20 s; quem decide (intervalo e teto do dia) é o servidor.
+  useEffect(() => {
+    let last = 0;
+    function onTap(event: Event) {
+      if (!(event.target as Element | null)?.closest?.('button, [role="button"]')) return;
+      const now = Date.now();
+      if (now - last < 20_000) return;
+      last = now;
+      fetch('/api/kids/tap', { method: 'POST' }).then((r) => r.json()).then((r) => { if (r?.awarded) void reload(); }).catch(() => {});
+    }
+    document.addEventListener('click', onTap, true);
+    return () => document.removeEventListener('click', onTap, true);
+  }, [reload]);
+
   // Evento global panel:navigate com detail.target (avisos e atalhos).
   useEffect(() => {
     function onNavigate(event: Event) {
@@ -133,7 +147,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     screen = <HomeScreen home={home} celebrate={celebrate} onGo={go}
       onNotice={setNotice} onError={setError} onRefresh={reload} />;
   } else if (view === 'quests') {
-    screen = <ChallengeScreen home={home} onError={setError} onRefresh={reload} onReward={onReward} />;
+    screen = <ChallengeScreen home={home} onError={setError} onRefresh={reload} onReward={onReward} onExit={() => go('home')} />;
   } else if (view === 'day') {
     screen = <DayScreen home={home} onGo={go} onNotice={setNotice} onError={setError} onRefresh={reload} />;
   } else if (view === 'learned') {

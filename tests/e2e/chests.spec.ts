@@ -33,7 +33,7 @@ test.afterAll(async ({}, info) => {
 test("nível 3 dá 2 baús (níveis 2 e 3) e repetir a consulta não duplica", async ({}, info) => {
   const f = ids(info.project.name);
   const sid = `${f.student}_profile`;
-  await db.student.update({ where: { id: sid }, data: { currentXp: 650, level: 3 } });
+  await db.student.update({ where: { id: sid }, data: { currentXp: 50, level: 3 } });
   const s = await api(f.email("student"));
   const r = await (await s.get("/api/kids/chests")).json();
   expect(r.chests.map((c: any) => c.label).sort()).toEqual(["Baú do nível 2", "Baú do nível 3"]);
@@ -176,4 +176,22 @@ test("tela: card na Home, abertura animada e Tela de Resultado com NOVO ITEM", a
   await expect(result).toBeHidden();
   await expect(page.getByTestId("home-chest")).toHaveCount(0);
   expect(await db.studentItem.count({ where: { studentId: sid } })).toBe(1);
+});
+
+test("toque em botão: 1 XP, sem fichas, e o servidor segura o próximo por 20 s", async ({}, info) => {
+  const f = ids(info.project.name);
+  const sid = `${f.student}_profile`;
+  const s = await api(f.email("student"));
+  // os testes de tela acima já tocaram em botões (e ganharam XP de toque): zera para medir só este
+  await db.pointTransaction.deleteMany({ where: { studentId: sid, originReference: { startsWith: "TAP_" } } });
+  const before = await db.student.findUniqueOrThrow({ where: { id: sid } });
+  const a = await (await s.post("/api/kids/tap", { headers: H })).json();
+  expect(a).toEqual({ awarded: true });
+  const b = await (await s.post("/api/kids/tap", { headers: H })).json();
+  expect(b).toEqual({ awarded: false, reason: "cooldown" });
+  const after = await db.student.findUniqueOrThrow({ where: { id: sid } });
+  expect(after.currentXp - before.currentXp).toBe(1);
+  expect(after.coinBalance).toBe(before.coinBalance);
+  await db.pointTransaction.deleteMany({ where: { studentId: sid, originReference: { startsWith: "TAP_" } } });
+  await db.student.update({ where: { id: sid }, data: { currentXp: before.currentXp } });
 });

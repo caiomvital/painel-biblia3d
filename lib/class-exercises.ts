@@ -59,7 +59,7 @@ export async function answerClassExercise(userId: string, exerciseId: string, se
     throw error;
   }
   const updated = await prisma.$queryRawUnsafe<{ currentXp: number; level: number; coinBalance: number }[]>(
-    'UPDATE "Student" SET "currentXp"="currentXp"+$2,"level"=FLOOR(("currentXp"+$2)::numeric/300)::int+1,"coinBalance"="coinBalance"+$3,"updatedAt"=NOW() WHERE "id"=$1 RETURNING "currentXp","level","coinBalance"', studentId, xp, coins,
+    'UPDATE "Student" SET "currentXp"="currentXp"+$2,"level"=FLOOR((35+SQRT(60*("currentXp"+$2)::numeric+25))/30)::int,"coinBalance"="coinBalance"+$3,"updatedAt"=NOW() WHERE "id"=$1 RETURNING "currentXp","level","coinBalance"', studentId, xp, coins,
   );
   const originReference = `EXERCISE_${attemptId}`;
   await prisma.$executeRawUnsafe(

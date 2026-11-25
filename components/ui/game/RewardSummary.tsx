@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { animate, motion, useReducedMotion } from 'motion/react';
 import { Button } from './Button';
+import { CoinRise } from './CoinRise';
 import { LiveMascot } from './Mascot';
 import { CoinIcon, StarIcon, TrophyIcon } from './icons';
 import { SoundToggle, useGameSound } from './useGameSound';
@@ -53,6 +54,17 @@ function CountUp({ value, delay, reduce, prefix = '' }: { value: number; delay: 
   const display = reduce ? value : shown;
   return <span>{prefix}{display.toLocaleString('pt-BR')}</span>;
 }
+
+/** Chuva de estrelas, moedas e brilhos ao abrir a tela (decorativa; some com movimento reduzido). */
+const CONFETTI = Array.from({ length: 30 }, (_, i) => ({
+  left: `${(i * 37 + 11) % 100}%`,
+  char: ['⭐', '🪙', '✨', '🎉'][i % 4],
+  dur: 2.6 + ((i * 7) % 10) / 6,
+  delay: ((i * 13) % 14) / 10,
+  dx: `${((i * 29) % 90) - 45}px`,
+  rot: `${((i * 53) % 540) - 270}deg`,
+  size: 1.1 + ((i * 5) % 6) / 5,
+}));
 
 const OUTLINE = '[-webkit-text-stroke:7px_#15123a] [paint-order:stroke_fill] drop-shadow-[0_5px_0_#15123a]';
 
@@ -111,6 +123,14 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
         ))}
       </div>
 
+      {!reduce && (
+        <div aria-hidden="true" data-testid="reward-confetti" className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
+          {CONFETTI.map((p, i) => (
+            <span key={i} className="absolute top-0" style={{ left: p.left, fontSize: `${p.size}rem`, opacity: 0, animation: `b3d-fall ${p.dur}s ${p.delay}s ease-in forwards`, ['--dx' as string]: p.dx, ['--rot' as string]: p.rot }}>{p.char}</span>
+          ))}
+        </div>
+      )}
+
       <div className="absolute right-3 top-3 z-10"><SoundToggle /></div>
 
       <div className="relative mx-auto flex min-h-full w-full max-w-md flex-col items-center gap-4 px-4 pt-14 [@media(max-height:760px)]:gap-2">
@@ -162,7 +182,7 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
               initial={reduce ? false : { x: -40, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={reduce ? { duration: 0 } : { delay: rowsStart + i * step, type: 'spring', stiffness: 320, damping: 24 }}
-              className="flex min-h-14 items-center gap-3 rounded-full border-2 border-game-line bg-game-surface/90 px-4 py-2 [@media(max-height:760px)]:min-h-11 [@media(max-height:760px)]:py-1"
+              className="relative flex min-h-14 items-center gap-3 rounded-full border-2 border-game-line bg-game-surface/90 px-4 py-2 [@media(max-height:760px)]:min-h-11 [@media(max-height:760px)]:py-1"
             >
               <span className="text-2xl text-game-primary">{it.icon}</span>
               <span className="flex-1 text-lg font-semibold leading-tight">
@@ -176,6 +196,7 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
                   <span className="sr-only">{it.unit === 'xp' ? 'pontos' : 'fichas'}</span>
                 </span>
               )}
+              {it.unit !== 'item' && <CoinRise count={5} delay={rowsStart + i * step + 0.1} />}
             </motion.li>
           ))}
         </ul>
@@ -184,7 +205,7 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
           initial={reduce ? false : { y: -120, rotate: 0, opacity: 0 }}
           animate={{ y: 0, rotate: -3, opacity: 1 }}
           transition={reduce ? { duration: 0 } : { delay: totalDelay, type: 'spring', stiffness: 260, damping: 12 }}
-          className="flex items-center gap-3 rounded-game border-4 border-game-coin-deep bg-game-primary px-6 py-3 text-game-ink-on-light shadow-lg [@media(max-height:760px)]:py-1.5"
+          className="relative flex items-center gap-3 rounded-game border-4 border-game-coin-deep bg-game-primary px-6 py-3 text-game-ink-on-light shadow-lg [@media(max-height:760px)]:py-1.5"
           data-testid="reward-total"
         >
           <span className="font-[family-name:var(--font-game-title)] text-xl">TOTAL</span>
@@ -193,6 +214,7 @@ export function RewardSummary({ title, subtitle, xp, items, totalCoins, onContin
             <CoinIcon />
           </span>
           <span className="sr-only">fichas no total</span>
+          <CoinRise count={7} delay={totalDelay + 0.2} />
         </motion.div>}
 
         <motion.div

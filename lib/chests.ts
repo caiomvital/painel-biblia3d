@@ -4,7 +4,10 @@
  * Fontes (um baú por origem, idempotente pela referência):
  *  - subir de nível: um baú por nível novo (nível 2 em diante);
  *  - sequência de dias seguidos no painel (horário de Recife): 3, 7, 14 e 30 dias;
- *  - atitudes positivas: um baú a cada 5 acumuladas.
+ *  - atitudes positivas: um baú a cada 5 acumuladas;
+ *  - Desafio diário: um baú a cada 5 Desafios concluídos;
+ *  - "O que aprendi": um baú a cada 3 registros.
+ * Assim os baús não dependem só dos pontos dados pelo professor.
  * Baú nunca é comprado com fichas.
  *
  * Tabela de chances (documentada): comum 60%, raro 28%, épico 10%, lendário 2%.
@@ -17,6 +20,8 @@ export const RARITY_WEIGHTS: Record<RarityName, number> = { COMMON: 60, RARE: 28
 export const DUPLICATE_COINS: Record<RarityName, number> = { COMMON: 3, RARE: 6, EPIC: 12, LEGENDARY: 25 };
 export const STREAK_MILESTONES: readonly number[] = [3, 7, 14, 30];
 export const ATTITUDES_PER_CHEST = 5;
+export const QUIZZES_PER_CHEST = 5;
+export const LESSONS_PER_CHEST = 3;
 
 /** `rand` devolve um número em [0, 1). */
 export function pickRarity(rand: () => number): RarityName {
@@ -45,6 +50,8 @@ export function pickItem<T extends { rarity: RarityName }>(items: readonly T[], 
 export const levelChestRef = (level: number) => `CHEST_LEVEL_${level}`;
 export const streakChestRef = (milestone: number, startDay: string) => `CHEST_STREAK_${milestone}_${startDay}`;
 export const attitudeChestRef = (n: number) => `CHEST_ATT_${n}`;
+export const quizChestRef = (n: number) => `CHEST_QUIZ_${n}`;
+export const lessonChestRef = (n: number) => `CHEST_LESSON_${n}`;
 
 export function levelChestRefs(level: number): string[] {
   const out: string[] = [];
@@ -57,7 +64,15 @@ export function attitudeChestRefs(positiveCount: number): string[] {
   return Array.from({ length: n }, (_, i) => attitudeChestRef(i + 1));
 }
 
-export type ChestSource = 'LEVEL' | 'STREAK' | 'ATTITUDE';
+/** Uma referência por grupo completo de `per` atividades (idempotente: `createMany skipDuplicates`). */
+function groupRefs(count: number, per: number, ref: (n: number) => string): string[] {
+  const n = Math.floor(Math.max(0, count) / per);
+  return Array.from({ length: n }, (_, i) => ref(i + 1));
+}
+export const quizChestRefs = (done: number) => groupRefs(done, QUIZZES_PER_CHEST, quizChestRef);
+export const lessonChestRefs = (done: number) => groupRefs(done, LESSONS_PER_CHEST, lessonChestRef);
+
+export type ChestSource = 'LEVEL' | 'STREAK' | 'ATTITUDE' | 'QUIZ' | 'LESSON';
 
 /** Texto e tipo do baú a partir da referência. Não revela nada além do que é do próprio aluno. */
 export function describeChest(ref: string): { source: ChestSource; label: string } {
@@ -65,6 +80,8 @@ export function describeChest(ref: string): { source: ChestSource; label: string
   if (level) return { source: 'LEVEL', label: `Baú do nível ${level[1]}` };
   const streak = /^CHEST_STREAK_(\d+)_/.exec(ref);
   if (streak) return { source: 'STREAK', label: `Baú da sequência de ${streak[1]} dias` };
+  if (/^CHEST_QUIZ_/.test(ref)) return { source: 'QUIZ', label: 'Baú dos Desafios' };
+  if (/^CHEST_LESSON_/.test(ref)) return { source: 'LESSON', label: 'Baú do que aprendi' };
   return { source: 'ATTITUDE', label: 'Baú de boas atitudes' };
 }
 

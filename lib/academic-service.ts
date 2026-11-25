@@ -1,3 +1,4 @@
+import { levelFromXp } from "@/lib/level";
 import { notifyUsers, notifyClass } from './panel-events';
 import { initialPasswordHash } from "./account-password";
 import { DEFAULT_KID_PASSWORD } from "./password-rules";
@@ -77,7 +78,7 @@ export async function awardDailyLoginXp(studentId: string): Promise<{ awarded: b
       });
 
       // Atualizar nível caso necessário
-      const newLevel = Math.floor(student.currentXp / 300) + 1;
+      const newLevel = levelFromXp(student.currentXp);
       if (newLevel !== student.level) {
         await tx.student.update({
           where: { id: studentId },
@@ -1002,7 +1003,7 @@ export async function createStudentByDirector(data: {
         userId: user.id,
         registrationNumber: regNumber,
         currentXp: initialXp,
-        level: Math.floor(initialXp / 300) + 1,
+        level: levelFromXp(initialXp),
         // a criança preenche os próprios dados e a equipe libera o acesso (aba Crianças)
         accessPending: true,
       },
@@ -1107,7 +1108,7 @@ export async function updateStudentByDirector(
       data: {
         registrationNumber: data.registrationNumber ? data.registrationNumber.trim() : undefined,
         currentXp: newXp,
-        level: Math.floor(newXp / 300) + 1,
+        level: levelFromXp(newXp),
       },
     });
 
@@ -1589,7 +1590,7 @@ export async function confirmTeacherAttendance(
         },
       });
 
-      const newLevel = Math.floor(updatedStudent.currentXp / 300) + 1;
+      const newLevel = levelFromXp(updatedStudent.currentXp);
       if (newLevel !== updatedStudent.level) {
         await tx.student.update({
           where: { id: attendance.studentId },
@@ -1963,7 +1964,7 @@ export async function updateStudentAttendanceRecord(params: {
             },
           });
 
-          const newLevel = Math.floor(student.currentXp / 300) + 1;
+          const newLevel = levelFromXp(student.currentXp);
           if (newLevel !== student.level) {
             await tx.student.update({
               where: { id: studentId },

@@ -21,9 +21,11 @@ type Result = { score: number; total: number; pointsAwarded: number; coinsAwarde
  * Desafio em formato de jogo: abre direto na primeira pergunta, uma de cada vez. Ao concluir, as moedas "sobem"
  * pergunta por pergunta (1 por responder, 5 por acerto) e depois o bônus por concluir, e então vem a Tela de Resultado.
  */
-export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
+export function QuizPlayer({ kind, emptyText, onDone, onError, onReward, onExit }: {
   kind: 'daily' | 'weekly'; emptyText: string; onDone: () => void; onError: (m: string) => void;
   onReward?: (s: RewardSummaryData) => void;
+  /** Terminou de contar os pontos: sai do Desafio (a Tela de Resultado aparece por cima do início). */
+  onExit?: () => void;
 }) {
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [step, setStep] = useState(0);
@@ -38,7 +40,8 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
   const { play } = useGameSound();
   const pendingRefresh = useRef(false);
   const onDoneRef = useRef(onDone);
-  useEffect(() => { onDoneRef.current = onDone; }, [onDone]);
+  const onExitRef = useRef(onExit);
+  useEffect(() => { onDoneRef.current = onDone; onExitRef.current = onExit; }, [onDone, onExit]);
   // se a criança sair no meio da animação, os pontos já creditados ainda aparecem no topo
   useEffect(() => () => { if (pendingRefresh.current) onDoneRef.current(); }, []);
 
@@ -80,10 +83,10 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
   };
 
   const finishReveal = useCallback(() => {
-    setPhase('review');
     if (result) { const reward = quizRewardSummary(result); if (reward) onReward?.(reward); } // antes do recarregamento
     pendingRefresh.current = false;
     onDoneRef.current();
+    onExitRef.current?.(); // sem tela de descrição: vai direto para o início
   }, [result, onReward]);
 
   // revela uma linha por vez (pergunta 1, 2, ... e por fim o bônus por concluir)
@@ -125,27 +128,11 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward }: {
   }
 
   if (phase === 'review') {
-    const done = result ? { score: result.score, total: result.total, pointsAwarded: result.pointsAwarded, review: result.review }
-      : quiz.available && quiz.completed ? quiz : null;
-    if (!done) return null;
+    // Desafio já feito (voltou ao abrir): só um aviso curto. As respostas e a descrição das perguntas não aparecem mais.
     return (
       <Card title={kind === 'daily' ? 'Desafio do dia' : 'Desafio da semana'} tone="success" data-testid={`quiz-${kind}`}>
-        <p className="text-xl font-semibold text-game-primary">
-          {done.score === 0 ? 'Você deu o seu melhor!' : done.score === 1 ? 'Você acertou 1 pergunta!' : `Você acertou ${done.score} perguntas!`} {done.pointsAwarded > 0 ? `+${done.pointsAwarded} pontos` : ''}
-        </p>
+        <p className="text-xl font-semibold text-game-primary">Desafio feito! 🎉</p>
         <p className="mt-1 text-game-ink-dim">{kind === 'daily' ? 'Volte amanhã para um novo desafio!' : 'Volte na próxima semana!'}</p>
-        <div className="mt-4 space-y-4">
-          {done.review.map((r, i) => (
-            <div key={r.id} className="space-y-1">
-              <p className="font-semibold">{i + 1}. {r.text}</p>
-              {r.options.map((o, oi) => (
-                <p key={oi} className={oi === r.correctIndex ? 'text-game-success' : oi === r.chosen ? 'text-game-danger' : 'text-game-ink-dim'}>
-                  {oi === r.correctIndex ? '✔ Certa: ' : oi === r.chosen ? '✘ Sua resposta: ' : '• '}{o}
-                </p>
-              ))}
-            </div>
-          ))}
-        </div>
       </Card>
     );
   }
