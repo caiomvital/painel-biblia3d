@@ -64,7 +64,7 @@ export function HUD({ coins, points, actions, onProfile, profileActive = false, 
           <AnimatedNumber value={coins} className="font-[family-name:var(--font-game-title)] text-sm sm:text-base" />
         </div>
 
-        {actions}
+        {actions && <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
     </header>
   );
