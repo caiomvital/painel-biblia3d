@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         name: user.name,
         role: user.role,
-        mustChangePassword: user.role === 'ALUNO' && user.mustChangePassword === true,
+        mustChangePassword: (user.role === 'ALUNO' || user.role === 'PROFESSOR') && user.mustChangePassword === true,
         accessPending: user.role === 'ALUNO' && user.student?.accessPending === true,
         profileCompleted: user.student?.profileCompleted === true,
       },

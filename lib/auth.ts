@@ -55,7 +55,7 @@ function writeSessionCache(row: SessionRow) {
 export function dropSessionCache(id: string) { sessionCache.delete(id); }
 
 /**
- * Sessão válida do usuário logado. Aluno com a senha padrão (mustChangePassword) NÃO recebe sessão:
+ * Sessão válida do usuário logado. Aluno ou professor com a senha padrão (mustChangePassword) NÃO recebe sessão:
  * todas as rotas protegidas respondem 401 até ele criar a senha nova. Só /api/auth/me e a troca de
  * senha pedem `allowPasswordPending` para poder atendê-lo. O mesmo vale para o cadastro novo ainda não liberado
  * pela equipe (Student.accessPending): só /api/auth/me e o preenchimento do cadastro pedem `allowAccessPending`.
@@ -77,7 +77,7 @@ export async function getSession(options: { allowPasswordPending?: boolean; allo
     }
     if (!user || user.role !== session.role || user.sessionVersion !== (session.sessionVersion ?? 0)) return null;
     if (user.registration && user.registration.status !== "APPROVED") return null;
-    const pending = user.role === "ALUNO" && user.mustChangePassword;
+    const pending = (user.role === "ALUNO" || user.role === "PROFESSOR") && user.mustChangePassword;
     if (pending && !options.allowPasswordPending) return null;
     const accessPending = user.role === "ALUNO" && user.student?.accessPending === true;
     if (accessPending && !options.allowAccessPending) return null;
