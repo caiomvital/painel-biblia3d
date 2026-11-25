@@ -76,7 +76,7 @@ export function EventsScreen() {
 }
 
 /** Cartão da tela inicial: o próximo evento (só aparece se houver um nos próximos 14 dias). */
-export function NextEventCard({ onOpen }: { onOpen: () => void }) {
+export function NextEventCard({ onOpen, compact }: { onOpen: () => void; compact?: boolean }) {
   const { data } = useEvents();
   const next = data?.upcoming.find((e) => new Date(e.startsAt).getTime() < Date.now() + 14 * 86400000);
   if (!next) return null;
@@ -88,7 +88,7 @@ export function NextEventCard({ onOpen }: { onOpen: () => void }) {
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-bold uppercase text-game-ink-dim">Próximo evento · {eventCountdown(next.startsAt)}</span>
         <span className="block truncate font-[family-name:var(--font-game-title)] text-xl tracking-wide">{next.title}</span>
-        <span className="block text-base text-game-ink-dim">{w.weekday}, {w.time}{next.location ? ` · ${next.location}` : ''}</span>
+        {!compact && <span className="block text-base text-game-ink-dim">{w.weekday}, {w.time}{next.location ? ` · ${next.location}` : ''}</span>}
       </span>
     </button>
   );

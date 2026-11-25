@@ -18,7 +18,7 @@ const help = {
   ],
   ALUNO: [
     ['Como ganho pontos e fichas?', 'Marque o que aprendeu em O que aprendi, jogue o Desafio do dia e participe do Quiz ao vivo. As fichas servem para dar lances no Leilão.'],
-    ['Como entro no quiz ao vivo?', 'Toque em Quiz ao vivo e digite o PIN que o professor mostrar.'],
+    ['Como entro no quiz ao vivo?', 'O Quiz ao vivo é na sala de aula, pelo computador: clique em Quiz ao vivo e digite o PIN que o professor mostrar.'],
     ['Como mudo meu Lofi e o Davi?', 'Abra Perfil e ajustes e toque em Personalizar e ver coleção. Os itens vêm dos baús.'],
     account,
   ],

@@ -85,7 +85,7 @@ export default function HomePage() {
   );
 
   const content = (
-    <div className="min-h-screen bg-[#070a12] flex flex-col text-slate-100 selection:bg-amber-500/20 selection:text-amber-300">
+    <div className="min-h-dvh bg-[#070a12] flex flex-col text-slate-100 selection:bg-amber-500/20 selection:text-amber-300">
       {/* Brand Header with PWA installation & profile info */}
       {user && user.role !== 'ALUNO' && <AppHeader user={user} onLogout={handleLogout} />}
 

@@ -56,10 +56,9 @@ export function HomeDashboard({ home, celebrate, onGo, children }: {
             onClick={() => onGo('quests')} glow={quizPending} className="h-60" />
           <JourneyButton grid testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN do professor"
             onClick={() => onGo('live')} className="h-60" />
-          <JourneyButton grid testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} className="h-60" />
           <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
             hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
-            onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="h-60" />
+            onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="col-span-2 h-60" />
         </div>
         {children}
       </div>

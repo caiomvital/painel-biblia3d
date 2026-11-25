@@ -13,7 +13,7 @@ import type { View } from './views';
 
 /**
  * No app instalado (celular) a tela inicial usa a grade com Dia, O que aprendi e Desafio (em destaque, largo).
- * O Quiz ao vivo é da sala de aula, então só aparece no navegador comum, que é a versão em lista.
+ * O Quiz ao vivo é da sala de aula: só aparece na tela larga (computador), nunca no celular.
  * No celular o Desafio fica em cima e o mascote sozinho embaixo.
  */
 function subscribeStandalone(cb: () => void) {
@@ -59,7 +59,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
 
   const tail = (
     <>
-      <NextEventCard onOpen={() => onGo('events')} />
+      <NextEventCard onOpen={() => onGo('events')} compact={!pwa} />
       {wide && <ChestCard ctl={chest} />}
 
         {!home.profileCompleted && (
@@ -87,26 +87,18 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
           hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
           onClick={() => onGo('quests')} glow={quizPending} className="flex-1" />
 
-        <div className="grid min-h-0 flex-[1.2] grid-cols-2 gap-3 pt-1">
-          <JourneyButton grid testId="home-day" tone="blue" img="/jornada/dia.png" title="Dia" hint="O que tem para hoje" onClick={() => onGo('day')} />
+        <div className="grid min-h-0 flex-[0.95] grid-cols-1 gap-3 pt-1">
           <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
             hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
             onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} />
         </div>
 
-        {pwa ? (
-          /* No app instalado o mascote fica sozinho embaixo (pula enquanto o Desafio de hoje não foi feito).
-             Com baú para abrir, o botão do baú toma o lugar do mascote: assim não precisa rolar a tela. */
-          chest.chests.length > 0 ? <ChestButton ctl={chest} className="min-h-24 shrink-0" /> : <div className={`flex shrink-0 justify-center ${quizPending ? 'game-bounce' : ''}`}>
+        {/* Quiz ao vivo é da sala de aula: só existe na tela larga (computador). No celular, o baú toma o lugar do Lofi. */}
+        {chest.chests.length > 0 ? <ChestButton ctl={chest} className="min-h-24 shrink-0" /> : pwa ? (
+          <div className={`flex shrink-0 justify-center ${quizPending ? 'game-bounce' : ''}`}>
             <LiveMascot bare size={4.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
           </div>
-        ) : (
-          /* No navegador do celular o Quiz ao vivo (sala de aula) fica à mão; Jogos e Leilão estão na barra de baixo. */
-          <>
-            <ChestButton ctl={chest} className="min-h-20 shrink-0" />
-            <JourneyButton testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Digite o PIN" onClick={() => onGo('live')} className="h-20 shrink-0" />
-          </>
-        )}
+        ) : null}
 
         {/* Evento e convite de cadastro ficam DENTRO da altura da tela: os botões encolhem e a página não rola. */}
         <div className="shrink-0 space-y-2 empty:hidden">{tail}</div>

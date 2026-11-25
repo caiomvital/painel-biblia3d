@@ -51,7 +51,7 @@ export function ChestButton({ ctl, className = '' }: { ctl: ChestControl; classN
     <button type="button" data-testid="home-chest" onClick={() => { playSound('tap'); ctl.openFirst(); }}
       aria-label={`Abrir baú. ${countText(n)}`}
       style={{ backgroundImage: 'linear-gradient(180deg,#ffbe4d 0%,#f1700e 100%)', borderColor: '#ffe1a8', ['--btn-edge' as string]: '#a8480a' }}
-      className={`game-btn game-press game-glow relative flex w-full max-w-sm items-center justify-center gap-3 self-center rounded-[1.75rem] border-2 px-4 py-2 text-white font-[family-name:var(--font-game-body)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${className}`}>
+      className={`game-btn game-press game-glow relative flex w-full max-w-sm items-center justify-center gap-3 self-center px-4 py-2 rounded-[1.75rem] border-2 text-white font-[family-name:var(--font-game-body)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${className}`}>
       <ChestArt open={false} shaking={false} reduce={reduce} width="5.5rem" height="4.8rem" />
       <span className="text-left">
         <span className="block font-[family-name:var(--font-game-title)] text-2xl leading-none tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35)]">Abrir baú</span>
