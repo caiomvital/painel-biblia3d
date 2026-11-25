@@ -4,7 +4,8 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Button, LiveMascot, MASCOT_NAME } from '@/components/ui/game';
 import type { KidsHomeData } from '../kids-api';
 import { NextEventCard } from './EventsScreen';
-import { ChestButton, ChestCard, useChests } from '../chests/ChestCard';
+import { AuctionCorner } from './AuctionCorner';
+import { ChestSquare, useChests } from '../chests/ChestCard';
 import { ProfileForm } from '../quests/ProfileForm';
 import { JourneyButton } from './JourneyButton';
 import { HomeDashboard } from './HomeDashboard';
@@ -59,8 +60,8 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
 
   const tail = (
     <>
-      <NextEventCard onOpen={() => onGo('events')} compact={!pwa} />
-      {wide && <ChestCard ctl={chest} />}
+      {/* No celular de tela baixa o evento é sacrificado para o Desafio e o Leilão terem espaço. */}
+      <div className={wide ? '' : '[@media(max-height:720px)]:hidden'}><NextEventCard onOpen={() => onGo('events')} compact={!pwa} /></div>
 
         {!home.profileCompleted && (
           <button type="button" onClick={() => setProfileOpen(true)} data-testid="home-profile-open"
@@ -72,33 +73,30 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
     </>
   );
 
-  if (wide) return <><HomeDashboard home={home} celebrate={celebrate} onGo={onGo}>{tail}</HomeDashboard>{chest.portal}</>;
+  if (wide) return <><HomeDashboard home={home} celebrate={celebrate} onGo={onGo} chest={chest}>{tail}</HomeDashboard>{chest.portal}</>;
 
   return (
     <div className="space-y-4">
       <div className="flex h-[calc(100dvh-var(--home-chrome,14rem))] min-h-80 flex-col gap-3" data-testid="home-grid">
-        <div className="flex shrink-0 items-center justify-center gap-2">
-          {!pwa && <LiveMascot bare size={3} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />}
-          <h1 className="font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
+        {/* 1. O "Olá": o Lofi, o nome e o baú (só um detalhe, com o número numa bola vermelha). */}
+        <section className="flex shrink-0 items-center gap-3 rounded-[1.5rem] border-2 border-game-primary bg-gradient-to-br from-[#34507a] via-[#243a5c] to-[#17253d] px-3 py-2 shadow-lg">
+          <div className={quizPending ? 'game-bounce' : ''}><LiveMascot bare size={pwa ? 4 : 3} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} /></div>
+          <h1 className="min-w-0 flex-1 truncate font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
+          <ChestSquare ctl={chest} />
+        </section>
+
+        {/* 2. O que mais importa: o Desafio e o Leilão, lado a lado. */}
+        <div className="grid min-h-0 flex-[1.4] grid-cols-2 gap-3">
+          <JourneyButton grid testId="home-daily" tone="teal" img="/jornada/desafio.png" title="Desafio"
+            hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
+            onClick={() => onGo('quests')} glow={quizPending} />
+          <AuctionCorner compact onOpen={() => onGo('auction')} />
         </div>
 
-        {/* O Desafio é a atração principal: vai na frente, em cima e largo. */}
-        <JourneyButton grid testId="home-daily" tone="teal" img="/jornada/desafio.png" title="Desafio"
-          hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-          onClick={() => onGo('quests')} glow={quizPending} className="flex-1" />
-
-        <div className="grid min-h-0 flex-[0.95] grid-cols-1 gap-3 pt-1">
-          <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
-            hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
-            onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} />
-        </div>
-
-        {/* Quiz ao vivo é da sala de aula: só existe na tela larga (computador). No celular, o baú toma o lugar do Lofi. */}
-        {chest.chests.length > 0 ? <ChestButton ctl={chest} className="min-h-24 shrink-0" /> : pwa ? (
-          <div className={`flex shrink-0 justify-center ${quizPending ? 'game-bounce' : ''}`}>
-            <LiveMascot bare size={4.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} />
-          </div>
-        ) : null}
+        {/* 3. O que aprendi, embaixo. */}
+        <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
+          hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
+          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="min-h-0 flex-[0.8]" />
 
         {/* Evento e convite de cadastro ficam DENTRO da altura da tela: os botões encolhem e a página não rola. */}
         <div className="shrink-0 space-y-2 empty:hidden">{tail}</div>

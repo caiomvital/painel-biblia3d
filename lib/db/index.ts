@@ -1,3 +1,4 @@
+import { levelFromXp } from '../level';
 import {
   INITIAL_USERS,
   INITIAL_DIRECTORS,
@@ -147,7 +148,7 @@ export async function awardDailyLoginXp(studentId: string): Promise<{ awarded: b
   const student = store.students.find((s) => s.id === studentId);
   if (student) {
     student.currentXp += xpValue;
-    student.level = Math.floor(student.currentXp / 300) + 1;
+    student.level = levelFromXp(student.currentXp);
     student.updatedAt = new Date().toISOString();
   }
 
@@ -539,7 +540,7 @@ export async function confirmTeacherAttendance(attendanceId: string, teacherUser
   const student = store.students.find((s) => s.id === attendance.studentId);
   if (student) {
     student.currentXp += xpValue;
-    student.level = Math.floor(student.currentXp / 300) + 1;
+    student.level = levelFromXp(student.currentXp);
     student.updatedAt = new Date().toISOString();
 
     // Criar PointTransaction oficial
@@ -968,7 +969,7 @@ export async function updateStudentAttendanceRecord(params: {
       if (!alreadyHasXp) {
         const xpValue = await getGamificationRule('XP_ATTENDANCE');
         student.currentXp += xpValue;
-        student.level = Math.floor(student.currentXp / 300) + 1;
+        student.level = levelFromXp(student.currentXp);
         student.updatedAt = new Date().toISOString();
 
         store.pointTransactions.unshift({
@@ -1096,7 +1097,7 @@ export async function createStudentByDirector(data: {
     userId,
     registrationNumber: regNumber,
     currentXp: initialXp,
-    level: Math.floor(initialXp / 300) + 1,
+    level: levelFromXp(initialXp),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -1172,7 +1173,7 @@ export async function updateStudentByDirector(
   if (data.registrationNumber) student.registrationNumber = data.registrationNumber.trim();
   if (typeof data.currentXp === 'number') {
     student.currentXp = data.currentXp;
-    student.level = Math.floor(student.currentXp / 300) + 1;
+    student.level = levelFromXp(student.currentXp);
   }
   student.updatedAt = new Date().toISOString();
 

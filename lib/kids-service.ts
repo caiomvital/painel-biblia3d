@@ -1,3 +1,4 @@
+import { levelFromXp } from '@/lib/level';
 // Serviço do painel infantil: pontos, desafios (dia e semana), checklist da aula, cadastro e ranking.
 import { prisma } from '@/lib/prisma';
 import { parseLook } from '@/lib/mascot-look';
@@ -73,7 +74,7 @@ export async function awardPoints(
         where: { id: studentId },
         data: { currentXp: { increment: amount }, coinBalance: { increment: coins } },
       });
-      const level = Math.floor(student.currentXp / 300) + 1;
+      const level = levelFromXp(student.currentXp);
       if (level !== student.level) await tx.student.update({ where: { id: studentId }, data: { level } });
       return true;
     });
@@ -81,6 +82,25 @@ export async function awardPoints(
     if (error?.code === 'P2002' || String(error?.message).includes('Unique constraint')) return false;
     throw error;
   }
+}
+
+/** Toques nos botões: 1 XP por toque, no mínimo 20 s entre dois, no máximo 15 XP por dia, só XP (sem fichas). */
+export const TAP_XP = 1;
+export const TAP_COOLDOWN_MS = 20_000;
+export const TAP_DAILY_CAP = 15;
+
+export async function awardTap(studentId: string, now = new Date()): Promise<{ awarded: boolean; reason?: 'cooldown' | 'cap' }> {
+  const day = brazilDay(now);
+  const prefix = `TAP_${day}_`;
+  const today = await prisma.pointTransaction.findMany({
+    where: { studentId, originReference: { startsWith: prefix } },
+    orderBy: { createdAt: 'desc' }, select: { createdAt: true },
+  });
+  if (today.length >= TAP_DAILY_CAP) return { awarded: false, reason: 'cap' };
+  if (today[0] && now.getTime() - today[0].createdAt.getTime() < TAP_COOLDOWN_MS) return { awarded: false, reason: 'cooldown' };
+  // a referência inclui o número do toque: dois pedidos simultâneos disputam a mesma e só um vence
+  const ok = await awardPoints(studentId, TAP_XP, 'Toque no painel', `${prefix}${today.length + 1}`, 'ACTIVITY', { coins: 0 });
+  return ok ? { awarded: true } : { awarded: false, reason: 'cooldown' };
 }
 
 async function rankOf(xp: number, where: Record<string, unknown>) {
@@ -159,7 +179,7 @@ export async function getKidsHome(studentId: string) {
     firstName: student.user.name.split(' ')[0],
     mascotLook: parseLook(student.mascotLook),
     points: student.currentXp,
-    level: student.level,
+    level: levelFromXp(student.currentXp),
     // saldo de fichas (campo novo, aditivo): total, reservado em lances ativos e disponível para gastar
     coins: {
       balance: student.coinBalance,

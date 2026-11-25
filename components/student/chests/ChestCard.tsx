@@ -60,3 +60,22 @@ export function ChestButton({ ctl, className = '' }: { ctl: ChestControl; classN
     </button>
   );
 }
+
+/** Detalhe da tela larga: quadradinho com um baú desenhado e, se houver baú, o número numa bola vermelha. Sem baú, fica apagado. */
+export function ChestSquare({ ctl }: { ctl: ChestControl }) {
+  const reduce = useReducedMotion() ?? false;
+  const n = ctl.chests.length;
+  const has = n > 0;
+  return (
+    <button type="button" disabled={!has} data-testid={has ? 'home-chest' : 'home-chest-empty'}
+      onClick={() => { playSound('tap'); ctl.openFirst(); }}
+      aria-label={has ? `Abrir baú. ${countText(n)}` : 'Nenhum baú para abrir agora'}
+      style={has ? { backgroundImage: 'linear-gradient(180deg,#ffbe4d 0%,#f1700e 100%)', borderColor: '#ffe1a8', ['--btn-edge' as string]: '#a8480a' } : undefined}
+      className={`game-btn game-press relative flex size-[4.5rem] shrink-0 items-center justify-center rounded-2xl border-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white ${has ? 'game-glow' : 'cursor-not-allowed border-game-line bg-game-surface-2 opacity-50 grayscale'}`}>
+      <ChestArt open={false} shaking={false} reduce={reduce} width="3.4rem" height="3rem" />
+      {has && (
+        <span aria-hidden="true" className="absolute -right-2 -top-2 flex size-7 items-center justify-center rounded-full border-2 border-white bg-red-600 text-sm font-bold text-white shadow">{n}</span>
+      )}
+    </button>
+  );
+}

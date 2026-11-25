@@ -2,9 +2,10 @@
 import { randomInt } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { brazilDay } from '@/lib/kids-service';
+import { levelFromXp } from '@/lib/level';
 import { COSMETICS, RARITY_LABEL, type RarityName, type SlotName } from '@/lib/cosmetics';
 import {
-  DUPLICATE_COINS, addDays, attitudeChestRefs, describeChest, levelChestRefs, milestoneHit, nextStreak, pickItem, pickRarity,
+  DUPLICATE_COINS, addDays, attitudeChestRefs, describeChest, lessonChestRefs, levelChestRefs, quizChestRefs, milestoneHit, nextStreak, pickItem, pickRarity,
   streakChestRef, streakStartDay,
 } from '@/lib/chests';
 
@@ -63,12 +64,18 @@ export async function touchStreak(studentId: string): Promise<{ current: number 
   return { current: next.current };
 }
 
-/** Concede (idempotente) os baús devidos por nível e por atitudes positivas acumuladas. */
+/** Concede (idempotente) os baús devidos por nível, atitudes, Desafios concluídos e registros do "O que aprendi". */
 export async function grantChests(studentId: string) {
-  const student = await prisma.student.findUnique({ where: { id: studentId }, select: { level: true } });
+  const student = await prisma.student.findUnique({ where: { id: studentId }, select: { currentXp: true } });
   if (!student) return;
-  const positives = await prisma.attitude.count({ where: { studentId, kind: 'POSITIVE' } });
-  await createChests(studentId, [...levelChestRefs(student.level), ...attitudeChestRefs(positives)]);
+  const [positives, quizzes, lessons] = await Promise.all([
+    prisma.attitude.count({ where: { studentId, kind: 'POSITIVE' } }),
+    prisma.quizDay.count({ where: { studentId, completedAt: { not: null } } }),
+    prisma.lessonCheck.count({ where: { studentId } }),
+  ]);
+  await createChests(studentId, [
+    ...levelChestRefs(levelFromXp(student.currentXp)), ...attitudeChestRefs(positives), ...quizChestRefs(quizzes), ...lessonChestRefs(lessons),
+  ]);
 }
 
 export async function closedChests(studentId: string) {

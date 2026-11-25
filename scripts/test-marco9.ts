@@ -1,3 +1,4 @@
+import { levelFromXp } from "../lib/level";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
@@ -420,7 +421,7 @@ async function run() {
         );
         assert.equal(
           after.student.level,
-          Math.floor(after.student.currentXp / 300) + 1,
+          levelFromXp(after.student.currentXp),
         );
         assert.equal(after.student.coinBalance, before.student.coinBalance);
         assert.deepEqual(after.coins, before.coins);

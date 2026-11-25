@@ -1,7 +1,7 @@
 /**
  * Temas visuais do painel do aluno (função pura, sem banco; usada pelo servidor para validar e pelo cliente para pintar).
  * Cada tema redefine os tokens `--color-game-*` (ver components/ui/game/game.css) e pode ter um cenário no topo.
- * Desbloqueio é só por nível (nível = floor(pontos / 300) + 1); o servidor confere antes de salvar.
+ * Desbloqueio é só por nível (nível pela curva de lib/level.ts); o servidor confere antes de salvar.
  */
 export type ThemeGroup = 'livre' | 'biblico' | 'desbloqueavel' | 'lofi';
 

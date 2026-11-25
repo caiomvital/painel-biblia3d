@@ -1,3 +1,4 @@
+import { levelFromXp } from "@/lib/level";
 import { compare, hash } from 'bcryptjs';
 import { prisma } from './prisma';
 import { isThemeUnlocked, themeById } from './game-themes';
@@ -15,7 +16,7 @@ export async function savePreferences(userId: string, value: unknown) {
   const theme = themeById(preferences.theme);
   if (theme.group === 'desbloqueavel') {
     const student = await prisma.student.findUnique({ where: { userId }, select: { currentXp: true } });
-    const level = Math.floor((student?.currentXp ?? 0) / 300) + 1;
+    const level = levelFromXp(student?.currentXp ?? 0);
     if (!isThemeUnlocked(theme, level)) throw Object.assign(new Error(`Esse tema abre no nível ${theme.unlockLevel}.`), { statusCode: 403 });
   }
   await prisma.user.update({ where: { id: userId }, data: { preferences } });

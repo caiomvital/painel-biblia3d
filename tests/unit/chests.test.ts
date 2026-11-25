@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { COSMETICS } from '../../lib/cosmetics';
 import {
+  quizChestRefs, lessonChestRefs,
   ATTITUDES_PER_CHEST, DUPLICATE_COINS, RARITIES, RARITY_WEIGHTS, addDays, attitudeChestRefs, describeChest, levelChestRefs,
   milestoneHit, nextStreak, pickItem, pickRarity, streakChestRef, streakStartDay,
 } from '../../lib/chests';
@@ -76,6 +77,14 @@ describe('referências dos baús', () => {
     expect(attitudeChestRefs(4)).toEqual([]);
     expect(attitudeChestRefs(5)).toEqual(['CHEST_ATT_1']);
     expect(attitudeChestRefs(12)).toEqual(['CHEST_ATT_1', 'CHEST_ATT_2']);
+  });
+  test('Desafios (5) e O que aprendi (3) também dão baú', () => {
+    expect(quizChestRefs(4)).toEqual([]);
+    expect(quizChestRefs(10)).toEqual(['CHEST_QUIZ_1', 'CHEST_QUIZ_2']);
+    expect(lessonChestRefs(2)).toEqual([]);
+    expect(lessonChestRefs(3)).toEqual(['CHEST_LESSON_1']);
+    expect(describeChest('CHEST_QUIZ_1').source).toBe('QUIZ');
+    expect(describeChest('CHEST_LESSON_1').source).toBe('LESSON');
   });
   test('descrição não expõe nada além do próprio baú', () => {
     expect(describeChest('CHEST_LEVEL_4').label).toBe('Baú do nível 4');

@@ -7,8 +7,8 @@ import { QuizPlayer } from '../quests/QuizPlayer';
 import type { RewardSummaryData } from '@/lib/reward-summary';
 
 /** Desafio: abre direto nas perguntas (sem tela de escolha). O desafio da semana, quando existe, fica a um toque. */
-export function ChallengeScreen({ home, onError, onRefresh, onReward }: {
-  home: KidsHomeData; onError: (m: string) => void; onRefresh: () => void; onReward?: (s: RewardSummaryData) => void;
+export function ChallengeScreen({ home, onError, onRefresh, onReward, onExit }: {
+  home: KidsHomeData; onError: (m: string) => void; onRefresh: () => void; onReward?: (s: RewardSummaryData) => void; onExit?: () => void;
 }) {
   const [kind, setKind] = useState<'daily' | 'weekly'>('daily');
   const hasWeekly = home.weekly.available || home.weekly.completedToday;
@@ -21,7 +21,7 @@ export function ChallengeScreen({ home, onError, onRefresh, onReward }: {
           <Button variant={kind === 'weekly' ? 'primary' : 'ghost'} aria-pressed={kind === 'weekly'} onClick={() => setKind('weekly')}>Da semana</Button>
         </div>
       )}
-      <QuizPlayer key={kind} kind={kind} onDone={onRefresh} onError={onError} onReward={onReward}
+      <QuizPlayer key={kind} kind={kind} onDone={onRefresh} onError={onError} onReward={onReward} onExit={onExit}
         emptyText={kind === 'daily' ? 'Ainda não tem perguntas. Volte logo!' : 'Ainda não tem desafio da semana.'} />
     </div>
   );
