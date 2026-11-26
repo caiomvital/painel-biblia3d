@@ -19,12 +19,17 @@ export type JourneyTone = keyof typeof TONE;
  * Botão grande da tela inicial (faixa colorida com ícone 3D e nome). A `hint` não aparece na tela: só vai no nome do botão, para leitor de tela.
  * Afunda e brilha ao toque (.game-press). `glow` faz o botão pulsar quando há algo novo para fazer.
  */
-export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled, glow, testId, className = '', grid }: {
+export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled, glow, testId, className = '', grid, done }: {
   tone: JourneyTone; img?: string; emoji?: string; title: string; hint: string; onClick: () => void;
   disabled?: boolean; glow?: boolean; testId: string; className?: string;
   /** Versão quadrada da grade 2x2 (app instalado): ícone em cima, nome e dica embaixo. Sem isso, é a faixa larga. */
   grid?: boolean;
+  /** Já foi feito hoje: mostra um ✔ verde no canto (no lugar do texto). */
+  done?: boolean;
 }) {
+  const check = done ? (
+    <span aria-hidden="true" data-testid={`${testId}-done`} className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full border-2 border-white bg-game-success text-xl font-bold leading-none text-white shadow">✓</span>
+  ) : null;
   const t = TONE[tone];
   if (grid) {
     return (
@@ -44,6 +49,7 @@ export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled
           <span aria-hidden="true" className="flex min-h-10 flex-1 items-center text-5xl leading-none [@media(min-height:800px)]:text-7xl drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]">{emoji}</span>
         )}
         <span className="font-[family-name:var(--font-game-title)] text-xl leading-tight tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35),0_0_6px_rgb(0_0_0/0.25)]">{title}</span>
+        {check}
       </button>
     );
   }

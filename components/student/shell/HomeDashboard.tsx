@@ -53,7 +53,7 @@ export function HomeDashboard({ home, celebrate, onGo, chest, children }: {
         <div className="grid min-h-0 flex-[2.2] grid-cols-2 gap-4">
           <JourneyButton grid testId="home-daily" tone="teal" img="/jornada/desafio.png" title="Desafio"
             hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-            onClick={() => onGo('quests')} glow={quizPending} />
+            onClick={() => onGo('quests')} glow={quizPending} done={home.quiz.completedToday} />
           <div className="flex min-h-0 min-w-0 flex-col gap-2">
             <div className="flex min-h-0 flex-1"><AuctionCorner onOpen={() => onGo('auction')} /></div>
             <div data-testid="home-fichas" className="flex shrink-0 [@media(max-height:700px)]:hidden items-center justify-between gap-3 rounded-[1.25rem] border-2 border-[#c9a24a] bg-[#2a2210] px-4 py-2 shadow-[0_3px_0_#6b5322]">
@@ -67,7 +67,7 @@ export function HomeDashboard({ home, celebrate, onGo, chest, children }: {
         <div className="grid min-h-0 flex-1 grid-cols-5 gap-4">
           <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
             hint={!home.lesson ? 'Esperando o professor registrar a aula' : `Hoje na aula: ${home.lesson.topics.slice(0, 3).join(' · ')}${lessonOpen ? '. Conte para nós!' : ''}`}
-            onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="col-span-2" />
+            onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} done={!!home.lesson?.done} className="col-span-2" />
           <JourneyButton grid testId="home-live" tone="green" img="/jornada/quiz.png" title="Quiz ao vivo" hint="Entre com o PIN do professor"
             onClick={() => onGo('live')} />
           <JourneyButton grid testId="home-games" tone="blue" emoji="🎮" title="Jogos" hint="Jogue e crie o seu"
