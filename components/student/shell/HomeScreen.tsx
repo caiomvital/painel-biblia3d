@@ -89,14 +89,14 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
         <div className="grid min-h-0 flex-[1.4] grid-cols-2 gap-3">
           <JourneyButton grid testId="home-daily" tone="teal" img="/jornada/desafio.png" title="Desafio"
             hint={!home.quiz.available ? 'Ainda não tem perguntas' : quizPending ? 'Jogue e ganhe fichas!' : 'Feito hoje. Volte amanhã!'}
-            onClick={() => onGo('quests')} glow={quizPending} />
+            onClick={() => onGo('quests')} glow={quizPending} done={home.quiz.completedToday} />
           <AuctionCorner compact onOpen={() => onGo('auction')} />
         </div>
 
         {/* 3. O que aprendi, embaixo. */}
         <JourneyButton grid testId="home-learned" tone="orange" img="/jornada/aprendi.png" title="O que aprendi"
           hint={lessonOpen ? 'Novo! Conte para nós' : home.lesson ? 'Você já contou. Muito bem!' : 'Esperando a aula'}
-          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} className="min-h-0 flex-[0.8]" />
+          onClick={() => onGo('learned')} disabled={!home.lesson} glow={lessonOpen} done={!!home.lesson?.done} className="min-h-0 flex-[0.8]" />
 
         {/* Evento e convite de cadastro ficam DENTRO da altura da tela: os botões encolhem e a página não rola. */}
         <div className="shrink-0 space-y-2 empty:hidden">{tail}</div>
