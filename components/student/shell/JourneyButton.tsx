@@ -16,7 +16,7 @@ const TONE = {
 export type JourneyTone = keyof typeof TONE;
 
 /**
- * Botão grande da tela inicial (faixa colorida com ícone 3D, nome, dica curta e seta de "jogar").
+ * Botão grande da tela inicial (faixa colorida com ícone 3D e nome). A `hint` não aparece na tela: só vai no nome do botão, para leitor de tela.
  * Afunda e brilha ao toque (.game-press). `glow` faz o botão pulsar quando há algo novo para fazer.
  */
 export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled, glow, testId, className = '', grid }: {
@@ -31,6 +31,7 @@ export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled
       <button
         type="button"
         data-testid={testId}
+        aria-label={`${title}. ${hint}`}
         disabled={disabled}
         onClick={() => { playSound('tap'); onClick(); }}
         style={{ backgroundImage: t.bg, borderColor: t.ring, ['--btn-edge' as string]: t.edge }}
@@ -43,7 +44,6 @@ export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled
           <span aria-hidden="true" className="flex min-h-10 flex-1 items-center text-5xl leading-none [@media(min-height:800px)]:text-7xl drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]">{emoji}</span>
         )}
         <span className="font-[family-name:var(--font-game-title)] text-xl leading-tight tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35),0_0_6px_rgb(0_0_0/0.25)]">{title}</span>
-        <span className="text-xs font-semibold leading-tight [text-shadow:0_1px_2px_rgb(0_0_0/0.55)] [@media(max-height:640px)]:hidden">{hint}</span>
       </button>
     );
   }
@@ -51,6 +51,7 @@ export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled
     <button
       type="button"
       data-testid={testId}
+      aria-label={`${title}. ${hint}`}
       disabled={disabled}
       onClick={() => { playSound('tap'); onClick(); }}
       style={{ backgroundImage: t.bg, borderColor: t.ring, ['--btn-edge' as string]: t.edge }}
@@ -60,7 +61,6 @@ export function JourneyButton({ tone, img, emoji, title, hint, onClick, disabled
       <img src={img ?? ''} alt="" draggable={false} className="h-full max-h-20 min-h-10 w-auto shrink-0 object-contain drop-shadow-[0_3px_3px_rgb(0_0_0/0.35)]" />
       <span className="min-w-0 flex-1">
         <span className="block font-[family-name:var(--font-game-title)] text-[1.7rem] leading-none tracking-wide [text-shadow:0_2px_0_rgb(0_0_0/0.35),0_0_6px_rgb(0_0_0/0.25)] [@media(max-height:700px)]:text-2xl">{title}</span>
-        <span className="mt-1 block text-sm font-semibold leading-tight [text-shadow:0_1px_2px_rgb(0_0_0/0.55)] [@media(max-height:700px)]:hidden">{hint}</span>
       </span>
       <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-[0.9rem] border-2 border-[#fff2b8] bg-gradient-to-b from-[#ffd54a] to-[#ffa400] shadow-[0_3px_0_#b36b00] [@media(max-height:700px)]:size-9">
         <svg viewBox="0 0 24 24" className="size-5 translate-x-px fill-[#3b2200]"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" /></svg>
