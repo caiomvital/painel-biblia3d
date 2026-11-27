@@ -15,8 +15,8 @@ describe('Preferências e troca de senha', () => {
     expect(passwordChangeInput(valid).newPassword).toBe(valid.newPassword);
     expect(() => passwordChangeInput({ ...valid, currentPassword: '' })).toThrow();
     expect(() => passwordChangeInput({ ...valid, confirmPassword: 'outra' })).toThrow();
-    expect(() => passwordChangeInput({ ...valid, newPassword: 'abc12', confirmPassword: 'abc12' })).toThrow();
-    expect(() => passwordChangeInput({ ...valid, newPassword: 'senha1234', confirmPassword: 'senha1234' })).toThrow();
+    expect(() => passwordChangeInput({ ...valid, newPassword: 'abc1', confirmPassword: 'abc1' })).toThrow();
+    expect(passwordChangeInput({ ...valid, newPassword: 'senha1234', confirmPassword: 'senha1234' }).newPassword).toBe('senha1234'); // sem limite máximo
     expect(() => passwordChangeInput({ ...valid, currentPassword: valid.newPassword })).toThrow();
   });
 });

@@ -1,4 +1,5 @@
 import { hash } from "bcryptjs";
+import { MAX_PASSWORD } from "./password-rules";
 export async function initialPasswordHash(
   password?: string,
   production = process.env.NODE_ENV === "production",
@@ -6,9 +7,9 @@ export async function initialPasswordHash(
   if (!password && !production) return hash("Password123!", 10); // legacy development-only fixtures
   if (
     typeof password !== "string" ||
-    password.length < 6 ||
-    password.length > 8
+    password.length < 5 ||
+    password.length > MAX_PASSWORD
   )
-    throw new Error("Informe uma senha inicial de 6 a 8 caracteres.");
+    throw new Error("A senha inicial precisa ter 5 caracteres ou mais.");
   return hash(password, 10);
 }

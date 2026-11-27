@@ -38,8 +38,8 @@ export function passwordChangeInput(value: unknown) {
   const data = value as Record<string, unknown> | null;
   if (!data || typeof data.currentPassword !== 'string' || !data.currentPassword || data.currentPassword.length > 1024)
     throw Object.assign(new Error('Informe sua senha atual.'), { statusCode: 400 });
-  if (typeof data.newPassword !== 'string' || data.newPassword.length < 6 || data.newPassword.length > 8)
-    throw Object.assign(new Error('A senha deve ter de 6 a 8 caracteres.'), { statusCode: 400 });
+  if (typeof data.newPassword !== 'string' || data.newPassword.length < 5 || data.newPassword.length > 200)
+    throw Object.assign(new Error('A senha precisa ter 5 caracteres ou mais.'), { statusCode: 400 });
   if (data.newPassword !== data.confirmPassword)
     throw Object.assign(new Error('A confirmação da nova senha não corresponde.'), { statusCode: 400 });
   if (data.newPassword === data.currentPassword)

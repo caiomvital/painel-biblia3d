@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       initialPassword,
       classId,
       registrationNumber,
-      currentXp: currentXp ? Number(currentXp) : 100,
+      currentXp: currentXp ? Number(currentXp) : 0,
     }));
 
     return NextResponse.json({ success: true, student });

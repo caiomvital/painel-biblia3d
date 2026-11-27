@@ -841,9 +841,15 @@ function validatePerson(data: { name?: string; email?: string }) {
   if (
     data.email !== undefined &&
     (typeof data.email !== "string" ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
+      !/^[^\s]{3,120}$/.test(data.email.trim()))
   )
-    throw new Error("E-mail inválido.");
+    throw new Error("O login precisa ter de 3 a 120 caracteres, sem espaços.");
+}
+/** Login de aluno é só o telefone (DDD + número), guardado só com dígitos em guardianPhone. Professor/diretor podem ter outro login. */
+function studentPhone(value: string): string {
+  const phone = String(value ?? "").replace(/\D/g, "");
+  if (!/^\d{10,11}$/.test(phone)) throw new Error("O login do aluno é o telefone, com DDD. Ex.: 81995474295.");
+  return phone;
 }
 function validateClassFields(data: Record<string, unknown>) {
   for (const key of ["name", "code", "daysOfWeek", "scheduleTime", "courseId"])
@@ -967,9 +973,11 @@ export async function createStudentByDirector(data: {
   currentXp?: number;
   initialPassword?: string;
 }) {
-  validatePerson(data);
-  const normalizedEmail = data.email.toLowerCase().trim();
-  const initialXp = Number(data.currentXp) || 100;
+  validatePerson({ name: data.name });
+  const phone = studentPhone(data.email);
+  // a conta interna precisa ser única (irmãos dividem o telefone); quem vale para entrar é o guardianPhone
+  const normalizedEmail = `aluno.${phone}.${Math.random().toString(36).slice(2, 7)}`;
+  const initialXp = Number(data.currentXp) || 0;
   if (!Number.isInteger(initialXp) || initialXp < 0) throw new Error("XP inválido.");
   if (data.classId && !await prisma.class.findUnique({ where: { id: data.classId } })) throw new Error("Turma inválida.");
   const regNumber = data.registrationNumber || `MAT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -1007,6 +1015,7 @@ export async function createStudentByDirector(data: {
         level: levelFromXp(initialXp),
         // a criança preenche os próprios dados e a equipe libera o acesso (aba Crianças)
         accessPending: true,
+        guardianPhone: phone,
       },
     });
 
@@ -1064,7 +1073,9 @@ export async function updateStudentByDirector(
   },
   directorUserId?: string
 ) {
-  validatePerson(data);
+  validatePerson({ name: data.name });
+  const newPhone = data.email ? studentPhone(data.email) : undefined;
+  data = { ...data, email: undefined };
   if (data.currentXp !== undefined && (!Number.isInteger(data.currentXp) || data.currentXp < 0)) throw new Error("XP inválido.");
   return await prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Student" WHERE id = ${studentId} FOR UPDATE`;
@@ -1075,16 +1086,11 @@ export async function updateStudentByDirector(
 
     if (!student) return null;
 
-    // Atualizar User
-    if (data.name || data.email) {
-      await tx.user.update({
-        where: { id: student.userId },
-        data: {
-          name: data.name ? data.name.trim() : undefined,
-          email: data.email ? data.email.toLowerCase().trim() : undefined,
-        },
-      });
+    // Atualizar User (o login do aluno é o telefone, guardado em guardianPhone)
+    if (data.name) {
+      await tx.user.update({ where: { id: student.userId }, data: { name: data.name.trim() } });
     }
+    if (newPhone) await tx.student.update({ where: { id: student.id }, data: { guardianPhone: newPhone } });
 
     // FASE 11: Ajuste Manual de XP gera PointTransaction MANUAL
     let newXp = student.currentXp;
