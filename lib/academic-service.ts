@@ -841,9 +841,9 @@ function validatePerson(data: { name?: string; email?: string }) {
   if (
     data.email !== undefined &&
     (typeof data.email !== "string" ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
+      !/^[^\s]{3,120}$/.test(data.email.trim()))
   )
-    throw new Error("E-mail inválido.");
+    throw new Error("O login precisa ter de 3 a 120 caracteres, sem espaços.");
 }
 function validateClassFields(data: Record<string, unknown>) {
   for (const key of ["name", "code", "daysOfWeek", "scheduleTime", "courseId"])

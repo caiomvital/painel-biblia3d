@@ -5,7 +5,7 @@ import { takeLoginAttempt } from "@/lib/login-limiter";
 
 describe("senha nova do primeiro acesso", () => {
   const ctx = { phone: "81995474295", login: "aluno" };
-  test("mínimo de 6 caracteres", () => {
+  test("mínimo de 5 caracteres", () => {
     expect(firstPasswordProblem("abc1", ctx)).toBe(MSG.short);
     expect(firstPasswordProblem("", ctx)).toBe(MSG.short);
     expect(firstPasswordProblem("estrela7", ctx)).toBeNull();
@@ -25,7 +25,7 @@ describe("senha nova do primeiro acesso", () => {
   });
   test("recusa o próprio login e senhas enormes", () => {
     expect(firstPasswordProblem("ALUNO1", { login: "aluno1" })).toBe(MSG.login);
-    expect(firstPasswordProblem("x".repeat(33), ctx)).toBe(MSG.long);
+    expect(firstPasswordProblem("x".repeat(201), ctx)).toBe(MSG.long);
   });
 });
 

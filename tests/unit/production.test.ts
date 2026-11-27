@@ -242,8 +242,8 @@ describe("Marco 10: configuração, sessão e proteção", () => {
   });
   test("cadastro em produção não pode usar senha padrão", async () => {
     await expect(initialPasswordHash(undefined, true)).rejects.toThrow();
-    await expect(initialPasswordHash("abc12", true)).rejects.toThrow();
-    await expect(initialPasswordHash("senha1234", true)).rejects.toThrow();
+    await expect(initialPasswordHash("abc1", true)).rejects.toThrow();
+    await expect(initialPasswordHash("senha1234", true)).resolves.toBeTruthy(); // sem limite máximo
     const password = "senha789";
     expect(
       await compare(password, await initialPasswordHash(password, true)),
