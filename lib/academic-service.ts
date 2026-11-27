@@ -977,7 +977,7 @@ export async function createStudentByDirector(data: {
   const phone = studentPhone(data.email);
   // a conta interna precisa ser única (irmãos dividem o telefone); quem vale para entrar é o guardianPhone
   const normalizedEmail = `aluno.${phone}.${Math.random().toString(36).slice(2, 7)}`;
-  const initialXp = Number(data.currentXp) || 100;
+  const initialXp = Number(data.currentXp) || 0;
   if (!Number.isInteger(initialXp) || initialXp < 0) throw new Error("XP inválido.");
   if (data.classId && !await prisma.class.findUnique({ where: { id: data.classId } })) throw new Error("Turma inválida.");
   const regNumber = data.registrationNumber || `MAT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
