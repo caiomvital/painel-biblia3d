@@ -13,6 +13,9 @@ import {
   Button, Card, CheckIcon, CoinIcon, GamepadIcon, GavelIcon, HUD, HomeIcon, LiveMascot, MoreIcon, MascotLookProvider, RewardPop, RewardSummary, StarIcon, TrophyIcon, TabBar, TargetIcon, useGameSound,
 } from '@/components/ui/game';
 import { levelProgress } from '@/lib/level';
+import { createTapCounter, levelTitle, nextLevelTitle } from '@/lib/easter-eggs';
+import { EasterFooter } from './easter/EasterFooter';
+import { JerichoWalls } from './easter/JerichoWalls';
 import type { PanelTarget } from '@/lib/panel-navigation';
 import { attitudeRewardSummary, shouldShowSummary, type RewardSummaryData } from '@/lib/reward-summary';
 import { GamesScreen } from './games/GamesScreen';
@@ -52,6 +55,8 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
   const [accountOpen, setAccountOpen] = useState(false);
   const [noticesOpen, setNoticesOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [jericho, setJericho] = useState(false);
+  const [levelOpen, setLevelOpen] = useState(false);
   const [noticeVersion, setNoticeVersion] = useState(0);
   const unread = useUnreadNotices(noticeVersion);
   const { play } = useGameSound();
@@ -118,6 +123,17 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
     document.addEventListener('click', onTap, true);
     return () => document.removeEventListener('click', onTap, true);
   }, [reload]);
+
+  // Easter egg "Muros de Jericó": 7 toques seguidos no Lofi da tela inicial (só enfeite, não dá pontos).
+  useEffect(() => {
+    const sevenTaps = createTapCounter(7, 1500);
+    function onLofiTap(event: Event) {
+      if (!(event.target as Element | null)?.closest?.('[data-easter="lofi"]')) return;
+      if (sevenTaps()) setJericho(true);
+    }
+    document.addEventListener('click', onLofiTap);
+    return () => document.removeEventListener('click', onLofiTap);
+  }, []);
 
   // Evento global panel:navigate com detail.target (avisos e atalhos).
   useEffect(() => {
@@ -191,6 +207,7 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
           {error && <div role="alert" className="rounded-game border-2 border-game-danger bg-game-surface p-3 font-semibold">{error}</div>}
           {notice && <div role="status" className="rounded-game border-2 border-game-success bg-game-surface p-3 font-semibold">{notice}</div>}
           {screen}
+          {home && <EasterFooter onOpen={() => setLevelOpen(true)} />}
         </div></main>
         <TabBar items={TABS} activeId={parentTab(view)} onChange={(id) => go(id as View)} />
         {summary && (
@@ -200,6 +217,17 @@ export const StudentView: React.FC<{ onLogout?: () => void }> = ({ onLogout }) =
             progress={home ? (() => { const p = levelProgress(home.points); return { value: p.xpIntoLevel, max: p.xpForLevel }; })() : undefined}
             onContinue={closeSummary} />
         )}
+        {levelOpen && home && (() => {
+          const lp = levelProgress(home.points);
+          const next = nextLevelTitle(lp.level);
+          return (
+            <RewardSummary title={`Nível ${lp.level}!`} subtitle={levelTitle(lp.level)} items={[]} totalCoins={0} hideTotal
+              progress={{ value: lp.xpIntoLevel, max: lp.xpForLevel }}
+              tutorSlot={<DaviTutor mood="comemorando" text={next ? `Você é ${levelTitle(lp.level)}! Faltam ${lp.xpToNext} pontos para virar ${next}.` : `Você é ${levelTitle(lp.level)}, o maior título de todos!`} />}
+              onContinue={() => setLevelOpen(false)} />
+          );
+        })()}
+        {jericho && <JerichoWalls onDone={() => setJericho(false)} />}
         {menuOpen && home && <MyDataSheet home={home} unread={unread} onGo={go} onOpenNotices={() => setNoticesOpen(true)} onOpenAccount={() => setAccountOpen(true)} onLogout={onLogout} onClose={() => setMenuOpen(false)} />}
         {accountOpen && <PanelDialog title="Minha conta" onClose={() => setAccountOpen(false)}><AccountSettings hideColor /></PanelDialog>}
         {noticesOpen && <NoticesDialog onClose={() => setNoticesOpen(false)} onRead={() => setNoticeVersion((v) => v + 1)} />}

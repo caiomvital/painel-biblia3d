@@ -92,10 +92,10 @@ export function LiveQuizScreen({ onBack }: { onBack: () => void }) {
         <Card as="div" className="space-y-3">
           <label className="block text-lg font-semibold" htmlFor="live-pin">PIN da sala</label>
           <p className="text-game-ink-dim">O professor mostra os 6 números.</p>
-          <input id="live-pin" inputMode="numeric" autoComplete="off" maxLength={6} value={pin} data-testid="live-pin-input"
+          <input id="live-pin" inputMode="numeric" autoComplete="off" maxLength={6} value={pin} placeholder="000000" data-testid="live-pin-input"
             onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
             onKeyDown={(e) => { if (e.key === 'Enter' && pin.length === 6 && !busy) join(); }}
-            className="w-full rounded-game border-2 border-game-line bg-game-surface-2 px-3 py-3 text-center text-4xl font-bold tracking-[0.4em] text-game-ink" />
+            className="w-full rounded-game border-2 border-game-line bg-game-surface-2 px-3 py-3 text-center text-4xl font-bold tracking-[0.4em] text-game-ink placeholder:text-game-ink-dim/40" />
           {error && <p role="alert" className="font-semibold text-game-danger">{error}</p>}
           <Button onClick={join} disabled={pin.length !== 6 || busy} className="w-full" data-testid="live-join-go">Entrar</Button>
         </Card>

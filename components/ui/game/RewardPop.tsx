@@ -25,7 +25,7 @@ export function RewardPop({ reward, onDone, duration = 1800 }: RewardPopProps) {
 
   const kind = reward?.kind ?? 'points';
   return (
-    <div aria-live="polite" role="status" className="pointer-events-none fixed inset-x-0 top-24 z-50 flex justify-center">
+    <div aria-live="polite" role="status" className="pointer-events-none fixed inset-x-0 top-[4.75rem] z-50 flex justify-end px-4">
       <AnimatePresence>
         {reward && (
           <motion.div

@@ -55,7 +55,7 @@ export function AuctionCorner({ onOpen, compact }: { onOpen: () => void; compact
           aria-label={`Leilão: ${item.title}, lance atual ${item.currentBid} fichas`}
           className={`flex min-h-0 flex-1 flex-col gap-1.5 text-left ${compact ? 'px-3 pb-2 pt-1' : 'gap-2 px-4 pb-2 pt-2'} focus-visible:outline-3 focus-visible:outline-offset-[-6px] focus-visible:outline-white`}>
           <span key={item.id} className="davi-in-fade flex min-h-0 flex-1 flex-col gap-2">
-            <span aria-hidden="true" className={`flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#4a6fb0] to-[#243a5c] ${compact ? '[@media(max-height:600px)]:hidden' : ''}`}>
+            <span aria-hidden="true" className={`flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#4a6fb0] to-[#243a5c] ${compact ? '[@media(max-height:600px)]:hidden' : '[@media(max-height:820px)]:hidden'}`}>
               {item.imageUrl
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={item.imageUrl} alt="" draggable={false} className="size-full object-cover" />

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { DaviMood } from '@/lib/davi-guide';
+import { createTapCounter, daviJoke } from '@/lib/easter-eggs';
 import { HEAD_FIT, TUNIC_FIT, partFile } from '@/lib/davi-parts';
 import type { MascotLook } from '@/lib/mascot-look';
 import { useMascotLook } from '@/components/ui/game/Mascot';
@@ -90,21 +91,35 @@ export function DaviBubble({ text }: { text: string }) {
     <div role="status" className="davi-in-fade flex flex-col items-center rounded-2xl border-2 border-b-4 border-game-line bg-game-surface px-3 py-1.5 text-center text-base font-semibold leading-snug text-game-ink">
       <span><span className="text-game-primary">Davi: </span>{text}</span>
       <button type="button" onClick={() => setDaviGuide(false)} data-testid="davi-silence"
-        className="text-xs font-normal text-game-ink-dim underline focus-visible:outline-2 focus-visible:outline-white">
+        className="min-h-9 px-2 text-sm font-normal text-game-ink-dim underline focus-visible:outline-2 focus-visible:outline-white">
         Silenciar o Davi
       </button>
     </div>
   );
 }
 
-/** O tutor em ação: o Davi pequeno com a fala ao lado. Some se o aluno silenciou o Davi. */
+/**
+ * O tutor em ação: o Davi pequeno com a fala ao lado. Some se o aluno silenciou o Davi.
+ * Easter egg: 5 toques seguidos no Davi e ele conta uma piada (uma diferente a cada vez, só diversão).
+ */
 export function DaviTutor({ text, mood, className = '' }: { text: string; mood: DaviMood; className?: string }) {
   const enabled = useDaviGuide();
+  const [joke, setJoke] = useState<string | null>(null);
+  const turn = useRef(0);
+  const fiveTaps = useRef(createTapCounter(5, 1500));
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   if (!enabled) return null;
+  const onSpriteTap = () => {
+    if (!fiveTaps.current()) return;
+    setJoke(daviJoke(turn.current++));
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setJoke(null), 9000);
+  };
   return (
     <div className={`flex items-end gap-2 ${className}`} data-testid="davi-tutor">
-      <div className="w-14 shrink-0"><DaviSprite mood={mood} /></div>
-      <div className="mb-2 min-w-0 flex-1 [&>div]:items-start [&>div]:text-left"><DaviBubble text={text} /></div>
+      <div className="w-14 shrink-0" onClick={onSpriteTap} data-testid="davi-sprite"><DaviSprite mood={joke ? 'comemorando' : mood} /></div>
+      <div className="mb-2 min-w-0 flex-1 [&>div]:items-start [&>div]:text-left"><DaviBubble text={joke ?? text} /></div>
     </div>
   );
 }

@@ -33,7 +33,7 @@ export function HUD({ coins, points, actions, onProfile, profileActive = false, 
         {(() => {
           const cls = 'flex size-10 sm:size-12 shrink-0 flex-col items-center justify-center rounded-full border-b-4 border-game-primary-deep bg-game-primary text-game-ink-on-light';
           const inner = (<>
-            <span className="text-[0.55rem] font-bold uppercase leading-none">Nível</span>
+            <span className="text-[0.65rem] font-bold uppercase leading-none">Nível</span>
             <span className="font-[family-name:var(--font-game-title)] text-base leading-none sm:text-lg">{level}</span>
           </>);
           return onProfile ? (

@@ -35,7 +35,7 @@ export function XPBar({ value, max, className = '', showNumbers = true }: XPBarP
         transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 90, damping: 18 }}
       />
       {showNumbers && (
-        <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[0.7rem] font-bold leading-none text-white [-webkit-text-stroke:3px_#15123a] [paint-order:stroke_fill]">
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[0.8rem] font-bold leading-none text-white [-webkit-text-stroke:3px_#15123a] [paint-order:stroke_fill]">
           {clamped} / {safeMax}
         </span>
       )}

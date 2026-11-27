@@ -50,6 +50,17 @@
   100% { transform: translate3d(var(--dx, 0), 110vh, 0) rotate(var(--rot, 360deg)); opacity: 0.9; }
 }
 
+/* Easter egg "Muros de Jericó": os tijolos tremem e caem, cada coluna num ritmo. */
+@keyframes b3d-wall-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+@keyframes b3d-wall-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(120vh) rotate(var(--rot, 20deg)); opacity: 1; }
+}
+
 /* Moedas subindo ao pontuar. */
 @keyframes b3d-rise {
   0% { transform: translateY(0) scale(0.6); opacity: 0; }
