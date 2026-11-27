@@ -153,7 +153,8 @@ export function DirectorView() {
       id,
       values: {
         name: person?.name ?? "",
-        email: person?.email ?? "",
+        // o login do aluno é o telefone: ao editar, em branco = não muda
+        email: kind === "students" ? "" : (person?.email ?? ""),
         ...(kind === "teachers"
           ? {
               specialty:

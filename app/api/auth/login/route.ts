@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
     if (/^\d{8}$/.test(phoneOnly) || /^\d{10,11}$/.test(phoneOnly)) {
       // Login da criança: telefone do responsável + senha. Vários filhos => pergunta quem está entrando.
       // O login é digitado só com os 8 últimos dígitos (sem o 81); o telefone completo, com DDD, continua valendo.
-      const where = phoneOnly.length === 8 ? { endsWith: phoneOnly } : phoneOnly;
+      // 10 ou 11 dígitos: mesmo DDD e mesmos 8 últimos dígitos, então vale com ou sem o 9 (81995474295 ou 8195474295)
+      const where = phoneOnly.length === 8 ? { endsWith: phoneOnly } : { startsWith: phoneOnly.slice(0, 2), endsWith: phoneOnly.slice(-8) };
       const kids = await prisma.user.findMany({ where: { student: { guardianPhone: where } }, include: userInclude });
       const matches: any[] = [];
       for (const kid of kids) {
