@@ -142,7 +142,7 @@ export default function DirectorAcademicForm({
             </>
           ) : (
             <>
-              {editor.kind === "students" ? input("email", "Telefone do aluno (login, com DDD)", "tel") : input("email", "Login (e-mail ou nome de usuário)", "text")}
+              {input("email", "Login", editor.kind === "students" ? "tel" : "text")}
               {!editor.id && input("initialPassword", editor.kind === "students" ? "Senha inicial (opcional: em branco, usa \"tecnologia\")" : "Senha inicial (5 caracteres ou mais)", "password", editor.kind !== "students" && process.env.NODE_ENV === "production")}
               {editor.kind === "students" && !editor.id &&
                 select("classId", "Turma", data.classes.map((c) => ({ id: c.id, name: c.name })), false, "Sem turma")}
