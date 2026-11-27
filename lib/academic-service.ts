@@ -845,6 +845,12 @@ function validatePerson(data: { name?: string; email?: string }) {
   )
     throw new Error("O login precisa ter de 3 a 120 caracteres, sem espaços.");
 }
+/** Login de aluno é só o telefone (DDD + número), guardado só com dígitos. Professor/diretor podem ter outro login. */
+function studentLogin(value: string): string {
+  const phone = String(value ?? "").replace(/\D/g, "");
+  if (!/^\d{10,11}$/.test(phone)) throw new Error("O login do aluno é o telefone, com DDD. Ex.: 81995474295.");
+  return phone;
+}
 function validateClassFields(data: Record<string, unknown>) {
   for (const key of ["name", "code", "daysOfWeek", "scheduleTime", "courseId"])
     if (
@@ -967,8 +973,8 @@ export async function createStudentByDirector(data: {
   currentXp?: number;
   initialPassword?: string;
 }) {
-  validatePerson(data);
-  const normalizedEmail = data.email.toLowerCase().trim();
+  validatePerson({ name: data.name });
+  const normalizedEmail = studentLogin(data.email);
   const initialXp = Number(data.currentXp) || 100;
   if (!Number.isInteger(initialXp) || initialXp < 0) throw new Error("XP inválido.");
   if (data.classId && !await prisma.class.findUnique({ where: { id: data.classId } })) throw new Error("Turma inválida.");
@@ -1064,7 +1070,8 @@ export async function updateStudentByDirector(
   },
   directorUserId?: string
 ) {
-  validatePerson(data);
+  validatePerson({ name: data.name });
+  if (data.email) data = { ...data, email: studentLogin(data.email) };
   if (data.currentXp !== undefined && (!Number.isInteger(data.currentXp) || data.currentXp < 0)) throw new Error("XP inválido.");
   return await prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Student" WHERE id = ${studentId} FOR UPDATE`;
