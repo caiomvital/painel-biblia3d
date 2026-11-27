@@ -14,7 +14,7 @@ const ord = (n: number) => `${n}º`;
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div className="flex min-w-24 flex-col items-center rounded-game border-2 border-game-line bg-game-bg/60 px-3 py-2 text-center">
-      <span className="text-xs font-semibold uppercase tracking-wide text-game-ink-dim">{label}</span>
+      <span className="text-sm font-semibold uppercase tracking-wide text-game-ink-dim">{label}</span>
       <span className="flex items-center gap-1.5 font-[family-name:var(--font-game-title)] text-2xl">{icon}{value}</span>
     </div>
   );
@@ -33,7 +33,7 @@ export function HomeDashboard({ home, celebrate, onGo, chest, children }: {
       <div className="flex h-[calc(100dvh-14.5rem)] min-h-[22rem] min-w-0 flex-col gap-4">
         {/* Boas-vindas: o Lofi, o nível e os números; o baú é só um detalhe no canto. */}
         <section className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2 rounded-[2rem] border-2 border-game-primary bg-gradient-to-br from-[#34507a] via-[#243a5c] to-[#17253d] px-6 py-2 shadow-xl">
-          <div className={quizPending ? 'game-bounce' : ''}><LiveMascot bare size={4.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} /></div>
+          <div data-easter="lofi" className={quizPending ? 'game-bounce' : ''}><LiveMascot bare size={4.5} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} /></div>
           <div className="min-w-56 flex-1">
             <h1 className="font-[family-name:var(--font-game-title)] text-3xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
             <div className="mt-2 max-w-sm">
@@ -56,7 +56,7 @@ export function HomeDashboard({ home, celebrate, onGo, chest, children }: {
             onClick={() => onGo('quests')} glow={quizPending} done={home.quiz.completedToday} />
           <div className="flex min-h-0 min-w-0 flex-col gap-2">
             <div className="flex min-h-0 flex-1"><AuctionCorner onOpen={() => onGo('auction')} /></div>
-            <div data-testid="home-fichas" className="flex shrink-0 [@media(max-height:700px)]:hidden items-center justify-between gap-3 rounded-[1.25rem] border-2 border-[#c9a24a] bg-[#2a2210] px-4 py-2 shadow-[0_3px_0_#6b5322]">
+            <div data-testid="home-fichas" className="flex shrink-0 [@media(max-height:780px)]:hidden items-center justify-between gap-3 rounded-[1.25rem] border-2 border-[#c9a24a] bg-[#2a2210] px-4 py-2 shadow-[0_3px_0_#6b5322]">
               <span className="flex items-center gap-2 font-[family-name:var(--font-game-title)] text-2xl text-game-coin"><CoinIcon /> {home.coins.available}</span>
               <span className="text-right text-xs font-semibold leading-tight text-game-ink-dim">fichas para dar lances{reserved > 0 ? <><br />({reserved} em lances ativos)</> : null}</span>
             </div>

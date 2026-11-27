@@ -166,7 +166,8 @@ export function QuizPlayer({ kind, emptyText, onDone, onError, onReward, onExit 
             {right ? '✔ Acertou! Muito bem!' : `✘ Quase! A resposta certa é: ${q.options[fb.correctIndex]}`}
           </p>
         )}
-        <div className="mt-4 flex gap-2">
+        {/* grudado acima da barra de baixo: em tela baixa o botão principal nunca fica escondido */}
+        <div className="sticky bottom-[4.75rem] z-10 -mx-1 mt-4 flex gap-2 rounded-game bg-game-surface px-1 py-2" data-testid="quiz-actions">
           {step > 0 && <Button variant="ghost" onClick={() => setStep(step - 1)}>Voltar</Button>}
           {!fb ? (
             <Button size="lg" className="flex-1" disabled={checking || answers[step] < 0} onClick={() => void check()}>{checking ? 'Conferindo…' : 'Responder'}</Button>

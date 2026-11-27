@@ -8,7 +8,7 @@ export const DAVI_QUIZ_INTRO = 'Vamos ver o que você sabe?';
 export function daviResultMessage(score: number, total: number): { text: string; mood: DaviMood } {
   if (total > 0 && score >= total) return { text: 'Você arrasou! Acertou tudo!', mood: 'comemorando' };
   if (total > 0 && score * 2 >= total) return { text: 'Muito bem! Cada acerto conta!', mood: 'feliz' };
-  return { text: 'Quase lá! Na próxima você vai melhor.', mood: 'pensando' };
+  return { text: 'Quase lá! Na próxima você vai se sair melhor.', mood: 'pensando' };
 }
 
 /** Falas do Davi no quiz ao vivo (nunca mostram resposta antes de a pergunta fechar). */

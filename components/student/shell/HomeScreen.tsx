@@ -80,7 +80,7 @@ export function HomeScreen({ home, celebrate, onGo, onNotice, onError, onRefresh
       <div className="flex h-[calc(100dvh-var(--home-chrome,14rem))] min-h-80 flex-col gap-3" data-testid="home-grid">
         {/* 1. O "Olá": o Lofi, o nome e o baú (só um detalhe, com o número numa bola vermelha). */}
         <section className="flex shrink-0 items-center gap-3 rounded-[1.5rem] border-2 border-game-primary bg-gradient-to-br from-[#34507a] via-[#243a5c] to-[#17253d] px-3 py-2 shadow-lg">
-          <div className={quizPending ? 'game-bounce' : ''}><LiveMascot bare size={pwa ? 4 : 3} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} /></div>
+          <div data-easter="lofi" className={quizPending ? 'game-bounce' : ''}><LiveMascot bare size={pwa ? 4 : 3} cheering={celebrate} label={`${MASCOT_NAME}, o robô`} /></div>
           <h1 className="min-w-0 flex-1 truncate font-[family-name:var(--font-game-title)] text-2xl leading-tight tracking-wide">Olá, {home.firstName}!</h1>
           <ChestSquare ctl={chest} />
         </section>

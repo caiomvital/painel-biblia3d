@@ -72,7 +72,7 @@ export function MyDataSheet({ home, unread, onGo, onOpenNotices, onOpenAccount, 
           {row('Na escola', `${ord(home.rankAcademia.position)} de ${home.rankAcademia.total}`)}
           {home.guardianName && row('Responsável', home.guardianName)}
         </dl>
-        {onLogout && <Button variant="danger" className="mt-4 w-full" onClick={() => { onClose(); onLogout(); }} data-testid="sheet-logout">Sair</Button>}
+        {onLogout && <div className="sticky bottom-0 -mx-4 mt-4 border-t-2 border-game-line bg-game-surface px-4 py-3"><Button variant="danger" className="w-full" onClick={() => { onClose(); onLogout(); }} data-testid="sheet-logout">Sair</Button></div>}
       </div>
     </dialog>
   );
