@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button, Card, Mascot } from '@/components/ui/game';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { firstPasswordProblem } from '@/lib/password-rules';
 
 const field = 'mt-1 w-full rounded-game border-2 border-game-line bg-game-bg px-4 py-3 text-lg font-normal text-game-ink';
@@ -52,11 +53,11 @@ export function FirstPasswordScreen({ onDone, onLogout }: { onDone: () => void; 
         <Card as="div" tone="highlight" className="w-full">
           <form className="space-y-4" onSubmit={submit} noValidate>
             <label className="block font-semibold">Senha nova
-              <input name="newPassword" type={show ? 'text' : 'password'} autoComplete="new-password" className={`${field} min-h-12`}
+              <PasswordInput name="newPassword" visible={show} onVisibleChange={setShow} autoComplete="new-password" className={`${field} min-h-12`}
                 value={password} onChange={(e) => setPassword(e.target.value)} />
             </label>
             <label className="block font-semibold">Escreva de novo
-              <input name="again" type={show ? 'text' : 'password'} autoComplete="new-password" className={`${field} min-h-12`}
+              <PasswordInput name="again" visible={show} onVisibleChange={setShow} autoComplete="new-password" className={`${field} min-h-12`}
                 value={again} onChange={(e) => setAgain(e.target.value)} />
             </label>
             <label className="flex min-h-12 items-center gap-3 font-semibold">

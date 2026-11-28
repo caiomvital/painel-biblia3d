@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from "react";
 import type { DirectorDashboardData } from "@/lib/academic-service";
 import { api, buttonClass, fieldClass, statusLabel } from "./director-ui";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 export type AcademicEditor = {
   kind: "classes" | "teachers" | "students";
   id?: string;
@@ -26,15 +27,24 @@ export default function DirectorAcademicForm({
     return (
       <label className="block" key={key}>
         {label}
-        <input
-          className={fieldClass}
-          type={type}
-          required={required}
-          value={values[key] ?? ""}
-          min={type === "number" ? 1 : undefined}
-          minLength={key === "initialPassword" ? 5 : undefined}
-          onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-        />
+        {type === "password" ? (
+          <PasswordInput
+            className={fieldClass}
+            required={required}
+            value={values[key] ?? ""}
+            minLength={key === "initialPassword" ? 5 : undefined}
+            onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
+          />
+        ) : (
+          <input
+            className={fieldClass}
+            type={type}
+            required={required}
+            value={values[key] ?? ""}
+            min={type === "number" ? 1 : undefined}
+            onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
+          />
+        )}
       </label>
     );
   }

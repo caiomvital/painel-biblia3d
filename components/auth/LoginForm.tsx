@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/game';
 import { playSound } from '@/components/ui/game/sound-store';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { PWAInstallButton } from '@/components/pwa/PWAInstallButton';
 
 interface LoginFormProps {
@@ -102,7 +103,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               placeholder={who === 'ALUNO' ? 'Login (8 números, sem o 81)' : 'Seu e-mail'} className={`${field} mt-1`} />
           </label>
           <label htmlFor="login-password" className="block font-semibold">Senha
-            <input id="login-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)}
+            <PasswordInput id="login-password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)}
               placeholder="Sua senha" className={`${field} mt-1`} />
           </label>
           <Button type="submit" size="lg" disabled={loading} className="w-full">{loading ? 'Entrando…' : 'Entrar'}</Button>
