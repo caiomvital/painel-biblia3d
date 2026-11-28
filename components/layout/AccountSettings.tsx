@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { useUserPreferences } from './UserPreferences';
 import { panelApi, panelButton, panelField } from './panel-ui';
 export function AccountSettings({ hideColor = false }: { hideColor?: boolean } = {}) {
@@ -34,10 +35,10 @@ export function AccountSettings({ hideColor = false }: { hideColor?: boolean } =
     </fieldset>
     <form onSubmit={passwordSubmit} className="space-y-3 border-t border-slate-800 pt-4">
       <h3 className="font-semibold">Trocar senha</h3><p className="text-sm text-slate-400">Informe sua senha atual. A troca encerra as outras sessões, sem envio de e-mail.</p>
-      <label className="block text-sm">Senha atual<input className={panelField} type="password" autoComplete="current-password" required value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} /></label>
-      <label className="block text-sm">Nova senha<input className={panelField} type="password" autoComplete="new-password" required minLength={5} value={newPassword} onChange={e => setNewPassword(e.target.value)} /></label>
+      <label className="block text-sm">Senha atual<PasswordInput className={panelField} autoComplete="current-password" required value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} /></label>
+      <label className="block text-sm">Nova senha<PasswordInput className={panelField} autoComplete="new-password" required minLength={5} value={newPassword} onChange={e => setNewPassword(e.target.value)} /></label>
       <p className="text-xs text-slate-400">A senha precisa ter 5 caracteres ou mais.</p>
-      <label className="block text-sm">Confirmar nova senha<input className={panelField} type="password" autoComplete="new-password" required minLength={5} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} /></label>
+      <label className="block text-sm">Confirmar nova senha<PasswordInput className={panelField} autoComplete="new-password" required minLength={5} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} /></label>
       {passwordError && <p role="alert" className="text-rose-300">{passwordError}</p>}
       <button className={panelButton} disabled={passwordBusy}>{passwordBusy ? 'Alterando…' : 'Alterar senha'}</button>
     </form>
